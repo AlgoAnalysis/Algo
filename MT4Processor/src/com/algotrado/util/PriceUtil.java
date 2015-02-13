@@ -24,8 +24,10 @@ public class PriceUtil {
 			return -1;
 		}
 		double max = candles.get(0).getLow();
-		for(JapaneseCandleBar candle : candles) {
-			if (candle.getHigh() > max) {
+		for(JapaneseCandleBar candle : candles) 
+		{
+			if (candle.getHigh() > max) 
+			{
 				max = candle.getHigh();
 			}
 		}

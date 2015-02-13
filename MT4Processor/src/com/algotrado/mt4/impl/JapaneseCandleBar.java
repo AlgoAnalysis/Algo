@@ -9,8 +9,9 @@ public class JapaneseCandleBar extends AbstractCandleBar {
 	public static final String _4_HOUR = "4 Hour";
 	public static final String _1_DAY = "1 Day";
 	public static final String _1_HOUR = "1 Hour";
-	protected double open, close, high, low, sma20;
+	protected double open, close, high, low, volume;
 	private Date time;
+	protected double sma20;
 	public PinbarStrategy pinbarStrategy;
 	private String commodityName = null;
 
