@@ -34,10 +34,12 @@ public abstract class IDataExtractorSubject implements Runnable{
 	 * 
 	 * @param observer
 	 */
-	public void registerObserver(IDataExtractorObserver observer ) {
+	public IDataExtractorSubject registerObserver(IDataExtractorObserver observer ) {
 		if (!this.observers.contains(observer)) {
 			this.observers.add(observer);
+			observer.setSubject(this);
 		}
+		return this;
 	}
 	
 	/**
@@ -50,7 +52,9 @@ public abstract class IDataExtractorSubject implements Runnable{
 	
 	public void notifyObservers(AssetType assetType, DataEventType dataEventType, List<Float> parameters) {
 		for (IDataExtractorObserver observer : this.observers) {
-			observer.notifyObserver();
+			observer.notifyObserver(dataEventType, parameters);
 		}
 	}
+	
+	public abstract NewUpdateData getNewData();
 }
