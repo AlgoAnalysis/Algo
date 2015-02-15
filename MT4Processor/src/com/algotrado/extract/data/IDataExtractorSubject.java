@@ -48,6 +48,7 @@ public abstract class IDataExtractorSubject implements Runnable{
 	 */
 	public void unregisterObserver(IDataExtractorObserver observer) {
 		this.observers.remove(observer);
+		observer.removeSubject(this);
 	}
 	
 	public void notifyObservers(AssetType assetType, DataEventType dataEventType, List<Float> parameters) {

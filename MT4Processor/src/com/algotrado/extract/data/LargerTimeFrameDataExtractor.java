@@ -34,6 +34,10 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 	public void setSubject(IDataExtractorSubject dataExtractorSubject) {
 		this.dataExtractorSubject = dataExtractorSubject;
 	}
+	
+	public void removeSubject(IDataExtractorSubject dataExtractorSubject) {
+		this.dataExtractorSubject = null;
+	}
 
 	@Override
 	public void run() {

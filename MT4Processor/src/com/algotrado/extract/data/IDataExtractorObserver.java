@@ -12,4 +12,5 @@ public interface IDataExtractorObserver {
 	 * @param dataExtractorSubject
 	 */
 	public void setSubject(IDataExtractorSubject dataExtractorSubject);
+	public void removeSubject(IDataExtractorSubject dataExtractorSubject);
 }
