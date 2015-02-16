@@ -1,7 +1,9 @@
 package com.algotrado.extract.data;
 
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import com.algotrado.mt4.impl.JapaneseCandleBar;
@@ -68,7 +70,7 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 		}
 		
 		//Take all the candle bars from subject and create new candle bars in larger time frame. 
-		
+		Date previousDate = null;
 		double open=-1, close=-1, high=-1, low=-1, volume=-1;
 		Date openTime = null;
 		for (JapaneseCandleBar candleBarData : subjectCandleBars) {
@@ -79,8 +81,22 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 				low = candleBarData.getLow();
 				openTime = candleBarData.getTime();
 			}
+			boolean isNewWeek = false;
+			if (previousDate != null && openTime != null) {//Support new candle when a new week starts. 
+				Calendar prevCalendar = GregorianCalendar.getInstance(); // creates a new calendar instance
+				prevCalendar.setTime(previousDate);
+				Calendar currCalendar = GregorianCalendar.getInstance(); // creates a new calendar instance
+				currCalendar.setTime(openTime);
+				if (prevCalendar.get(Calendar.WEEK_OF_YEAR) != currCalendar.get(Calendar.WEEK_OF_YEAR)) {
+					isNewWeek = true;
+					if (!timeFrameType.isTimeFrameEndTime(previousDate)) {
+						dataList.addCandleBar(new SingleCandleBarData(open, close, high, low, openTime, candleBarData.getCommodityName(), 0, 
+								0, 0, 0, 0, 0, 0));
+					}
+				}
+			}
 			
-			if (timeFrameType.isTimeFrameStartTime(candleBarData.getTime())) {
+			if (timeFrameType.isTimeFrameStartTime(candleBarData.getTime()) || isNewWeek) {
 				open = candleBarData.getOpen();
 				openTime = candleBarData.getTime();
 				high = candleBarData.getHigh();
@@ -94,6 +110,7 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 				}
 				dataList.addCandleBar(new SingleCandleBarData(open, close, high, low, openTime, candleBarData.getCommodityName(), 0, 
 																0, 0, 0, 0, 0, 0));
+				previousDate = openTime;
 			} else {
 				if (candleBarData.getHigh() > high) {
 					high = candleBarData.getHigh();
