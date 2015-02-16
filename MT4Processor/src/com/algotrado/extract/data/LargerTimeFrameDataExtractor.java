@@ -1,8 +1,10 @@
 package com.algotrado.extract.data;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
+import com.algotrado.mt4.impl.JapaneseCandleBar;
 import com.algotrado.mt4.tal.strategy.check.pattern.SingleCandleBarData;
 
 public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implements IDataExtractorObserver {
@@ -60,7 +62,47 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 		CandleBarsCollection subjctDataList = (CandleBarsCollection)this.dataExtractorSubject.getNewData();
 		Collection<SingleCandleBarData> subjectCandleBars = subjctDataList.getCandleBars();
 		
+		if (subjectTimeFrame.isLargerTimeFrame(timeFrameType)) {
+			throw new RuntimeException("Cannot use larger time frame " + subjectTimeFrame.getValueInMinutes() + 
+					" to get lower time frame " + timeFrameType.getValueInMinutes());
+		}
+		
 		//Take all the candle bars from subject and create new candle bars in larger time frame. 
+		
+		double open=-1, close=-1, high=-1, low=-1, volume=-1;
+		Date openTime = null;
+		for (JapaneseCandleBar candleBarData : subjectCandleBars) {
+			if (open < 0) {
+				open = candleBarData.getOpen();
+//				close = candleBarData.getClose();
+				high = candleBarData.getHigh();
+				low = candleBarData.getLow();
+				openTime = candleBarData.getTime();
+			}
+			
+			if (timeFrameType.isTimeFrameStartTime(candleBarData.getTime())) {
+				open = candleBarData.getOpen();
+				openTime = candleBarData.getTime();
+				high = candleBarData.getHigh();
+				low = candleBarData.getLow();
+			} else if (timeFrameType.isTimeFrameEndTime(candleBarData.getTime())) {
+				close = candleBarData.getClose();
+				if (candleBarData.getHigh() > high) {
+					high = candleBarData.getHigh();
+				} else if (candleBarData.getLow() < low) {
+					low = candleBarData.getLow();
+				}
+				dataList.addCandleBar(new SingleCandleBarData(open, close, high, low, openTime, candleBarData.getCommodityName(), 0, 
+																0, 0, 0, 0, 0, 0));
+			} else {
+				if (candleBarData.getHigh() > high) {
+					high = candleBarData.getHigh();
+				} else if (candleBarData.getLow() < low) {
+					low = candleBarData.getLow();
+				}
+			}
+			
+		}
 		
 		run();
 	}
