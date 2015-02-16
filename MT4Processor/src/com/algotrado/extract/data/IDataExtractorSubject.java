@@ -20,7 +20,7 @@ public abstract class IDataExtractorSubject implements Runnable{
 	* @param assetType
 	 * @param dataEventType
 	 * @param parameters - 	may be different parameters according to event type.
-	 * 						JAPANESE - 	parameters={Interval}
+	 * 						JAPANESE - 	parameters={Interval, PipsValue}
 	 * 						NEW_QUOTE - parameters={}
 	 */	
 	public IDataExtractorSubject (AssetType assetType, DataEventType dataEventType, List<Float> parameters) {

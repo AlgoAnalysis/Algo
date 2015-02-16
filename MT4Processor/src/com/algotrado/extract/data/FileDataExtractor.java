@@ -1,7 +1,9 @@
 package com.algotrado.extract.data;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -22,27 +24,27 @@ public class FileDataExtractor extends IDataExtractorSubject {
 
 	@Override
 	public void run() {
-//		List<SingleCandleBarData> datalist = new ArrayList<SingleCandleBarData>();
 		dataList = new CandleBarsCollection();
-
-	    try
+		try
 	    {
 	      FileReader fr = new FileReader(filePath);
 	      BufferedReader br = new BufferedReader(fr);
 	      String stringRead = br.readLine();
+	      if (stringRead != null) {
+	    	  parameters.add(Float.valueOf(stringRead));
+	    	  stringRead = br.readLine();
+	      }
 	      int index = 0;
 	      String date = null, period = null;
 	      Double open = null, high = null, low = null, close = null, sma20 = null, bollinger20TopBand = null, bollinger20BottomBand = null,
 	    		  sma10 = null, bollinger10TopBand = null, bollinger10BottomBand = null, rsi = null;
 	      
 	      //2014.04.15 04:00:00
-	      //SimpleDateFormat formatter = new SimpleDateFormat("yyyy.MM.dd HH:mm");
 	      SimpleDateFormat formatter = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
 	      SimpleDateFormat hourformatter = new SimpleDateFormat("HH:mm");
 	      SimpleDateFormat dateformatter = new SimpleDateFormat("dd/MM/yyyy");
 	      while( stringRead != null )
 	      {
-	        //StringTokenizer st = new StringTokenizer(stringRead, ",");
 	    	StringTokenizer st = new StringTokenizer(stringRead, ";");
 	        date = st.nextToken( );
 	        period = st.nextToken( );  
@@ -89,6 +91,7 @@ public class FileDataExtractor extends IDataExtractorSubject {
 	    }
 	      
 	}
+	
 
 	@Override
 	public NewUpdateData getNewData() {
