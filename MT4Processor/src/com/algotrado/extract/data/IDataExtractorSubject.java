@@ -20,7 +20,7 @@ public abstract class IDataExtractorSubject implements Runnable{
 	* @param assetType
 	 * @param dataEventType
 	 * @param parameters - 	may be different parameters according to event type.
-	 * 						JAPANESE - 	parameters={Interval}
+	 * 						JAPANESE - 	parameters={Interval, PipsValue}
 	 * 						NEW_QUOTE - parameters={}
 	 */	
 	public IDataExtractorSubject (AssetType assetType, DataEventType dataEventType, List<Float> parameters) {
@@ -34,10 +34,12 @@ public abstract class IDataExtractorSubject implements Runnable{
 	 * 
 	 * @param observer
 	 */
-	public void registerObserver(IDataExtractorObserver observer ) {
+	public IDataExtractorSubject registerObserver(IDataExtractorObserver observer ) {
 		if (!this.observers.contains(observer)) {
 			this.observers.add(observer);
+			observer.setSubject(this);
 		}
+		return this;
 	}
 	
 	/**
@@ -46,11 +48,14 @@ public abstract class IDataExtractorSubject implements Runnable{
 	 */
 	public void unregisterObserver(IDataExtractorObserver observer) {
 		this.observers.remove(observer);
+		observer.removeSubject(this);
 	}
 	
 	public void notifyObservers(AssetType assetType, DataEventType dataEventType, List<Float> parameters) {
 		for (IDataExtractorObserver observer : this.observers) {
-			observer.notifyObserver();
+			observer.notifyObserver(dataEventType, parameters);
 		}
 	}
+	
+	public abstract NewUpdateData getNewData();
 }
