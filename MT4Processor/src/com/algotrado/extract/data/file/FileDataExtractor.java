@@ -70,7 +70,7 @@ public class FileDataExtractor extends IDataExtractorSubject {
 					}
 				});
 				if (intervalFileNames.length > 0) {
-					return new FileDataExtractor(assetType, dataEventType, parameters, intervalFileNames[0]);
+					return new FileDataExtractor(assetType, dataEventType, parameters, root.getAbsolutePath() + File.separator + intervalFileNames[0]);
 				}
 			}
 		}
