@@ -1,20 +1,82 @@
-package com.algotrado.extract.data;
+package com.algotrado.extract.data.file;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
+import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
+import java.io.FilenameFilter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import com.algotrado.extract.data.AssetType;
+import com.algotrado.extract.data.CandleBarsCollection;
+import com.algotrado.extract.data.DataEventType;
+import com.algotrado.extract.data.IDataExtractorObserver;
+import com.algotrado.extract.data.IDataExtractorSubject;
+import com.algotrado.extract.data.LargerTimeFrameDataExtractor;
+import com.algotrado.extract.data.NewUpdateData;
 import com.algotrado.mt4.tal.strategy.check.pattern.SingleCandleBarData;
 
 public class FileDataExtractor extends IDataExtractorSubject {
 	private String filePath;
 	CandleBarsCollection dataList;
+	
+	public static void main(String [] args)
+	  {
+		// Check that static method is working.
+		List<Float> params = new ArrayList<Float>();
+		params.add((float) 5.0);
+		System.out.println(getSubjectDataExtractor(AssetType.USOIL, DataEventType.JAPANESE, params, "./root").getClass().getSimpleName());
+	  }
+	
+	/**
+	 * Should return correct subject file data extractor / or larger time frame data extractor. 
+	 * @param assetType
+	 * @param dataEventType
+	 * @param parameters
+	 * @param observer
+	 * @param dirPath
+	 * @return
+	 */
+	public static IDataExtractorSubject getSubjectDataExtractor(final AssetType assetType,DataEventType dataEventType,final List<Float> parameters, String dirPath){
+//		final AssetType assetTypeFinal = assetType;
+//		final List<Float> parametersFinal = parameters;
+		if (dirPath == null || dirPath.equals("")) {
+			throw new RuntimeException("FileDataExtractor = > getSubjectDataExtractor() : dirPath must not be null.");
+		}
+		File root = new File(dirPath);
+		if (!root.exists())  {
+			throw new RuntimeException("FileDataExtractor = > getSubjectDataExtractor() : dirPath = " + dirPath + " , does not exist.");
+		}
+		
+		String [] fileNames = root.list(new FilenameFilter() {
+			
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.endsWith(assetType.name());
+			}
+		});
+		
+		for (String assetName : fileNames) {
+			File assetDir = new File(root.getAbsolutePath() + File.separator + assetName);
+			if (assetDir.isDirectory()) {
+				String [] intervalFileNames = assetDir.list(new FilenameFilter() {
+					@Override
+					public boolean accept(File dir, String name) {
+						return name.endsWith(parameters.get(0).intValue() + ".csv");
+					}
+				});
+				if (intervalFileNames.length > 0) {
+					return new FileDataExtractor(assetType, dataEventType, parameters, intervalFileNames[0]);
+				}
+			}
+		}
+		
+		return new LargerTimeFrameDataExtractor(assetType, dataEventType, parameters);
+	}
 
 	public FileDataExtractor(AssetType assetType, DataEventType dataEventType,
 			List<Float> parameters, String filePath) {
