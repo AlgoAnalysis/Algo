@@ -115,7 +115,7 @@ public class Run2Point5DeviationExtremeCondition {
 	    		currentBarWriter.append("Did 3:1?");
 	    		currentBarWriter.append('\n');
 
-	    		Strategy barStrategy = new ExtremeConditionOutside25StandartDeviation();
+	    		Strategy barStrategy = null;//new ExtremeConditionOutside25StandartDeviation();
 	    		double pinbarIndex = 0, successfullPinbarsDidOneToOne = 0, successfullPinbarsDidTwoToOne = 0, successfullPinbarsDidThreeToOne = 0;
 	    		double successfulMidline = 0;
 	    		for (SingleCandleBarData temp : datalist) {
@@ -150,23 +150,23 @@ public class Run2Point5DeviationExtremeCondition {
 	    				boolean bullishPinbarStrategy = barStrategy.isLongStrategyPattern(candleBars, index, pipsValue);
 	    				currentBarWriter.append(bullishPinbarStrategy ? "Long ↑" : "Short ↓");
 	    				currentBarWriter.append(',');
-	    				currentBarWriter.append("" + ((ExtremeConditionOutside25StandartDeviation)barStrategy).getRisk());
+//	    				currentBarWriter.append("" + ((ExtremeConditionOutside25StandartDeviation)barStrategy).getRisk());
 	    				currentBarWriter.append(',');
-	    				double pinbarGain = (double)Math.round( (bullishPinbarStrategy ? barStrategy.getLongGain(candleBars, index + 1, ((ExtremeConditionOutside25StandartDeviation)barStrategy).getStopLoss(), ((ExtremeConditionOutside25StandartDeviation)barStrategy).getConfirmationPoint() ) : barStrategy.getShortGain(candleBars, index + 1, ((ExtremeConditionOutside25StandartDeviation)barStrategy).getStopLoss(), ((ExtremeConditionOutside25StandartDeviation)barStrategy).getConfirmationPoint()) ) * (double) 1000) / (double)1000;
-	    				currentBarWriter.append("" + pinbarGain );
+//	    				double pinbarGain = (double)Math.round( (bullishPinbarStrategy ? barStrategy.getLongGain(candleBars, index + 1, ((ExtremeConditionOutside25StandartDeviation)barStrategy).getStopLoss(), ((ExtremeConditionOutside25StandartDeviation)barStrategy).getConfirmationPoint() ) : barStrategy.getShortGain(candleBars, index + 1, ((ExtremeConditionOutside25StandartDeviation)barStrategy).getStopLoss(), ((ExtremeConditionOutside25StandartDeviation)barStrategy).getConfirmationPoint()) ) * (double) 1000) / (double)1000;
+//	    				currentBarWriter.append("" + pinbarGain );
 	    				currentBarWriter.append(',');
 	    				currentBarWriter.append("" + (bullishPinbarStrategy ? barStrategy.getLongNumOfCandles(temp, candleBars, index) : barStrategy.getShortNumOfCandles(temp, candleBars, index) ) );
 	    				currentBarWriter.append(',');
 	    				currentBarWriter.append("" + Math.round(bullishPinbarStrategy ? barStrategy.getLongCorrectionBeforeHigh(temp, candleBars, index) : barStrategy.getShortCorrectionBeforeLow(temp, candleBars, index) ) );
 	    				currentBarWriter.append(',');
-	    				double riskGainRatio = (double)Math.round( (bullishPinbarStrategy ? barStrategy.getLongRiskGainRatio(candleBars, index, ((ExtremeConditionOutside25StandartDeviation)barStrategy).getStopLoss(), ((ExtremeConditionOutside25StandartDeviation)barStrategy).getConfirmationPoint()) : barStrategy.getShortRiskGainRatio(candleBars, index, ((ExtremeConditionOutside25StandartDeviation)barStrategy).getStopLoss(), ((ExtremeConditionOutside25StandartDeviation)barStrategy).getConfirmationPoint())) * (double) 1000) / (double)1000;
+//	    				double riskGainRatio = (double)Math.round( (bullishPinbarStrategy ? barStrategy.getLongRiskGainRatio(candleBars, index, ((ExtremeConditionOutside25StandartDeviation)barStrategy).getStopLoss(), ((ExtremeConditionOutside25StandartDeviation)barStrategy).getConfirmationPoint()) : barStrategy.getShortRiskGainRatio(candleBars, index, ((ExtremeConditionOutside25StandartDeviation)barStrategy).getStopLoss(), ((ExtremeConditionOutside25StandartDeviation)barStrategy).getConfirmationPoint())) * (double) 1000) / (double)1000;
 	    				if (/*timeFrame.equals(JapaneseCandleBar._4_HOUR) || */timeFrame.equals(JapaneseCandleBar._5_MINUTES) || timeFrame.equals(JapaneseCandleBar._15_MINUTES)) {
 	    					intraDaystatistics.get(temp.getTime().getHours()).
 	    					setOccourancesNum(intraDaystatistics.get(temp.getTime().getHours()).getOccourancesNum() + 1);
-	    					if (riskGainRatio > 1) {
+//	    					if (riskGainRatio > 1) {
 	    						intraDaystatistics.get(temp.getTime().getHours()).
 	    						setNumOfSuccessOccurances(intraDaystatistics.get(temp.getTime().getHours()).getNumOfSuccessOccurances() + 1);
-	    					}
+//	    					}
 
 	    				} /*else if (timeFrame.equals(JapaneseCandleBar._1_DAY)) {
 			        	    	daystatistics.get(temp.getTime().getDay()).
@@ -176,27 +176,27 @@ public class Run2Point5DeviationExtremeCondition {
 				        	    		setNumOfSuccessOccurances(daystatistics.get(temp.getTime().getDay()).getNumOfSuccessOccurances() + 1);
 			        	    	}
 			        	    }*/
-	    				currentBarWriter.append("" + riskGainRatio);
-	    				currentBarWriter.append(',');
-	    				boolean reachedMidLine = (bullishPinbarStrategy) ? ((ExtremeConditionOutside25StandartDeviation)barStrategy).didReachMidLineLong(candleBars, index, riskGainRatio) : ((ExtremeConditionOutside25StandartDeviation)barStrategy).didReachMidLineShort(candleBars, index, riskGainRatio);
-	    				double midLineGain = (bullishPinbarStrategy) ? (candleBars[index].getSMA20()) - ((ExtremeConditionOutside25StandartDeviation)barStrategy).getConfirmationPoint() :
-	    					(((ExtremeConditionOutside25StandartDeviation)barStrategy).getConfirmationPoint() - candleBars[index].getSMA20());
-						currentBarWriter.append(reachedMidLine ? "Got To Midline" : "Didn't Reach Midline");
-						successfulMidline += (reachedMidLine && midLineGain > 0) ? 1 : 0;
-	    				currentBarWriter.append(',');
-	    				currentBarWriter.append("MidLineGain:" + (reachedMidLine ? midLineGain : ("-" + ((ExtremeConditionOutside25StandartDeviation)barStrategy).getRisk())));
-	    				currentBarWriter.append(',');
-	    				currentBarWriter.append("MidLineRiskGainRatio:" + (reachedMidLine ? midLineGain/((ExtremeConditionOutside25StandartDeviation)barStrategy).getRisk() : "-1"));
-	    				currentBarWriter.append(',');
-	    				boolean riskGainRatioBiggerThan1 = riskGainRatio >= 1;
-	    				successfullPinbarsDidOneToOne += riskGainRatioBiggerThan1 ? 1 : 0;
-	    				currentBarWriter.append(riskGainRatioBiggerThan1 ? "1" : "0");
-	    				currentBarWriter.append(',');
-	    				currentBarWriter.append(riskGainRatio >= 2 ? "1" : "0");
-	    				successfullPinbarsDidTwoToOne += (riskGainRatio >= 2) ? 1 : 0;
-	    				currentBarWriter.append(',');
-	    				currentBarWriter.append(riskGainRatio >= 3 ? "1" : "0");
-	    				successfullPinbarsDidThreeToOne += (riskGainRatio >= 3) ? 1 : 0;
+//	    				currentBarWriter.append("" + riskGainRatio);
+//	    				currentBarWriter.append(',');
+//	    				boolean reachedMidLine = (bullishPinbarStrategy) ? ((ExtremeConditionOutside25StandartDeviation)barStrategy).didReachMidLineLong(candleBars, index, riskGainRatio) : ((ExtremeConditionOutside25StandartDeviation)barStrategy).didReachMidLineShort(candleBars, index, riskGainRatio);
+//	    				double midLineGain = (bullishPinbarStrategy) ? (candleBars[index].getSMA20()) - ((ExtremeConditionOutside25StandartDeviation)barStrategy).getConfirmationPoint() :
+//	    					(((ExtremeConditionOutside25StandartDeviation)barStrategy).getConfirmationPoint() - candleBars[index].getSMA20());
+//						currentBarWriter.append(reachedMidLine ? "Got To Midline" : "Didn't Reach Midline");
+//						successfulMidline += (reachedMidLine && midLineGain > 0) ? 1 : 0;
+//	    				currentBarWriter.append(',');
+//	    				currentBarWriter.append("MidLineGain:" + (reachedMidLine ? midLineGain : ("-" + ((ExtremeConditionOutside25StandartDeviation)barStrategy).getRisk())));
+//	    				currentBarWriter.append(',');
+//	    				currentBarWriter.append("MidLineRiskGainRatio:" + (reachedMidLine ? midLineGain/((ExtremeConditionOutside25StandartDeviation)barStrategy).getRisk() : "-1"));
+//	    				currentBarWriter.append(',');
+//	    				boolean riskGainRatioBiggerThan1 = riskGainRatio >= 1;
+//	    				successfullPinbarsDidOneToOne += riskGainRatioBiggerThan1 ? 1 : 0;
+//	    				currentBarWriter.append(riskGainRatioBiggerThan1 ? "1" : "0");
+//	    				currentBarWriter.append(',');
+//	    				currentBarWriter.append(riskGainRatio >= 2 ? "1" : "0");
+//	    				successfullPinbarsDidTwoToOne += (riskGainRatio >= 2) ? 1 : 0;
+//	    				currentBarWriter.append(',');
+//	    				currentBarWriter.append(riskGainRatio >= 3 ? "1" : "0");
+//	    				successfullPinbarsDidThreeToOne += (riskGainRatio >= 3) ? 1 : 0;
 	    				currentBarWriter.append('\n');
 	    				pinbarIndex++;
 	    			}

@@ -16,11 +16,12 @@ public abstract class IDataExtractorSubject implements Runnable{
 	protected AssetType assetType; 
 	protected DataEventType dataEventType;
 	protected List<Float> parameters;
+	protected float pipsValue;
 	/** 
 	* @param assetType
 	 * @param dataEventType
 	 * @param parameters - 	may be different parameters according to event type.
-	 * 						JAPANESE - 	parameters={Interval, PipsValue}
+	 * 						JAPANESE - 	parameters={Interval, historyLength}
 	 * 						NEW_QUOTE - parameters={}
 	 */	
 	public IDataExtractorSubject (AssetType assetType, DataEventType dataEventType, List<Float> parameters) {
@@ -58,4 +59,8 @@ public abstract class IDataExtractorSubject implements Runnable{
 	}
 	
 	public abstract NewUpdateData getNewData();
+
+	public float getPipsValue() {
+		return pipsValue;
+	}
 }

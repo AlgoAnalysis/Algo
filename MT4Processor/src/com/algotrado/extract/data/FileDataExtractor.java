@@ -31,7 +31,8 @@ public class FileDataExtractor extends IDataExtractorSubject {
 	      BufferedReader br = new BufferedReader(fr);
 	      String stringRead = br.readLine();
 	      if (stringRead != null) {
-	    	  parameters.add(Float.valueOf(stringRead));
+	    	  pipsValue = Float.valueOf(stringRead);
+//	    	  parameters.add(pipsValue);
 	    	  stringRead = br.readLine();
 	      }
 	      int index = 0;
@@ -53,13 +54,14 @@ public class FileDataExtractor extends IDataExtractorSubject {
 	        low = Double.valueOf(st.nextToken( ));  
 	        close = Double.valueOf(st.nextToken( ));
 	        double volume = Double.valueOf(st.nextToken( ));
-	        bollinger20TopBand = Double.valueOf(st.nextToken( ));
-	        sma20  =  Double.valueOf(st.nextToken( ));
-	        bollinger20BottomBand = Double.valueOf(st.nextToken( ));
-	        bollinger10TopBand = Double.valueOf(st.nextToken( ));
-	        sma10  =  Double.valueOf(st.nextToken( ));
-	        bollinger10BottomBand = Double.valueOf(st.nextToken( ));
-	        rsi = Double.valueOf(st.nextToken( ));
+	       
+//	        bollinger20TopBand = Double.valueOf(st.nextToken( ));
+//	        sma20  =  Double.valueOf(st.nextToken( ));
+//	        bollinger20BottomBand = Double.valueOf(st.nextToken( ));
+//	        bollinger10TopBand = Double.valueOf(st.nextToken( ));
+//	        sma10  =  Double.valueOf(st.nextToken( ));
+//	        bollinger10BottomBand = Double.valueOf(st.nextToken( ));
+//	        rsi = Double.valueOf(st.nextToken( ));
 	        
 	        Date formattedDate = null;
 	        try {

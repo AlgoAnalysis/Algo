@@ -94,7 +94,7 @@ public class RunBarOnAverageStartegyCheck {
 				}
 		        
 
-		        JapaneseCandleBar temp = new JapaneseCandleBar(open, close, high, low, formattedDate, comodityName, ma);
+		        JapaneseCandleBar temp = new JapaneseCandleBar(open, close, high, low, formattedDate, comodityName);
 		        System.out.println(temp);
 		        datalist.add(temp);
 		        
@@ -169,7 +169,7 @@ public class RunBarOnAverageStartegyCheck {
 		    	    currentBarWriter.append("Did 3:1?");
 		      	    currentBarWriter.append('\n');
 			      
-		      	  GeneralBarStrategy barStrategy = new BarOnAverageStrategy();
+		      	  GeneralBarStrategy barStrategy = null;//new BarOnAverageStrategy();
 			      double pinbarIndex = 0, successfullPinbarsDidOneToOne = 0, successfullPinbarsDidTwoToOne = 0, successfullPinbarsDidThreeToOne = 0;
 			      for (JapaneseCandleBar temp : datalist) {
 			    	  if (barStrategy.isStrategyPattern(temp, candleBars, index, (fileName.contains("JPY")) ? 0.01 : 0.0001)) {

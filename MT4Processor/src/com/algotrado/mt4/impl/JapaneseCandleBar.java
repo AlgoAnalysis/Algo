@@ -11,29 +11,27 @@ public class JapaneseCandleBar extends AbstractCandleBar {
 	public static final String _1_HOUR = "1 Hour";
 	protected double open, close, high, low, volume;
 	private Date time;
-	protected double sma20;
-	public PinbarStrategy pinbarStrategy;
+//	protected double sma20;
 	private String commodityName = null;
 
-	public JapaneseCandleBar(double open, double close, double high, double low, Date time, String commodityName, double sma20) {
+	public JapaneseCandleBar(double open, double close, double high, double low, Date time, String commodityName) {
 		super();
 		this.open = open;
 		this.close = close;
 		this.high = high;
 		this.low = low;
 		this.time = time;
-		this.sma20 = sma20;
-		pinbarStrategy = new PinbarStrategy();
+//		this.sma20 = sma20;
 		this.commodityName = commodityName;
 	}
 	
 	public JapaneseCandleBar(JapaneseCandleBar japaneseCandleBar) {
-		this(japaneseCandleBar.open, japaneseCandleBar.close, japaneseCandleBar.high, japaneseCandleBar.low, japaneseCandleBar.time, japaneseCandleBar.commodityName, japaneseCandleBar.sma20);
+		this(japaneseCandleBar.open, japaneseCandleBar.close, japaneseCandleBar.high, japaneseCandleBar.low, japaneseCandleBar.time, japaneseCandleBar.commodityName);
 	}
 	
 	public JapaneseCandleBar addPreviousJapaneseCandleBar(JapaneseCandleBar previousJapaneseCandleBar) {
 		return new JapaneseCandleBar(previousJapaneseCandleBar.open, this.close, (previousJapaneseCandleBar.high > this.high) ? previousJapaneseCandleBar.high : this.high,
-				(previousJapaneseCandleBar.low < this.low) ? previousJapaneseCandleBar.low : this.low, this.time, commodityName, sma20);
+				(previousJapaneseCandleBar.low < this.low) ? previousJapaneseCandleBar.low : this.low, this.time, commodityName);
 	}
 
 	public Date getTime() {
@@ -92,13 +90,6 @@ public class JapaneseCandleBar extends AbstractCandleBar {
 		return open - close > 0;
 	}
 	
-	public double getSMA20() {
-		return sma20;
-	}
-
-	public void setSMA20(double ma20) {
-		this.sma20 = ma20;
-	}
 
 	public boolean isDojiCandle() {
 		return Math.abs(open - close) <= Math.abs((double)((double)high - low)/10);

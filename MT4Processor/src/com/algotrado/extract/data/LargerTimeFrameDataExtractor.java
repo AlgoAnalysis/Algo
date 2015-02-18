@@ -86,12 +86,13 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 				Calendar prevCalendar = GregorianCalendar.getInstance(); // creates a new calendar instance
 				prevCalendar.setTime(previousDate);
 				Calendar currCalendar = GregorianCalendar.getInstance(); // creates a new calendar instance
-				currCalendar.setTime(openTime);
+				currCalendar.setTime(candleBarData.getTime());
 				if (prevCalendar.get(Calendar.WEEK_OF_YEAR) != currCalendar.get(Calendar.WEEK_OF_YEAR)) {
 					isNewWeek = true;
 					if (!timeFrameType.isTimeFrameEndTime(previousDate)) {
 						dataList.addCandleBar(new SingleCandleBarData(open, close, high, low, openTime, candleBarData.getCommodityName(), 0, 
 								0, 0, 0, 0, 0, 0));
+						previousDate = openTime;
 					}
 				}
 			}

@@ -11,7 +11,7 @@ public class SingleCandleBarData extends JapaneseCandleBar {
 	public SingleCandleBarData(double open, double close, double high,
 			double low, Date time, String commodityName, double sma20, double lower20Bollinger, double higher20Bollinger, double sma10,
 			double lower10Bollinger, double higher10Bollinger, double rsi) {
-		super(open, close, high, low, time, commodityName, sma20);
+		super(open, close, high, low, time, commodityName);
 		this.rsi = rsi;
 		this.lower20Bollinger = lower20Bollinger;
 		this.higher20Bollinger = higher20Bollinger;
@@ -21,7 +21,7 @@ public class SingleCandleBarData extends JapaneseCandleBar {
 	}
 	
 	public SingleCandleBarData(SingleCandleBarData japaneseCandleBar) {
-		this(japaneseCandleBar.open, japaneseCandleBar.close, japaneseCandleBar.high, japaneseCandleBar.low, japaneseCandleBar.getTime(), japaneseCandleBar.getCommodityName(), japaneseCandleBar.getSMA20(), 
+		this(japaneseCandleBar.open, japaneseCandleBar.close, japaneseCandleBar.high, japaneseCandleBar.low, japaneseCandleBar.getTime(), japaneseCandleBar.getCommodityName(), 0, 
 				japaneseCandleBar.lower20Bollinger, japaneseCandleBar.higher20Bollinger, japaneseCandleBar.sma10,
 				japaneseCandleBar.lower10Bollinger, japaneseCandleBar.higher10Bollinger, japaneseCandleBar.rsi);
 	}

@@ -149,7 +149,7 @@ public class RunExtremeConditionStrategyCheck {
 	    	    currentBarWriter.append("Did 3:1?");*/
 	      	    currentBarWriter.append('\n');
 		      
-	      	  Strategy barStrategy = new ExtremeConditionStrategy(FileNameTimeFrame.getTimeFrame(fileName));
+	      	  Strategy barStrategy = null;//new ExtremeConditionStrategy(FileNameTimeFrame.getTimeFrame(fileName));
 		      double pinbarIndex = 0, successfullPinbarsDidOneToOne = 0, successfullPinbarsDidTwoToOne = 0, successfullPinbarsDidThreeToOne = 0;
 		      for (SingleCandleBarData temp : datalist) {
 		    	double pipsValue = (fileName.contains("JPY")) ? 0.01 : 0.0001;

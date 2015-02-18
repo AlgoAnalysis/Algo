@@ -67,14 +67,14 @@ public enum TimeFrameType {
         public boolean isTimeFrameStartTime(Date time) {
         	Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
 			calendar.setTime(time);
-            return (((calendar.get(Calendar.HOUR_OF_DAY) * 60) + calendar.get(Calendar.MINUTE)) % getValueInMinutes()) == 0;
+            return ((calendar.get(Calendar.MINUTE)) % getValueInMinutes()) == 0;
         }
         
         @Override
         public boolean isTimeFrameEndTime(Date time) {
         	Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
 			calendar.setTime(time);
-            return (((calendar.get(Calendar.HOUR_OF_DAY) * 60) + calendar.get(Calendar.MINUTE)) % getValueInMinutes()) == (getValueInMinutes() - 1);
+            return ((calendar.get(Calendar.MINUTE)) % getValueInMinutes()) == (getValueInMinutes() - 1);
         }
     },
 	FOUR_HOURS(240){
@@ -97,14 +97,14 @@ public enum TimeFrameType {
         public boolean isTimeFrameStartTime(Date time) {
         	Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
 			calendar.setTime(time);
-            return (((calendar.get(Calendar.DAY_OF_WEEK) * 1440) + (calendar.get(Calendar.HOUR_OF_DAY) * 60) + calendar.get(Calendar.MINUTE)) % getValueInMinutes()) == 0;
+            return (((calendar.get(Calendar.HOUR_OF_DAY) * 60) + calendar.get(Calendar.MINUTE)) % getValueInMinutes()) == 0;
         }
         
         @Override
         public boolean isTimeFrameEndTime(Date time) {
         	Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
 			calendar.setTime(time);
-            return (((calendar.get(Calendar.DAY_OF_WEEK) * 1440) + (calendar.get(Calendar.HOUR_OF_DAY) * 60) + calendar.get(Calendar.MINUTE)) % getValueInMinutes()) == (getValueInMinutes() - 1);
+            return (((calendar.get(Calendar.HOUR_OF_DAY) * 60) + calendar.get(Calendar.MINUTE)) % getValueInMinutes()) == (getValueInMinutes() - 1);
         }
     },
 	ONE_WEEK(10080){
@@ -112,14 +112,14 @@ public enum TimeFrameType {
         public boolean isTimeFrameStartTime(Date time) {
         	Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
 			calendar.setTime(time);
-            return (( (calendar.get(Calendar.WEEK_OF_YEAR) * 10080) + (calendar.get(Calendar.DAY_OF_WEEK) * 1440) + (calendar.get(Calendar.HOUR_OF_DAY) * 60) + calendar.get(Calendar.MINUTE)) % getValueInMinutes()) == 0;
+            return (( (calendar.get(Calendar.DAY_OF_WEEK) * 1440) + (calendar.get(Calendar.HOUR_OF_DAY) * 60) + calendar.get(Calendar.MINUTE)) % getValueInMinutes()) == 0;
         }
         
         @Override
         public boolean isTimeFrameEndTime(Date time) {
         	Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
 			calendar.setTime(time);
-            return (( (calendar.get(Calendar.WEEK_OF_YEAR) * 10080) + (calendar.get(Calendar.DAY_OF_WEEK) * 1440) + (calendar.get(Calendar.HOUR_OF_DAY) * 60) + calendar.get(Calendar.MINUTE)) % getValueInMinutes()) == (getValueInMinutes() - 1);
+            return (( (calendar.get(Calendar.DAY_OF_WEEK) * 1440) + (calendar.get(Calendar.HOUR_OF_DAY) * 60) + calendar.get(Calendar.MINUTE)) % getValueInMinutes()) == (getValueInMinutes() - 1);
         }
     }/*,
 	ONE_MONTH(40320)*/;//Comment: Month period is counted as 4 weeks and may not be accurate. Maybe we should not support month for now.
@@ -136,6 +136,18 @@ public enum TimeFrameType {
 	
 	public boolean isLargerTimeFrame(TimeFrameType other) {
 		return other != null && this.valueInMinutes > other.valueInMinutes;
+	}
+	
+	public static boolean isIntervalValid(float interval)
+	{
+		for(TimeFrameType eInterval:TimeFrameType.values())
+		{
+			if(eInterval.getValueInMinutes() == interval)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/**

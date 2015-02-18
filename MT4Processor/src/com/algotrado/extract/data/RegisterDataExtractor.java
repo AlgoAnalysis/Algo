@@ -4,41 +4,56 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.algotrado.util.DebugUtil;
+
 public class RegisterDataExtractor {
 	private Map<AssetType,Map<DataEventType,Map<List<Float>,IDataExtractorSubject>>> extractorSubjectList;
 	DataSource dataSource;
 	public RegisterDataExtractor(DataSource dataSource)
 	{
 		extractorSubjectList = new HashMap<AssetType,Map<DataEventType,Map<List<Float>,IDataExtractorSubject>>>();
+		if(DebugUtil.debugRegisterDataExtractor && (dataSource == null))
+		{
+			// TODO - exaptation/Error.
+		}
 		this.dataSource = dataSource;
 	}
 	
 	public void register(AssetType assetType,DataEventType dataEventType,List<Float> parameters,IDataExtractorObserver observer)
 	{
-		switch(dataEventType)
+		if(DebugUtil.debugRegisterDataExtractor)
 		{
-		case JAPANESE:
-			if(parameters.size() != 1)
+			switch(dataEventType)
 			{
-				// TODO - exaptation/Error.
+			case JAPANESE:
+				if(parameters.size() != 2)
+				{
+					throw new RuntimeException("The ");
+				}
+				else if( !TimeFrameType.isIntervalValid(parameters.get(0)))
+				{
+					// TODO - exaptation/Error.
+					return;
+				}
+				else if(parameters.get(1).intValue() != parameters.get(1))
+				{
+					// TODO - exaptation/Error.
+					return;
+				}
+				break;
+			case NEW_QUOTE:
+				if(parameters.size() != 0)
+				{
+					// TODO - exaptation/Error.
+					return;
+				}
+				break;
+			default:
+					// TODO - exaptation/Error.
 				return;
 			}
-//			else if( parameters.get(0) // TODO - check if the interval legal )
-//			{
-//				
-//			}
-			break;
-		case NEW_QUOTE:
-			if(parameters.size() != 0)
-			{
-				// TODO - exaptation/Error.
-				return;
-			}
-			break;
-		default:
-				// TODO - exaptation/Error.
-			return;
 		}
+		
 		IDataExtractorSubject dataExtractorSubject = null;
 		Map<DataEventType, Map<List<Float>, IDataExtractorSubject>> assetData =  extractorSubjectList.get(assetType);
 		if(assetData == null) // new Asset
@@ -115,7 +130,7 @@ public class RegisterDataExtractor {
 		switch(this.dataSource)
 		{
 			case FILE:
-				// TODO - after merge with Ohad.
+				dataExtractorSubject = new FileDataExtractor(assetType,dataEventType,parameters,""); // TODO - add path
 				break;
 			default:
 				// TODO - exaptation/Error.
