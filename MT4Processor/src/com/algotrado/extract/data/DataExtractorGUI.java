@@ -20,6 +20,8 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import org.eclipse.wb.swing.FocusTraversalOnArray;
+import java.awt.Component;
 
 public class DataExtractorGUI {
 
@@ -31,7 +33,8 @@ public class DataExtractorGUI {
 	private JComboBox cbxDataEvant;
 	private JComboBox cbxAsset;
 	private JLabel lblDataSource;
-	private JComboBox cBxDataSource;
+	private JComboBox cbxDataSource;
+	private JButton btnSaveFile;
 
 	/**
 	 * Launch the application.
@@ -109,12 +112,12 @@ public class DataExtractorGUI {
 				if(DataEventType.getDataEventTypeFromString(cbxDataEvant.getSelectedItem().toString()) == DataEventType.JAPANESE)
 				{
 					//cbxIntervalTime.setModel(new DefaultComboBoxModel(TimeFrameType.getTimeFrameStrings()));
-					cbxIntervalTime.enable(true);
+					cbxIntervalTime.setEnabled(true);
 				}
 				else
 				{
 					//cbxIntervalTime.setModel(null);
-					cbxIntervalTime.enable(false);					
+					cbxIntervalTime.setEnabled(false);					
 				}
 			}
 		});
@@ -126,7 +129,7 @@ public class DataExtractorGUI {
 		frmDf.getContentPane().add(tfdSaveFilePath);
 		tfdSaveFilePath.setColumns(10);
 		
-		JButton btnSaveFile = new JButton("...");
+		btnSaveFile = new JButton("...");
 		btnSaveFile.setBounds(417, 169, 46, 27);
 		btnSaveFile.addActionListener(new ActionListener() {
 			@Override
@@ -166,16 +169,17 @@ public class DataExtractorGUI {
 		lblDataSource.setBounds(32, 35, 103, 27);
 		frmDf.getContentPane().add(lblDataSource);
 		
-		cBxDataSource = new JComboBox();
-		cBxDataSource.setFont(new Font("Tahoma", Font.PLAIN, 16));
-		cBxDataSource.setModel(new DefaultComboBoxModel(DataSource.getDataSourceStrings()));
-		cBxDataSource.setBounds(146, 35, 259, 27);
-		frmDf.getContentPane().add(cBxDataSource);
+		cbxDataSource = new JComboBox();
+		cbxDataSource.setFont(new Font("Tahoma", Font.PLAIN, 16));
+		cbxDataSource.setModel(new DefaultComboBoxModel(DataSource.getDataSourceStrings()));
+		cbxDataSource.setBounds(146, 35, 259, 27);
+		frmDf.getContentPane().add(cbxDataSource);
+		frmDf.getContentPane().setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{lblAsset, cbxAsset, lblDataEvent, lblDataSource, lblIntervalTime, cbxIntervalTime, lblSaveFile, cbxDataEvant, tfdSaveFilePath, btnSaveFile, btnStart, cbxDataSource}));
 	}
 	
 	private void startTest()
 	{
-		DataSource dataSource = DataSource.getDataSourceFromString(cBxDataSource.getSelectedItem().toString());
+		DataSource dataSource = DataSource.getDataSourceFromString(cbxDataSource.getSelectedItem().toString());
 		AssetType assetType = AssetType.getAssetTypeFromString(cbxAsset.getSelectedItem().toString());
 		DataEventType dataEventType = DataEventType.getDataEventTypeFromString(cbxDataEvant.getSelectedItem().toString());
 		List<Float> parameters = new ArrayList<Float>();
@@ -185,11 +189,24 @@ public class DataExtractorGUI {
 			parameters.add((float)0); // TODO - check if we want history
 		}
 		
+		cbxDataSource.setEnabled(false);
+		cbxAsset.setEnabled(false);
+		cbxDataEvant.setEnabled(false);
+		cbxIntervalTime.setEnabled(false);
+		tfdSaveFilePath.setEnabled(false);
+		btnSaveFile.setEnabled(false);
 		// TODO
 	}
 	
 	private void endTest()
 	{
 		// TODO
+		
+		cbxDataSource.setEnabled(true);
+		cbxAsset.setEnabled(true);
+		cbxDataEvant.setEnabled(true);
+		cbxIntervalTime.setEnabled(true);
+		tfdSaveFilePath.setEnabled(true);
+		btnSaveFile.setEnabled(true);
 	}
 }
