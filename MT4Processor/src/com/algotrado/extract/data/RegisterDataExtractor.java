@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.algotrado.extract.data.file.FileDataExtractor;
 import com.algotrado.util.DebugUtil;
 
 public class RegisterDataExtractor {
@@ -15,7 +14,7 @@ public class RegisterDataExtractor {
 		extractorSubjectList = new HashMap<AssetType,Map<DataEventType,Map<List<Float>,IDataExtractorSubject>>>();
 		if(DebugUtil.debugRegisterDataExtractor && (dataSource == null))
 		{
-			// TODO - exaptation/Error.
+			throw new RuntimeException("The RegisterDataExtractor contractor canot get null in dataSource");
 		}
 		this.dataSource = dataSource;
 	}
@@ -24,47 +23,20 @@ public class RegisterDataExtractor {
 	{
 		if(DebugUtil.debugRegisterDataExtractor)
 		{
-			switch(dataEventType)
+			if((assetType == null) || (dataEventType == null) || (parameters == null) || (observer == null))
 			{
-			case JAPANESE:
-				if(parameters.size() != 2)
-				{
-					throw new RuntimeException("The ");
-				}
-				else if( !TimeFrameType.isIntervalValid(parameters.get(0)))
-				{
-					// TODO - exaptation/Error.
-					return;
-				}
-				else if(parameters.get(1).intValue() != parameters.get(1))
-				{
-					// TODO - exaptation/Error.
-					return;
-				}
-				break;
-			case NEW_QUOTE:
-				if(parameters.size() != 0)
-				{
-					// TODO - exaptation/Error.
-					return;
-				}
-				break;
-			default:
-					// TODO - exaptation/Error.
-				return;
+				throw new RuntimeException("The RegisterDataExtractor.register contractor canot get null");
 			}
+			dataEventType.checkIfTheParametersValid(parameters, true);
 		}
 		
-		IDataExtractorSubject dataExtractorSubject = null;
+		IDataExtractorSubject dataExtractorSubject;
 		Map<DataEventType, Map<List<Float>, IDataExtractorSubject>> assetData =  extractorSubjectList.get(assetType);
 		if(assetData == null) // new Asset
 		{
 			assetData = createAssetList(assetType,dataEventType,parameters);
-			if(assetData !=null)
-			{
-				extractorSubjectList.put(assetType, assetData); // TODO - need to check if needed 
-				dataExtractorSubject = assetData.get(dataEventType).get(parameters); // TODO - need to check if this notation work
-			}
+			extractorSubjectList.put(assetType, assetData); // TODO - need to check if needed 
+			dataExtractorSubject = assetData.get(dataEventType).get(parameters); // TODO - need to check if this notation work
 		}
 		else // the Asset exist
 		{
@@ -72,12 +44,9 @@ public class RegisterDataExtractor {
 			if(dataEventData == null)
 			{
 				dataEventData = craeteDataEventData(assetType,dataEventType,parameters);
-				if(dataEventData != null)
-				{
-					assetData.put(dataEventType, dataEventData); 	// TODO - need to check if needed 
-					extractorSubjectList.put(assetType, assetData); // TODO - need to check if needed
-					dataExtractorSubject = dataEventData.get(parameters); // TODO - need to check if this notation work
-				}
+				assetData.put(dataEventType, dataEventData); 	// TODO - need to check if needed 
+				extractorSubjectList.put(assetType, assetData); // TODO - need to check if needed
+				dataExtractorSubject = dataEventData.get(parameters); // TODO - need to check if this notation work
 			}
 			else
 			{
@@ -85,58 +54,48 @@ public class RegisterDataExtractor {
 				if(dataExtractorSubject == null)
 				{
 					dataExtractorSubject = craeteParametersData(assetType,dataEventType,parameters);
-					if(dataExtractorSubject != null)
-					{
-						dataEventData.put(parameters, dataExtractorSubject);
-						assetData.put(dataEventType, dataEventData); 	// TODO - need to check if needed 
-						extractorSubjectList.put(assetType, assetData); // TODO - need to check if needed 
-					}
+					dataEventData.put(parameters, dataExtractorSubject);
+					assetData.put(dataEventType, dataEventData); 	// TODO - need to check if needed 
+					extractorSubjectList.put(assetType, assetData); // TODO - need to check if needed 
 				}
 			}
 		}
-		
-		if(dataExtractorSubject != null)
+		dataExtractorSubject.registerObserver(observer);
+	}
+	
+	public void removeDataExtractorSubject(AssetType assetType,DataEventType dataEventType,List<Float> parameters)
+	{
+		extractorSubjectList.get(assetType).get(dataEventType).remove(parameters);  // TODO - need to check if this notation work
+		if(extractorSubjectList.get(assetType).get(dataEventType).isEmpty())
 		{
-			dataExtractorSubject.registerObserver(observer);
+			extractorSubjectList.get(assetType).remove(dataEventType);
+			if(extractorSubjectList.get(assetType).isEmpty())
+			{
+				extractorSubjectList.remove(assetType);
+			}
 		}
 	}
 	
 	private Map<DataEventType, Map<List<Float>, IDataExtractorSubject>> createAssetList(AssetType assetType,DataEventType dataEventType,List<Float> parameters)
 	{
 		Map<List<Float>, IDataExtractorSubject> dataEventData = craeteDataEventData(assetType,dataEventType,parameters);
-		if(dataEventData != null)
-		{
-			Map<DataEventType, Map<List<Float>, IDataExtractorSubject>> ret = new HashMap<DataEventType, Map<List<Float>,IDataExtractorSubject>>();
-			ret.put(dataEventType, dataEventData);
-			return ret;
-		}
-		return null;
+		Map<DataEventType, Map<List<Float>, IDataExtractorSubject>> ret = new HashMap<DataEventType, Map<List<Float>,IDataExtractorSubject>>();
+		ret.put(dataEventType, dataEventData);
+		return ret;
 	}
 	
 	private Map<List<Float>, IDataExtractorSubject> craeteDataEventData(AssetType assetType,DataEventType dataEventType,List<Float> parameters)
 	{
 		IDataExtractorSubject dataExtractorSubject = craeteParametersData(assetType,dataEventType,parameters);
-		if( dataExtractorSubject != null)
-		{
-			Map<List<Float>, IDataExtractorSubject> ret = new HashMap<List<Float>, IDataExtractorSubject>();
-			ret.put(parameters, dataExtractorSubject);
-			return ret;
-		}
-		return null;
+		Map<List<Float>, IDataExtractorSubject> ret = new HashMap<List<Float>, IDataExtractorSubject>();
+		ret.put(parameters, dataExtractorSubject);
+		return ret;
+
 	}
 	
 	private IDataExtractorSubject craeteParametersData(AssetType assetType,DataEventType dataEventType,List<Float> parameters)
 	{
-		IDataExtractorSubject dataExtractorSubject = null;
-		switch(this.dataSource)
-		{
-			case FILE:
-				dataExtractorSubject = new FileDataExtractor(assetType,dataEventType,parameters,""); // TODO - add path
-				break;
-			default:
-				// TODO - exaptation/Error.
-				break;
-		}
+		IDataExtractorSubject dataExtractorSubject = this.dataSource.getSubjectDataExtractor(assetType, dataEventType, parameters);
 		return dataExtractorSubject;
 	}
 }
