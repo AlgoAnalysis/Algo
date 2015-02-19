@@ -3,7 +3,7 @@ package com.algotrado.extract.data;
 import java.util.List;
 
 public enum DataEventType {
-	JAPANESE{
+	JAPANESE("Japanese"){
 		@Override
 		public boolean checkIfTheParametersValid(List<Float> parameters,boolean generteException)
 		{
@@ -47,7 +47,7 @@ public enum DataEventType {
 			return ret;
 		}
 	},/*After close of candle, send candle data*/
-	NEW_QUOTE{
+	NEW_QUOTE("New quote"){
 		@Override
 		public boolean checkIfTheParametersValid(List<Float> parameters,boolean generteException)
 		{
@@ -69,6 +69,40 @@ public enum DataEventType {
 		
 	};/*Get price quote update when new quote arrives*/
 	//RSI;
+	
+	private String valueString;
+	
+	private DataEventType(String valueString)
+	{
+		this.valueString = valueString;
+	}
+	
+	public static String[] getDataEventStrings()
+	{
+		String[] ret = new String[DataEventType.values().length];
+		for(int index = 0;index<DataEventType.values().length;index++)
+		{
+			ret[index] = DataEventType.values()[index].valueString;
+		}
+		return ret;
+	}
+	
+	public static DataEventType getDataEventTypeFromString(String valueString)
+	{
+		for(DataEventType event:DataEventType.values())
+		{
+			if(event.valueString == valueString)
+			{
+				return event;
+			}
+		}
+		return null;
+	}
+	
+	public String getDataEventString()
+	{
+		return valueString;
+	}
 	
 	public abstract boolean checkIfTheParametersValid(List<Float> parameters,boolean generteException);
 }

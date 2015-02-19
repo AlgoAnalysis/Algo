@@ -6,7 +6,7 @@ import java.util.GregorianCalendar;
 
 
 public enum TimeFrameType {
-	ONE_MINUTE(1) {
+	ONE_MINUTE(1,"1 minute") {
         @Override
         public boolean isTimeFrameStartTime(Date time) {
             return true;// Smalest timeframe every minute is a start of candle
@@ -17,7 +17,7 @@ public enum TimeFrameType {
             return true;// Smalest timeframe every minute is a start of candle
         }
     },
-	FIVE_MINUTE(5){
+	FIVE_MINUTE(5,"5 minute"){
         @Override
         public boolean isTimeFrameStartTime(Date time) {
         	Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
@@ -32,7 +32,7 @@ public enum TimeFrameType {
             return (calendar.get(Calendar.MINUTE) % getValueInMinutes()) == (getValueInMinutes() - 1);
         }
     },
-	FIFTEEN_MINUTES(15){
+	FIFTEEN_MINUTES(15,"15 minute"){
         @Override
         public boolean isTimeFrameStartTime(Date time) {
         	Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
@@ -47,7 +47,7 @@ public enum TimeFrameType {
             return (calendar.get(Calendar.MINUTE) % getValueInMinutes()) == (getValueInMinutes() - 1);
         }
     },
-	THIRTY_MINUTES(30){
+	THIRTY_MINUTES(30,"30 minute"){
         @Override
         public boolean isTimeFrameStartTime(Date time) {
         	Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
@@ -62,7 +62,7 @@ public enum TimeFrameType {
             return (calendar.get(Calendar.MINUTE) % getValueInMinutes()) == (getValueInMinutes() - 1);
         }
     },
-	ONE_HOUR(60){
+	ONE_HOUR(60,"1 hour"){
         @Override
         public boolean isTimeFrameStartTime(Date time) {
         	Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
@@ -77,7 +77,7 @@ public enum TimeFrameType {
             return ((calendar.get(Calendar.MINUTE)) % getValueInMinutes()) == (getValueInMinutes() - 1);
         }
     },
-	FOUR_HOURS(240){
+	FOUR_HOURS(240,"4 hours"){
         @Override
         public boolean isTimeFrameStartTime(Date time) {
         	Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
@@ -92,7 +92,7 @@ public enum TimeFrameType {
             return (((calendar.get(Calendar.HOUR_OF_DAY) * 60) + calendar.get(Calendar.MINUTE)) % getValueInMinutes()) == (getValueInMinutes() - 1);
         }
     },
-	ONE_DAY(1440){
+	ONE_DAY(1440,"day"){
         @Override
         public boolean isTimeFrameStartTime(Date time) {
         	Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
@@ -107,7 +107,7 @@ public enum TimeFrameType {
             return (((calendar.get(Calendar.HOUR_OF_DAY) * 60) + calendar.get(Calendar.MINUTE)) % getValueInMinutes()) == (getValueInMinutes() - 1);
         }
     },
-	ONE_WEEK(10080){
+	ONE_WEEK(10080,"week"){
         @Override
         public boolean isTimeFrameStartTime(Date time) {
         	Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
@@ -125,9 +125,11 @@ public enum TimeFrameType {
 	ONE_MONTH(40320)*/;//Comment: Month period is counted as 4 weeks and may not be accurate. Maybe we should not support month for now.
 	
 	private int valueInMinutes;
+	private String valueString;
 	
-	private TimeFrameType(int valueInMinutes){
+	private TimeFrameType(int valueInMinutes,String valueString){
 		this.valueInMinutes = valueInMinutes;
+		this.valueString = valueString;
 	}
 
 	public int getValueInMinutes() {
@@ -148,6 +150,28 @@ public enum TimeFrameType {
 			}
 		}
 		return false;
+	}
+	
+	public static String[] getTimeFrameStrings()
+	{
+		String[] ret = new String[TimeFrameType.values().length];
+		for(int index = 0;index<TimeFrameType.values().length;index++)
+		{
+			ret[index] = TimeFrameType.values()[index].valueString;
+		}
+		return ret;
+	}
+	
+	public static TimeFrameType getTimeFrameTypeFromString(String valueString)
+	{
+		for(TimeFrameType timeFrame:TimeFrameType.values())
+		{
+			if(timeFrame.valueString == valueString)
+			{
+				return timeFrame;
+			}
+		}
+		return null;
 	}
 	
 	/**
