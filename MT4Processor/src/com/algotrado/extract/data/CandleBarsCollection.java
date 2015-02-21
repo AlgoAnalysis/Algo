@@ -2,22 +2,23 @@ package com.algotrado.extract.data;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
-import com.algotrado.mt4.tal.strategy.check.pattern.SingleCandleBarData;
+import com.algotrado.mt4.impl.JapaneseCandleBar;
 
 public class CandleBarsCollection implements NewUpdateData {
-	private Collection<SingleCandleBarData> candleBars;
+	private List<JapaneseCandleBar> candleBars;
 
 	public CandleBarsCollection() {
 		super();
-		candleBars = new ArrayList<SingleCandleBarData>();
+		candleBars = new ArrayList<JapaneseCandleBar>();
 	}
 	
-	public void addCandleBar(SingleCandleBarData candleBar) {
+	public void addCandleBar(JapaneseCandleBar candleBar) {
 		candleBars.add(candleBar);
 	}
 	
-	public Collection<SingleCandleBarData> getCandleBars(){
+	public List<JapaneseCandleBar> getCandleBars(){
 		return candleBars;
 	}
 	

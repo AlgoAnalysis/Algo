@@ -1,7 +1,6 @@
 package com.algotrado.extract.data;
 
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -14,11 +13,20 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 	private TimeFrameType timeFrameType;
 	private CandleBarsCollection dataList;
 	private IDataExtractorSubject dataExtractorSubject;
+	private Date previousDate = null;
+	private Date openTime = null;
+	private double open=-1;
+	private double close=-1;
+	private double high=-1;
+	private double low=-1;
+	private double volume=-1;
+	private SubjectState subjectState;
 
 	public LargerTimeFrameDataExtractor(AssetType assetType,
 			DataEventType dataEventType, List<Float> parameters) {
 		super(assetType, dataEventType, parameters);
 		this.timeFrameType = setTimeFarmeType(parameters);
+		this.subjectState = SubjectState.RUNNING;
 	}
 
 	public TimeFrameType setTimeFarmeType(List<Float> parameters) {
@@ -61,67 +69,78 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 	public void notifyObserver(DataEventType dataEventType, List<Float> parameters) {
 		dataList = new CandleBarsCollection();
 		TimeFrameType subjectTimeFrame = setTimeFarmeType(parameters);
-		CandleBarsCollection subjctDataList = (CandleBarsCollection)this.dataExtractorSubject.getNewData();
-		Collection<SingleCandleBarData> subjectCandleBars = subjctDataList.getCandleBars();
+		JapaneseCandleBar subjectCandle = (JapaneseCandleBar)this.dataExtractorSubject.getNewData();
 		
 		if (subjectTimeFrame.isLargerTimeFrame(timeFrameType)) {
 			throw new RuntimeException("Cannot use larger time frame " + subjectTimeFrame.getValueInMinutes() + 
 					" to get lower time frame " + timeFrameType.getValueInMinutes());
 		}
 		
-		//Take all the candle bars from subject and create new candle bars in larger time frame. 
-		Date previousDate = null;
-		double open=-1, close=-1, high=-1, low=-1, volume=-1;
-		Date openTime = null;
-		for (JapaneseCandleBar candleBarData : subjectCandleBars) {
-			if (open < 0) {
-				open = candleBarData.getOpen();
-//				close = candleBarData.getClose();
-				high = candleBarData.getHigh();
-				low = candleBarData.getLow();
-				openTime = candleBarData.getTime();
-			}
-			boolean isNewWeek = false;
-			if (previousDate != null && openTime != null) {//Support new candle when a new week starts. 
-				Calendar prevCalendar = GregorianCalendar.getInstance(); // creates a new calendar instance
-				prevCalendar.setTime(previousDate);
-				Calendar currCalendar = GregorianCalendar.getInstance(); // creates a new calendar instance
-				currCalendar.setTime(candleBarData.getTime());
-				if (prevCalendar.get(Calendar.WEEK_OF_YEAR) != currCalendar.get(Calendar.WEEK_OF_YEAR)) {
-					isNewWeek = true;
-					if (!timeFrameType.isTimeFrameEndTime(previousDate)) {
-						dataList.addCandleBar(new SingleCandleBarData(open, close, high, low, openTime, candleBarData.getCommodityName(), 0, 
-								0, 0, 0, 0, 0, 0));
-						previousDate = openTime;
-					}
+ 
+		boolean isNewWeek = false;
+		if (previousDate != null && openTime != null) {//Support new candle when a new week starts. 
+			Calendar prevCalendar = GregorianCalendar.getInstance(); // creates a new calendar instance
+			prevCalendar.setTime(previousDate);
+			Calendar currCalendar = GregorianCalendar.getInstance(); // creates a new calendar instance
+			currCalendar.setTime(subjectCandle.getTime());
+			if (prevCalendar.get(Calendar.WEEK_OF_YEAR) != currCalendar.get(Calendar.WEEK_OF_YEAR)) {
+				isNewWeek = true;
+				if (!timeFrameType.isTimeFrameEndTime(previousDate)) {
+					dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, openTime, subjectCandle.getCommodityName()));
+					previousDate = openTime;
 				}
 			}
+		}
+		close = subjectCandle.getClose();
+		//Take the candle bar from subject and create new candle bar in larger time frame.
+		boolean timeFrameEndTime = timeFrameType.isTimeFrameEndTime(subjectCandle.getTime());
+		if ((open < 0) || timeFrameType.isTimeFrameStartTime(subjectCandle.getTime()) || isNewWeek) {
+			open = subjectCandle.getOpen();
+			high = subjectCandle.getHigh();
+			low = subjectCandle.getLow();
+			openTime = subjectCandle.getTime();
 			
-			if (timeFrameType.isTimeFrameStartTime(candleBarData.getTime()) || isNewWeek) {
-				open = candleBarData.getOpen();
-				openTime = candleBarData.getTime();
-				high = candleBarData.getHigh();
-				low = candleBarData.getLow();
-			} else if (timeFrameType.isTimeFrameEndTime(candleBarData.getTime())) {
-				close = candleBarData.getClose();
-				if (candleBarData.getHigh() > high) {
-					high = candleBarData.getHigh();
-				} else if (candleBarData.getLow() < low) {
-					low = candleBarData.getLow();
-				}
-				dataList.addCandleBar(new SingleCandleBarData(open, close, high, low, openTime, candleBarData.getCommodityName(), 0, 
-																0, 0, 0, 0, 0, 0));
-				previousDate = openTime;
-			} else {
-				if (candleBarData.getHigh() > high) {
-					high = candleBarData.getHigh();
-				} else if (candleBarData.getLow() < low) {
-					low = candleBarData.getLow();
-				}
+		} else if (timeFrameEndTime) {
+			if (subjectCandle.getHigh() > high) {
+				high = subjectCandle.getHigh();
+			} else if (subjectCandle.getLow() < low) {
+				low = subjectCandle.getLow();
 			}
-			
+			dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, openTime, subjectCandle.getCommodityName()));
+			previousDate = openTime;
+		} else {
+			if (subjectCandle.getHigh() > high) {
+				high = subjectCandle.getHigh();
+			} else if (subjectCandle.getLow() < low) {
+				low = subjectCandle.getLow();
+			}
 		}
 		
+		if (this.dataExtractorSubject.getSubjectState() == SubjectState.END_OF_LIFE) {
+			this.subjectState = SubjectState.END_OF_LIFE;
+			if (!timeFrameEndTime) {
+				dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, openTime, subjectCandle.getCommodityName()));
+			}
+			this.dataExtractorSubject.unregisterObserver(this);
+			
+		}
 		run();
+	}
+	
+	@Override
+	public String getDataHeaders() {
+		return "Date and Time, Interval, Open Price, High Price, Low Price, Close Price";
+	}
+	
+	@Override
+	public String toString() {
+		JapaneseCandleBar candle = dataList.getCandleBars().get(dataList.getCandleBars().size() - 1);
+		return candle.getTime() + " , " + candle.getOpen() + " , " + candle.getHigh() + " , " 
+				+ candle.getLow() + " , " + candle.getClose();
+	}
+
+	@Override
+	public SubjectState getSubjectState() {
+		return this.subjectState;
 	}
 }

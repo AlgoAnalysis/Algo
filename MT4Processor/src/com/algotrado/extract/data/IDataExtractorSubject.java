@@ -36,9 +36,16 @@ public abstract class IDataExtractorSubject implements Runnable{
 	 * @param observer
 	 */
 	public IDataExtractorSubject registerObserver(IDataExtractorObserver observer ) {
+		boolean runNewTask = false;
+		if (this.observers.isEmpty()) {
+			runNewTask = true;
+		}
 		if (!this.observers.contains(observer)) {
 			this.observers.add(observer);
 			observer.setSubject(this);
+		}
+		if (runNewTask) {
+			new Thread(this).run();
 		}
 		return this;
 	}
@@ -50,6 +57,9 @@ public abstract class IDataExtractorSubject implements Runnable{
 	public void unregisterObserver(IDataExtractorObserver observer) {
 		this.observers.remove(observer);
 		observer.removeSubject(this);
+		if (this.observers.isEmpty()) {
+			RegisterDataExtractor.removeDataExtractorSubject(assetType, dataEventType, parameters);
+		}
 	}
 	
 	public void notifyObservers(AssetType assetType, DataEventType dataEventType, List<Float> parameters) {
@@ -59,6 +69,14 @@ public abstract class IDataExtractorSubject implements Runnable{
 	}
 	
 	public abstract NewUpdateData getNewData();
+	
+	/**
+	 * Returns the file headers line.
+	 * @return
+	 */
+	public abstract String getDataHeaders();
+	
+	public abstract SubjectState getSubjectState();
 
 	public float getPipsValue() {
 		return pipsValue;
