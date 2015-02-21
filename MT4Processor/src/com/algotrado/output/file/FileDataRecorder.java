@@ -16,7 +16,7 @@ import com.algotrado.extract.data.IDataExtractorSubject;
 import com.algotrado.extract.data.RegisterDataExtractor;
 import com.algotrado.extract.data.SubjectState;
 
-public class FileDataRecorder implements IDataExtractorObserver {
+public class FileDataRecorder implements IDataExtractorObserver, Runnable {
 	
 	DataSource dataSource;
 	AssetType assetType;
@@ -25,11 +25,11 @@ public class FileDataRecorder implements IDataExtractorObserver {
 	String saveFilePath;
 	IDataExtractorSubject dataExtractorSubject;
 	boolean appendFileMode;
-	IGUIMessageOutputer errorOutputter;
+	IGUIController guiController;
 
 	public FileDataRecorder(DataSource dataSource, AssetType assetType,
 			DataEventType dataEventType, List<Float> parameters, 
-			String saveFilePath, IGUIMessageOutputer errorOutputter) {
+			String saveFilePath, IGUIController errorOutputter) {
 		super();
 		this.dataSource = dataSource;
 		this.assetType = assetType;
@@ -37,9 +37,7 @@ public class FileDataRecorder implements IDataExtractorObserver {
 		this.parameters = parameters;
 		this.saveFilePath = saveFilePath;
 		this.appendFileMode = false;
-		this.errorOutputter = errorOutputter;
-		
-		RegisterDataExtractor.register(assetType, dataEventType, parameters, this);
+		this.guiController = errorOutputter;
 	}
 
 	@Override
@@ -48,14 +46,14 @@ public class FileDataRecorder implements IDataExtractorObserver {
 		String directoryPathStr = saveFilePath.substring(0, saveFilePath.lastIndexOf(File.separator));
 		Path directoryPath = Paths.get(directoryPathStr);
 		if (!Files.exists(directoryPath)) {
-			this.errorOutputter.setErrorMessage("Directory: " + directoryPathStr, true);
+			this.guiController.setErrorMessage("Directory: " + directoryPathStr, true);
 			return;
 		}
 		FileWriter destinationFile = null;
 		try {
 			destinationFile = new FileWriter(saveFilePath, this.appendFileMode);
 		} catch (IOException e) {
-			this.errorOutputter.setErrorMessage("File: " + saveFilePath + " could not be created for some reason. " + e.getMessage(), true);
+			this.guiController.setErrorMessage("File: " + saveFilePath + " could not be created for some reason. " + e.getMessage(), true);
 			return;
 		}
 		if (!this.appendFileMode) {
@@ -63,12 +61,12 @@ public class FileDataRecorder implements IDataExtractorObserver {
 				destinationFile.append(this.dataExtractorSubject.getDataHeaders());
 				destinationFile.append("\n");
 			} catch (IOException e1) {
-				this.errorOutputter.setErrorMessage("File: " + saveFilePath + " could not be changed for some reason. " + e1.getMessage(), true);
+				this.guiController.setErrorMessage("File: " + saveFilePath + " could not be changed for some reason. " + e1.getMessage(), true);
 				try {
 					destinationFile.flush();
 					destinationFile.close();
 				} catch (IOException e) {
-					this.errorOutputter.setErrorMessage("File: " + saveFilePath + " could not be closed for some reason. " + e.getMessage(), false);
+					this.guiController.setErrorMessage("File: " + saveFilePath + " could not be closed for some reason. " + e.getMessage(), false);
 					return;
 				}
 				return;
@@ -80,19 +78,20 @@ public class FileDataRecorder implements IDataExtractorObserver {
 			destinationFile.append(this.dataExtractorSubject.toString());
 			destinationFile.append("\n");
 		} catch (IOException e1) {
-			this.errorOutputter.setErrorMessage("File: " + saveFilePath + " could not be changed for some reason. " + e1.getMessage(), true);
+			this.guiController.setErrorMessage("File: " + saveFilePath + " could not be changed for some reason. " + e1.getMessage(), true);
 		}
 		
 		try {
 			destinationFile.flush();
 			destinationFile.close();
 		} catch (IOException e) {
-			this.errorOutputter.setErrorMessage("File: " + saveFilePath + " could not be closed for some reason. " + e.getMessage(), false);
+			this.guiController.setErrorMessage("File: " + saveFilePath + " could not be closed for some reason. " + e.getMessage(), false);
 			return;
 		}
 		
 		if (this.dataExtractorSubject.getSubjectState() == SubjectState.END_OF_LIFE) {
 			this.dataExtractorSubject.unregisterObserver(this);
+			this.guiController.resetGUI();
 		}
 	}
 
@@ -104,6 +103,11 @@ public class FileDataRecorder implements IDataExtractorObserver {
 	@Override
 	public void removeSubject(IDataExtractorSubject dataExtractorSubject) {
 		setSubject(null);
+	}
+
+	@Override
+	public void run() {
+		RegisterDataExtractor.register(assetType, dataEventType, parameters, this);
 	}
 
 }

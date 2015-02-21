@@ -19,9 +19,9 @@ import javax.swing.JTextField;
 import org.eclipse.wb.swing.FocusTraversalOnArray;
 
 import com.algotrado.output.file.FileDataRecorder;
-import com.algotrado.output.file.IGUIMessageOutputer;
+import com.algotrado.output.file.IGUIController;
 
-public class DataExtractorGUI implements IGUIMessageOutputer {
+public class DataExtractorGUI implements IGUIController {
 
 	private JFrame frmDf;
 	private JTextField tfdSaveFilePath;
@@ -192,6 +192,7 @@ public class DataExtractorGUI implements IGUIMessageOutputer {
 		IDataExtractorObserver dataRecorder = new FileDataRecorder(dataSource, assetType, dataEventType, parameters, filePath, this);
 		
 		
+		
 		cbxDataSource.setEnabled(false);
 		cbxAsset.setEnabled(false);
 		cbxDataEvant.setEnabled(false);
@@ -199,6 +200,8 @@ public class DataExtractorGUI implements IGUIMessageOutputer {
 		tfdSaveFilePath.setEnabled(false);
 		btnSaveFile.setEnabled(false);
 		// TODO
+		
+		new Thread((FileDataRecorder)dataRecorder).run();
 	}
 	
 	private void endTest()
@@ -218,5 +221,10 @@ public class DataExtractorGUI implements IGUIMessageOutputer {
 		if (endProgram) {
 			endTest();
 		}
+	}
+
+	@Override
+	public void resetGUI() {
+		endTest();
 	}
 }
