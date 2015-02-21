@@ -3,6 +3,7 @@ package com.algotrado.extract.data;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * This is the abstract class for data extractor.
@@ -25,7 +26,7 @@ public abstract class IDataExtractorSubject implements Runnable{
 	 * 						NEW_QUOTE - parameters={}
 	 */	
 	public IDataExtractorSubject (AssetType assetType, DataEventType dataEventType, List<Float> parameters) {
-		this.observers = new ArrayList<IDataExtractorObserver>();
+		this.observers = new ConcurrentSkipListSet<IDataExtractorObserver>();
 		this.assetType = assetType;
 		this.dataEventType = dataEventType;
 		this.parameters = parameters;
