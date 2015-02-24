@@ -111,4 +111,9 @@ public class JapaneseCandleBar extends AbstractCandleBar {
 	public void setVolume(double volume) {
 		this.volume = volume;
 	}
+	
+	@Override
+	public String getDataHeaders() {
+		return "Open Price, High Price, Low Price, Close Price, Volume";
+	}
 }
