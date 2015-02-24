@@ -22,6 +22,10 @@ public enum DataSource {
 		this.valueString = valueString;
 	}
 	
+	public String getValueString() {
+		return valueString;
+	}
+
 	public static String[] getDataSourceStrings()
 	{
 		String[] ret = new String[DataSource.values().length];

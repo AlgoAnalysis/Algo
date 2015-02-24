@@ -14,24 +14,24 @@ public class JapaneseCandleBar extends AbstractCandleBar {
 //	protected double sma20;
 	private String commodityName = null;
 
-	public JapaneseCandleBar(double open, double close, double high, double low, Date time, String commodityName) {
+	public JapaneseCandleBar(double open, double close, double high, double low, double volume, Date time, String commodityName) {
 		super();
 		this.open = open;
 		this.close = close;
 		this.high = high;
 		this.low = low;
 		this.time = time;
-//		this.sma20 = sma20;
 		this.commodityName = commodityName;
+		this.volume = volume;
 	}
 	
 	public JapaneseCandleBar(JapaneseCandleBar japaneseCandleBar) {
-		this(japaneseCandleBar.open, japaneseCandleBar.close, japaneseCandleBar.high, japaneseCandleBar.low, japaneseCandleBar.time, japaneseCandleBar.commodityName);
+		this(japaneseCandleBar.open, japaneseCandleBar.close, japaneseCandleBar.high, japaneseCandleBar.low, japaneseCandleBar.volume, japaneseCandleBar.time, japaneseCandleBar.commodityName);
 	}
 	
 	public JapaneseCandleBar addPreviousJapaneseCandleBar(JapaneseCandleBar previousJapaneseCandleBar) {
 		return new JapaneseCandleBar(previousJapaneseCandleBar.open, this.close, (previousJapaneseCandleBar.high > this.high) ? previousJapaneseCandleBar.high : this.high,
-				(previousJapaneseCandleBar.low < this.low) ? previousJapaneseCandleBar.low : this.low, this.time, commodityName);
+				(previousJapaneseCandleBar.low < this.low) ? previousJapaneseCandleBar.low : this.low, previousJapaneseCandleBar.volume + this.volume, this.time, commodityName);
 	}
 
 	public Date getTime() {
@@ -102,5 +102,13 @@ public class JapaneseCandleBar extends AbstractCandleBar {
 	
 	public String toString() {
 		return "time: " + time + " ,open price= " + open + " ,close price= " + close + " ,high price= " + high + " ,low price= " + low;
+	}
+
+	public double getVolume() {
+		return volume;
+	}
+
+	public void setVolume(double volume) {
+		this.volume = volume;
 	}
 }

@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.algotrado.mt4.impl.JapaneseCandleBar;
 
-public class CandleBarsCollection implements NewUpdateData {
+public class CandleBarsCollection {
 	private List<JapaneseCandleBar> candleBars;
 
 	public CandleBarsCollection() {

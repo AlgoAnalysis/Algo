@@ -124,6 +124,10 @@ public enum TimeFrameType {
     }/*,
 	ONE_MONTH(40320)*/;//Comment: Month period is counted as 4 weeks and may not be accurate. Maybe we should not support month for now.
 	
+	public String getValueString() {
+		return valueString;
+	}
+
 	private int valueInMinutes;
 	private String valueString;
 	
@@ -150,6 +154,18 @@ public enum TimeFrameType {
 			}
 		}
 		return false;
+	}
+	
+	public static TimeFrameType getTimeFrameFromInterval(float interval)
+	{
+		for(TimeFrameType eInterval:TimeFrameType.values())
+		{
+			if(eInterval.getValueInMinutes() == interval)
+			{
+				return eInterval;
+			}
+		}
+		return null;		
 	}
 	
 	public static String[] getTimeFrameStrings()

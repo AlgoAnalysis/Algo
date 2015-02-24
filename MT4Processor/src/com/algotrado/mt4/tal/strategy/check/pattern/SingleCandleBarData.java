@@ -11,7 +11,7 @@ public class SingleCandleBarData extends JapaneseCandleBar {
 	public SingleCandleBarData(double open, double close, double high,
 			double low, Date time, String commodityName, double sma20, double lower20Bollinger, double higher20Bollinger, double sma10,
 			double lower10Bollinger, double higher10Bollinger, double rsi) {
-		super(open, close, high, low, time, commodityName);
+		super(open, close, high, low, 0, time, commodityName);
 		this.rsi = rsi;
 		this.lower20Bollinger = lower20Bollinger;
 		this.higher20Bollinger = higher20Bollinger;

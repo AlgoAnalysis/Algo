@@ -94,7 +94,7 @@ public class RunBarOnAverageStartegyCheck {
 				}
 		        
 
-		        JapaneseCandleBar temp = new JapaneseCandleBar(open, close, high, low, formattedDate, comodityName);
+		        JapaneseCandleBar temp = new JapaneseCandleBar(open, close, high, low, volume, formattedDate, comodityName);
 		        System.out.println(temp);
 		        datalist.add(temp);
 		        

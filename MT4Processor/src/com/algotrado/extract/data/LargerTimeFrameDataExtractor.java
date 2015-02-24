@@ -1,14 +1,17 @@
 package com.algotrado.extract.data;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
 import java.util.List;
 
 import com.algotrado.mt4.impl.JapaneseCandleBar;
 import com.algotrado.mt4.tal.strategy.check.pattern.SingleCandleBarData;
+import com.algotrado.output.file.FileDataRecorder;
 
-public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implements IDataExtractorObserver {
+public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implements IDataExtractorObserver, Comparable<LargerTimeFrameDataExtractor> {
 	
 	private TimeFrameType timeFrameType;
 	private CandleBarsCollection dataList;
@@ -27,6 +30,17 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 		super(assetType, dataEventType, parameters);
 		this.timeFrameType = setTimeFarmeType(parameters);
 		this.subjectState = SubjectState.RUNNING;
+		
+		// Change parameters to lower interval
+		int timeFrameOrder = TimeFrameType.getTimeFrameFromInterval(parameters.get(0)).ordinal();
+		TimeFrameType lowerTimeFrame = TimeFrameType.values()[timeFrameOrder - 1];
+		
+		List<Float> lowerTimeFrameParams = new ArrayList<Float>();
+		lowerTimeFrameParams.add(Integer.valueOf(lowerTimeFrame.getValueInMinutes()).floatValue());
+		lowerTimeFrameParams.add(parameters.get(1) * (parameters.get(0)/lowerTimeFrame.getValueInMinutes()));
+		
+		//tempTime = tempTime.ordinal();
+		RegisterDataExtractor.register(assetType, dataEventType, lowerTimeFrameParams, this);
 	}
 
 	public TimeFrameType setTimeFarmeType(List<Float> parameters) {
@@ -58,7 +72,7 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 
 	@Override
 	public NewUpdateData getNewData() {
-		return dataList;
+		return dataList.getCandleBars().get(dataList.getCandleBars().size() - 1);
 	}
 
 	public TimeFrameType getTimeFrameType() {
@@ -86,7 +100,7 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 			if (prevCalendar.get(Calendar.WEEK_OF_YEAR) != currCalendar.get(Calendar.WEEK_OF_YEAR)) {
 				isNewWeek = true;
 				if (!timeFrameType.isTimeFrameEndTime(previousDate)) {
-					dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, openTime, subjectCandle.getCommodityName()));
+					dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, volume, openTime, subjectCandle.getCommodityName()));
 					previousDate = openTime;
 				}
 			}
@@ -99,16 +113,19 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 			high = subjectCandle.getHigh();
 			low = subjectCandle.getLow();
 			openTime = subjectCandle.getTime();
+			volume = subjectCandle.getVolume();
 			
 		} else if (timeFrameEndTime) {
+			volume += subjectCandle.getVolume();
 			if (subjectCandle.getHigh() > high) {
 				high = subjectCandle.getHigh();
 			} else if (subjectCandle.getLow() < low) {
 				low = subjectCandle.getLow();
 			}
-			dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, openTime, subjectCandle.getCommodityName()));
+			dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, volume, openTime, subjectCandle.getCommodityName()));
 			previousDate = openTime;
 		} else {
+			volume += subjectCandle.getVolume();
 			if (subjectCandle.getHigh() > high) {
 				high = subjectCandle.getHigh();
 			} else if (subjectCandle.getLow() < low) {
@@ -119,7 +136,7 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 		if (this.dataExtractorSubject.getSubjectState() == SubjectState.END_OF_LIFE) {
 			this.subjectState = SubjectState.END_OF_LIFE;
 			if (!timeFrameEndTime) {
-				dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, openTime, subjectCandle.getCommodityName()));
+				dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, volume, openTime, subjectCandle.getCommodityName()));
 			}
 			this.dataExtractorSubject.unregisterObserver(this);
 			
@@ -129,7 +146,10 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 	
 	@Override
 	public String getDataHeaders() {
-		return "Date and Time, Interval, Open Price, High Price, Low Price, Close Price";
+		return "Asset," + assetType.name() + "\n" +
+				"Interval," + TimeFrameType.getTimeFrameFromInterval(parameters.get(0)).getValueString() + "\n" + 
+				"Data Source," + DataSource.FILE.getValueString() + "\n" + 
+				"Date and Time, Open Price, High Price, Low Price, Close Price, Volume";
 	}
 	
 	@Override
@@ -142,5 +162,34 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 	@Override
 	public SubjectState getSubjectState() {
 		return this.subjectState;
+	}
+
+	@Override
+	public int compareTo(LargerTimeFrameDataExtractor o) {
+		if (o == null) {
+			return 1;
+		} else if (o == this) {
+			return 0;
+		} else {
+			if (o.timeFrameType == this.timeFrameType && o.assetType == this.assetType && o.dataEventType == this.dataEventType) {
+				if (o.parameters != null && this.parameters != null) {
+					if (o.parameters.size() != this.parameters.size()) {
+						return this.parameters.size() - o.parameters.size();
+					}
+					Iterator<Float> fileDataRecorderIterator = this.parameters.iterator();
+					for (Iterator<Float> oIterator = o.parameters.iterator(); oIterator.hasNext() && fileDataRecorderIterator.hasNext();) {
+						Float oParam = oIterator.next();
+						Float fileDataRecorderParam = fileDataRecorderIterator.next();
+						if (oParam != fileDataRecorderParam) {
+							return new Float(fileDataRecorderParam - oParam).intValue();
+						}
+						
+					}
+				} else if (o.parameters == null) {
+					return 1;
+				}
+			}
+		}
+		return -1;
 	}
 }

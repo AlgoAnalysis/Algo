@@ -14,10 +14,12 @@ import java.util.StringTokenizer;
 import com.algotrado.extract.data.AssetType;
 import com.algotrado.extract.data.CandleBarsCollection;
 import com.algotrado.extract.data.DataEventType;
+import com.algotrado.extract.data.DataSource;
 import com.algotrado.extract.data.IDataExtractorSubject;
 import com.algotrado.extract.data.LargerTimeFrameDataExtractor;
 import com.algotrado.extract.data.NewUpdateData;
 import com.algotrado.extract.data.SubjectState;
+import com.algotrado.extract.data.TimeFrameType;
 import com.algotrado.mt4.impl.JapaneseCandleBar;
 
 public class FileDataExtractor extends IDataExtractorSubject {
@@ -134,7 +136,7 @@ public class FileDataExtractor extends IDataExtractorSubject {
 			}
 	        
 
-	        JapaneseCandleBar temp = new JapaneseCandleBar(open, close, high, low, formattedDate, assetType.name());
+	        JapaneseCandleBar temp = new JapaneseCandleBar(open, close, high, low, volume, formattedDate, assetType.name());
 //	        System.out.println(temp);
 	        dataList.addCandleBar(temp);
 	        // I think that notifying the observers after each read may be bad due to large number of notifications in a short time.
@@ -168,14 +170,17 @@ public class FileDataExtractor extends IDataExtractorSubject {
 
 	@Override
 	public String getDataHeaders() {
-		return "Date and Time, Interval, Open Price, High Price, Low Price, Close Price";
+		return "Asset," + assetType.name() + "\n" +
+				"Interval," + TimeFrameType.getTimeFrameFromInterval(parameters.get(0)).getValueString() + "\n" + 
+				"Data Source," + DataSource.FILE.getValueString() + "\n" + 
+				"Date and Time, Open Price, High Price, Low Price, Close Price, Volume";
 	}
 	
 	@Override
 	public String toString() {
 		JapaneseCandleBar candle = dataList.getCandleBars().get(dataList.getCandleBars().size() - 1);
 		return candle.getTime() + " , " + candle.getOpen() + " , " + candle.getHigh() + " , " 
-				+ candle.getLow() + " , " + candle.getClose();
+				+ candle.getLow() + " , " + candle.getClose() + " , " + candle.getVolume();
 	}
 
 	@Override
