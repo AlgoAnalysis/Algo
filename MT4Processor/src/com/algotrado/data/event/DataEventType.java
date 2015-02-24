@@ -46,6 +46,11 @@ public enum DataEventType {
 			}
 			return ret;
 		}
+		
+		@Override
+		public String getDataHeaders() {
+			return "Open Price, High Price, Low Price, Close Price, Volume";
+		}
 	},/*After close of candle, send candle data*/
 	NEW_QUOTE("New quote"){
 		@Override
@@ -65,6 +70,11 @@ public enum DataEventType {
 				}
 			}
 			return ret;
+		}
+		
+		@Override
+		public String getDataHeaders() {
+			return "Current Price";
 		}
 		
 	};/*Get price quote update when new quote arrives*/
@@ -105,4 +115,6 @@ public enum DataEventType {
 	}
 	
 	public abstract boolean checkIfTheParametersValid(List<Float> parameters,boolean generteException);
+	
+	public abstract String getDataHeaders();
 }

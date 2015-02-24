@@ -153,7 +153,7 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 		return "Asset," + assetType.name() + "\n" +
 				"Interval," + TimeFrameType.getTimeFrameFromInterval(parameters.get(0)).getValueString() + "\n" + 
 				"Data Source," + DataSource.FILE.getValueString() + "\n" + 
-				"Date and Time, Open Price, High Price, Low Price, Close Price, Volume";
+				"Date and Time, " + DataEventType.JAPANESE.getDataHeaders();
 	}
 	
 	@Override
