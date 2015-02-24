@@ -1,7 +1,7 @@
 package com.algotrado.extract.data;
 
 public enum AssetType {
-	USOIL("OSUil"),
+	USOIL("USOil"),
 	GOLD("Gold");
 	
 	

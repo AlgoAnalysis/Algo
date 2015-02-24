@@ -5,8 +5,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
 
+import javax.swing.SwingUtilities;
+
 import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.NewUpdateData;
+import com.algotrado.output.file.FileDataRecorder;
 
 /**
  * This is the abstract class for data extractor.
@@ -49,7 +52,8 @@ public abstract class IDataExtractorSubject implements Runnable{
 			observer.setSubject(this);
 		}
 		if (runNewTask) {
-			new Thread(this).run();
+			SwingUtilities.invokeLater(this);
+//			new Thread(this).run();
 		}
 		return this;
 	}
