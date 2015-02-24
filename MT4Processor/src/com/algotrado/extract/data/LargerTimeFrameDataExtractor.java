@@ -71,7 +71,7 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 
 	@Override
 	public void run() {
-		notifyObservers(assetType, dataEventType, parameters);
+		
 	}
 
 	@Override
@@ -145,7 +145,9 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 			this.dataExtractorSubject.unregisterObserver(this);
 			
 		}
-		run();
+		if (!this.dataList.getCandleBars().isEmpty()) {
+			notifyObservers(assetType, dataEventType, parameters);
+		}
 	}
 	
 	@Override
