@@ -18,6 +18,8 @@ import javax.swing.JTextField;
 
 import org.eclipse.wb.swing.FocusTraversalOnArray;
 
+import com.algotrado.data.event.DataEventType;
+import com.algotrado.data.event.TimeFrameType;
 import com.algotrado.output.file.FileDataRecorder;
 import com.algotrado.output.file.IGUIController;
 

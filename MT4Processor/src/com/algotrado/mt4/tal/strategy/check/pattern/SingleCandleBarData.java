@@ -2,7 +2,7 @@ package com.algotrado.mt4.tal.strategy.check.pattern;
 
 import java.util.Date;
 
-import com.algotrado.mt4.impl.JapaneseCandleBar;
+import com.algotrado.data.event.JapaneseCandleBar;
 
 public class SingleCandleBarData extends JapaneseCandleBar {
 
@@ -21,7 +21,7 @@ public class SingleCandleBarData extends JapaneseCandleBar {
 	}
 	
 	public SingleCandleBarData(SingleCandleBarData japaneseCandleBar) {
-		this(japaneseCandleBar.open, japaneseCandleBar.close, japaneseCandleBar.high, japaneseCandleBar.low, japaneseCandleBar.getTime(), japaneseCandleBar.getCommodityName(), 0, 
+		this(japaneseCandleBar.open, japaneseCandleBar.close, japaneseCandleBar.high, japaneseCandleBar.low, japaneseCandleBar.getTime(), japaneseCandleBar.getAssetName(), 0, 
 				japaneseCandleBar.lower20Bollinger, japaneseCandleBar.higher20Bollinger, japaneseCandleBar.sma10,
 				japaneseCandleBar.lower10Bollinger, japaneseCandleBar.higher10Bollinger, japaneseCandleBar.rsi);
 	}

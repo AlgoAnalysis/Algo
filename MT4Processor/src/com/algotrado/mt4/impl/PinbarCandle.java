@@ -1,5 +1,7 @@
 package com.algotrado.mt4.impl;
 
+import com.algotrado.data.event.JapaneseCandleBar;
+
 public class PinbarCandle extends Candle {
 
 	public static boolean isBullishPinbar(JapaneseCandleBar japaneseCandleBar, double sizeRate) {

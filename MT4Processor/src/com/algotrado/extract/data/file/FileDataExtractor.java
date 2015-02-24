@@ -11,16 +11,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import com.algotrado.data.event.CandleBarsCollection;
+import com.algotrado.data.event.DataEventType;
+import com.algotrado.data.event.JapaneseCandleBar;
+import com.algotrado.data.event.NewUpdateData;
+import com.algotrado.data.event.TimeFrameType;
 import com.algotrado.extract.data.AssetType;
-import com.algotrado.extract.data.CandleBarsCollection;
-import com.algotrado.extract.data.DataEventType;
 import com.algotrado.extract.data.DataSource;
 import com.algotrado.extract.data.IDataExtractorSubject;
 import com.algotrado.extract.data.LargerTimeFrameDataExtractor;
-import com.algotrado.extract.data.NewUpdateData;
 import com.algotrado.extract.data.SubjectState;
-import com.algotrado.extract.data.TimeFrameType;
-import com.algotrado.mt4.impl.JapaneseCandleBar;
 
 public class FileDataExtractor extends IDataExtractorSubject {
 	private String filePath;

@@ -1,5 +1,8 @@
 package com.algotrado.mt4.impl;
 
+import com.algotrado.data.event.AbstractCandleBar;
+import com.algotrado.data.event.JapaneseCandleBar;
+
 public class FileNameTimeFrame extends StandartTimeframe {
 
 	

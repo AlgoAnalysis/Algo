@@ -7,7 +7,11 @@ import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
 
-import com.algotrado.mt4.impl.JapaneseCandleBar;
+import com.algotrado.data.event.CandleBarsCollection;
+import com.algotrado.data.event.DataEventType;
+import com.algotrado.data.event.JapaneseCandleBar;
+import com.algotrado.data.event.NewUpdateData;
+import com.algotrado.data.event.TimeFrameType;
 import com.algotrado.mt4.tal.strategy.check.pattern.SingleCandleBarData;
 import com.algotrado.output.file.FileDataRecorder;
 
@@ -100,7 +104,7 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 			if (prevCalendar.get(Calendar.WEEK_OF_YEAR) != currCalendar.get(Calendar.WEEK_OF_YEAR)) {
 				isNewWeek = true;
 				if (!timeFrameType.isTimeFrameEndTime(previousDate)) {
-					dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, volume, openTime, subjectCandle.getCommodityName()));
+					dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, volume, openTime, subjectCandle.getAssetName()));
 					previousDate = openTime;
 				}
 			}
@@ -122,7 +126,7 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 			} else if (subjectCandle.getLow() < low) {
 				low = subjectCandle.getLow();
 			}
-			dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, volume, openTime, subjectCandle.getCommodityName()));
+			dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, volume, openTime, subjectCandle.getAssetName()));
 			previousDate = openTime;
 		} else {
 			volume += subjectCandle.getVolume();
@@ -136,7 +140,7 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 		if (this.dataExtractorSubject.getSubjectState() == SubjectState.END_OF_LIFE) {
 			this.subjectState = SubjectState.END_OF_LIFE;
 			if (!timeFrameEndTime) {
-				dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, volume, openTime, subjectCandle.getCommodityName()));
+				dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, volume, openTime, subjectCandle.getAssetName()));
 			}
 			this.dataExtractorSubject.unregisterObserver(this);
 			

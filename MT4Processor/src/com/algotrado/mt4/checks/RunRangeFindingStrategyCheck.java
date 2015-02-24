@@ -14,9 +14,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import com.algotrado.data.event.JapaneseCandleBar;
 import com.algotrado.mt4.impl.CandleHourSuccessStatistics;
 import com.algotrado.mt4.impl.FileNameTimeFrame;
-import com.algotrado.mt4.impl.JapaneseCandleBar;
 import com.algotrado.mt4.tal.patterns.range.RangePattern;
 import com.algotrado.mt4.tal.strategy.Strategy;
 import com.algotrado.mt4.tal.strategy.check.pattern.RangeStrategy;

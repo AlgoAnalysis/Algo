@@ -1,4 +1,4 @@
-package com.algotrado.mt4.impl;
+package com.algotrado.data.event;
 
 import java.util.Date;
 
@@ -66,7 +66,7 @@ public class JapaneseCandleBar extends AbstractCandleBar {
 		this.high = high;
 	}
 
-	public String getCommodityName() {
+	public String getAssetName() {
 		return commodityName;
 	}
 

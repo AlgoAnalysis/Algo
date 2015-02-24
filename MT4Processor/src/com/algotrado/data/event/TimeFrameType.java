@@ -1,4 +1,4 @@
-package com.algotrado.extract.data;
+package com.algotrado.data.event;
 
 import java.util.Calendar;
 import java.util.Date;

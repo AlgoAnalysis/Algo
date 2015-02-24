@@ -1,10 +1,8 @@
-package com.algotrado.extract.data;
+package com.algotrado.data.event;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import com.algotrado.mt4.impl.JapaneseCandleBar;
 
 public class CandleBarsCollection {
 	private List<JapaneseCandleBar> candleBars;

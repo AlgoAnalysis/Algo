@@ -3,6 +3,7 @@ package com.algotrado.extract.data;
 import java.util.Date;
 import java.util.List;
 
+import com.algotrado.data.event.DataEventType;
 import com.algotrado.extract.data.file.FileDataExtractor;
 import com.algotrado.util.Setting;
 

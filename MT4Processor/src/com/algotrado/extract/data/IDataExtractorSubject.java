@@ -5,6 +5,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
 
+import com.algotrado.data.event.DataEventType;
+import com.algotrado.data.event.NewUpdateData;
+
 /**
  * This is the abstract class for data extractor.
  * All Subclasses must implement run() method that should do the data extraction functionality.

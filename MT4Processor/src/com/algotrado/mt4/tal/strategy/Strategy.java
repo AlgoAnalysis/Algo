@@ -1,6 +1,6 @@
 package com.algotrado.mt4.tal.strategy;
 
-import com.algotrado.mt4.impl.JapaneseCandleBar;
+import com.algotrado.data.event.JapaneseCandleBar;
 import com.algotrado.mt4.tal.strategy.check.pattern.SingleCandleBarData;
 
 public abstract class Strategy {
@@ -28,7 +28,7 @@ public abstract class Strategy {
 	}
 
 	public double getPipsMultiplier(JapaneseCandleBar[] candles, int index) {
-		return candles[index].getCommodityName().contains("JPY")? (double)100: (double)10000;
+		return candles[index].getAssetName().contains("JPY")? (double)100: (double)10000;
 	}
 
 	public double getShortGain(JapaneseCandleBar[] candles, int index, double stopLoss, double confirmationPoint) {
@@ -112,7 +112,7 @@ public abstract class Strategy {
 			}
 			
 		}
-		double multiplierOfPips = japaneseCandleBar.getCommodityName().contains("JPY")? (double)100: (double)10000;
+		double multiplierOfPips = japaneseCandleBar.getAssetName().contains("JPY")? (double)100: (double)10000;
 		if (indexOfHighest >= indexOfNewLowest) return (japaneseCandleBar.getHigh() - newLowestCorrection)* (double)multiplierOfPips;
 		
 		return (japaneseCandleBar.getHigh() - lowestCorrection) * (double)multiplierOfPips;
@@ -147,7 +147,7 @@ public abstract class Strategy {
 			}
 			
 		}
-		double multiplierOfPips = japaneseCandleBar.getCommodityName().contains("JPY")? (double)100: (double)10000;		
+		double multiplierOfPips = japaneseCandleBar.getAssetName().contains("JPY")? (double)100: (double)10000;		
 		if (indexOfLowest >= indexOfNewHighest) return (newHighestCorrection - japaneseCandleBar.getLow())* (double)multiplierOfPips;
 		return (highestCorrection - japaneseCandleBar.getLow()) * (double)multiplierOfPips;
 	}

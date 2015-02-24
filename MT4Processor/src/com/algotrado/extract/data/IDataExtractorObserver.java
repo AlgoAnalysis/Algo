@@ -2,6 +2,8 @@ package com.algotrado.extract.data;
 
 import java.util.List;
 
+import com.algotrado.data.event.DataEventType;
+
 public interface IDataExtractorObserver {
 
 	public void notifyObserver(DataEventType dataEventType, List<Float> parameters);
