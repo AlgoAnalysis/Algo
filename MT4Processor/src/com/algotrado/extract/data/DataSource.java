@@ -3,6 +3,7 @@ package com.algotrado.extract.data;
 import java.util.Date;
 import java.util.List;
 
+import com.algotrado.data.event.DataEventType;
 import com.algotrado.extract.data.file.FileDataExtractor;
 import com.algotrado.util.Setting;
 
@@ -22,6 +23,10 @@ public enum DataSource {
 		this.valueString = valueString;
 	}
 	
+	public String getValueString() {
+		return valueString;
+	}
+
 	public static String[] getDataSourceStrings()
 	{
 		String[] ret = new String[DataSource.values().length];

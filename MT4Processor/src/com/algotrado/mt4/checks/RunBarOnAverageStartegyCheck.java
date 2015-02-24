@@ -16,12 +16,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import com.algotrado.data.event.JapaneseCandleBar;
 import com.algotrado.mt4.impl.BarOnAverageStrategy;
 import com.algotrado.mt4.impl.CandleDaySuccessStatistics;
 import com.algotrado.mt4.impl.CandleHourSuccessStatistics;
 import com.algotrado.mt4.impl.FileNameTimeFrame;
 import com.algotrado.mt4.impl.GeneralBarStrategy;
-import com.algotrado.mt4.impl.JapaneseCandleBar;
 
 public class RunBarOnAverageStartegyCheck {
 
@@ -94,7 +94,7 @@ public class RunBarOnAverageStartegyCheck {
 				}
 		        
 
-		        JapaneseCandleBar temp = new JapaneseCandleBar(open, close, high, low, formattedDate, comodityName);
+		        JapaneseCandleBar temp = new JapaneseCandleBar(open, close, high, low, volume, formattedDate, comodityName);
 		        System.out.println(temp);
 		        datalist.add(temp);
 		        

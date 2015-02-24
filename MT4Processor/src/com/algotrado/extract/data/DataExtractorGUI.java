@@ -1,29 +1,31 @@
 package com.algotrado.extract.data;
 
+import java.awt.Component;
 import java.awt.EventQueue;
-
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-
 import java.awt.Font;
-
-import javax.swing.JTextField;
-import javax.swing.JButton;
-import javax.swing.DefaultComboBoxModel;
-
-import java.awt.event.ItemListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.io.File;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
-import org.eclipse.wb.swing.FocusTraversalOnArray;
-import java.awt.Component;
 
-public class DataExtractorGUI {
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
+
+import org.eclipse.wb.swing.FocusTraversalOnArray;
+
+import com.algotrado.data.event.DataEventType;
+import com.algotrado.data.event.TimeFrameType;
+import com.algotrado.output.file.FileDataRecorder;
+import com.algotrado.output.file.IGUIController;
+
+public class DataExtractorGUI implements IGUIController {
 
 	private JFrame frmDf;
 	private JTextField tfdSaveFilePath;
@@ -189,13 +191,20 @@ public class DataExtractorGUI {
 			parameters.add((float)0); // TODO - check if we want history
 		}
 		
+		RegisterDataExtractor.setDataSource(dataSource);
+		String filePath = tfdSaveFilePath.getText();
+		IDataExtractorObserver dataRecorder = new FileDataRecorder(dataSource, assetType, dataEventType, parameters, filePath, this);
+		
+		
+		
 		cbxDataSource.setEnabled(false);
 		cbxAsset.setEnabled(false);
 		cbxDataEvant.setEnabled(false);
 		cbxIntervalTime.setEnabled(false);
 		tfdSaveFilePath.setEnabled(false);
 		btnSaveFile.setEnabled(false);
-		// TODO
+		
+		SwingUtilities.invokeLater((FileDataRecorder)dataRecorder);
 	}
 	
 	private void endTest()
@@ -208,5 +217,17 @@ public class DataExtractorGUI {
 		cbxIntervalTime.setEnabled(true);
 		tfdSaveFilePath.setEnabled(true);
 		btnSaveFile.setEnabled(true);
+	}
+	
+	public void setErrorMessage(String ErrorMsg, boolean endProgram) {
+		System.out.println("Error: " + ErrorMsg);
+		if (endProgram) {
+			endTest();
+		}
+	}
+
+	@Override
+	public void resetGUI() {
+		endTest();
 	}
 }

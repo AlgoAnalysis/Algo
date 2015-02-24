@@ -23,9 +23,9 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 
+import com.algotrado.data.event.JapaneseCandleBar;
 import com.algotrado.mt4.impl.CandleHourSuccessStatistics;
 import com.algotrado.mt4.impl.FileNameTimeFrame;
-import com.algotrado.mt4.impl.JapaneseCandleBar;
 import com.algotrado.mt4.impl.Pattern;
 import com.algotrado.mt4.tal.patterns.continuos.RisingOrFallingThreePattern;
 import com.algotrado.mt4.tal.strategy.Strategy;

@@ -11,18 +11,21 @@ import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import com.algotrado.data.event.CandleBarsCollection;
+import com.algotrado.data.event.DataEventType;
+import com.algotrado.data.event.JapaneseCandleBar;
+import com.algotrado.data.event.NewUpdateData;
+import com.algotrado.data.event.TimeFrameType;
 import com.algotrado.extract.data.AssetType;
-import com.algotrado.extract.data.CandleBarsCollection;
-import com.algotrado.extract.data.DataEventType;
-import com.algotrado.extract.data.IDataExtractorObserver;
+import com.algotrado.extract.data.DataSource;
 import com.algotrado.extract.data.IDataExtractorSubject;
 import com.algotrado.extract.data.LargerTimeFrameDataExtractor;
-import com.algotrado.extract.data.NewUpdateData;
-import com.algotrado.mt4.tal.strategy.check.pattern.SingleCandleBarData;
+import com.algotrado.extract.data.SubjectState;
 
 public class FileDataExtractor extends IDataExtractorSubject {
 	private String filePath;
-	CandleBarsCollection dataList;
+	private CandleBarsCollection dataList;
+	private SubjectState subjectState;
 	
 	public static void main(String [] args)
 	  {
@@ -70,7 +73,7 @@ public class FileDataExtractor extends IDataExtractorSubject {
 					}
 				});
 				if (intervalFileNames.length > 0) {
-					return new FileDataExtractor(assetType, dataEventType, parameters, root.getAbsolutePath() + File.separator + intervalFileNames[0]);
+					return new FileDataExtractor(assetType, dataEventType, parameters, assetDir.getAbsolutePath() + File.separator + intervalFileNames[0]);
 				}
 			}
 		}
@@ -82,6 +85,7 @@ public class FileDataExtractor extends IDataExtractorSubject {
 			List<Float> parameters, String filePath) {
 		super(assetType, dataEventType, parameters);
 		this.filePath = filePath;
+		this.subjectState = SubjectState.RUNNING;
 	}
 
 	@Override
@@ -99,13 +103,12 @@ public class FileDataExtractor extends IDataExtractorSubject {
 	      }
 	      int index = 0;
 	      String date = null, period = null;
-	      Double open = null, high = null, low = null, close = null, sma20 = null, bollinger20TopBand = null, bollinger20BottomBand = null,
-	    		  sma10 = null, bollinger10TopBand = null, bollinger10BottomBand = null, rsi = null;
+	      Double open = null, high = null, low = null, close = null;
 	      
 	      //2014.04.15 04:00:00
 	      SimpleDateFormat formatter = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
-	      SimpleDateFormat hourformatter = new SimpleDateFormat("HH:mm");
-	      SimpleDateFormat dateformatter = new SimpleDateFormat("dd/MM/yyyy");
+//	      SimpleDateFormat hourformatter = new SimpleDateFormat("HH:mm");
+//	      SimpleDateFormat dateformatter = new SimpleDateFormat("dd/MM/yyyy");
 	      while( stringRead != null )
 	      {
 	    	StringTokenizer st = new StringTokenizer(stringRead, ";");
@@ -133,21 +136,24 @@ public class FileDataExtractor extends IDataExtractorSubject {
 			}
 	        
 
-	        SingleCandleBarData temp = new SingleCandleBarData(open, close, high, low, formattedDate, assetType.name(), sma20, bollinger20BottomBand, bollinger20TopBand,
-	        		sma10, bollinger10BottomBand, bollinger10TopBand, rsi);
-	        System.out.println(temp);
+	        JapaneseCandleBar temp = new JapaneseCandleBar(open, close, high, low, volume, formattedDate, assetType.name());
+//	        System.out.println(temp);
 	        dataList.addCandleBar(temp);
 	        // I think that notifying the observers after each read may be bad due to large number of notifications in a short time.
 	        // However we do need to test this as well.
-//	        notifyObservers(assetType, dataEventType, parameters);
-	        
 	        // read the next line
 	        stringRead = br.readLine();
+	        
+	        if (stringRead == null) {
+	        	this.subjectState = SubjectState.END_OF_LIFE;
+	        }
+	        
+	        notifyObservers(assetType, dataEventType, parameters);
 	      }
 	      br.close( );
 	      
 	      //call all the observers when new data collection is ready.
-	      notifyObservers(assetType, dataEventType, parameters);
+//	      notifyObservers(assetType, dataEventType, parameters);
 	      
 	    } catch (Exception e) {
 	    	System.err.println("An error reading files has occoured\n");
@@ -159,7 +165,27 @@ public class FileDataExtractor extends IDataExtractorSubject {
 
 	@Override
 	public NewUpdateData getNewData() {
-		return dataList;
+		return dataList.getCandleBars().get(dataList.getCandleBars().size() - 1);
+	}
+
+	@Override
+	public String getDataHeaders() {
+		return "Asset," + assetType.name() + "\n" +
+				"Interval," + TimeFrameType.getTimeFrameFromInterval(parameters.get(0)).getValueString() + "\n" + 
+				"Data Source," + DataSource.FILE.getValueString() + "\n" + 
+				"Date and Time, " + getNewData().getDataHeaders();
+	}
+	
+	@Override
+	public String toString() {
+		JapaneseCandleBar candle = dataList.getCandleBars().get(dataList.getCandleBars().size() - 1);
+		return candle.getTime() + " , " + candle.getOpen() + " , " + candle.getHigh() + " , " 
+				+ candle.getLow() + " , " + candle.getClose() + " , " + candle.getVolume();
+	}
+
+	@Override
+	public SubjectState getSubjectState() {
+		return subjectState;
 	}
 
 }
