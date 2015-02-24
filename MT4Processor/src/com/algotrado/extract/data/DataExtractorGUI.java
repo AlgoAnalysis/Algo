@@ -15,6 +15,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 
 import org.eclipse.wb.swing.FocusTraversalOnArray;
 
@@ -201,9 +203,8 @@ public class DataExtractorGUI implements IGUIController {
 		cbxIntervalTime.setEnabled(false);
 		tfdSaveFilePath.setEnabled(false);
 		btnSaveFile.setEnabled(false);
-		// TODO
 		
-		new Thread((FileDataRecorder)dataRecorder).run();
+		SwingUtilities.invokeLater((FileDataRecorder)dataRecorder);
 	}
 	
 	private void endTest()

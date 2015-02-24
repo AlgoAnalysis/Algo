@@ -173,7 +173,7 @@ public class FileDataExtractor extends IDataExtractorSubject {
 		return "Asset," + assetType.name() + "\n" +
 				"Interval," + TimeFrameType.getTimeFrameFromInterval(parameters.get(0)).getValueString() + "\n" + 
 				"Data Source," + DataSource.FILE.getValueString() + "\n" + 
-				"Date and Time, " + DataEventType.JAPANESE.getDataHeaders();
+				"Date and Time, " + getNewData().getDataHeaders();
 	}
 	
 	@Override
