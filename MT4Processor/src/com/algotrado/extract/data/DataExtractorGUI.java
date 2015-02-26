@@ -6,6 +6,7 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
@@ -37,6 +38,7 @@ public class DataExtractorGUI implements IGUIController {
 	private JLabel lblDataSource;
 	private JComboBox cbxDataSource;
 	private JButton btnSaveFile;
+	private JTextField txdTime;
 
 	/**
 	 * Launch the application.
@@ -153,14 +155,11 @@ public class DataExtractorGUI implements IGUIController {
 				if(!testRun)
 				{
 					startTest();
-					btnStart.setText("Stop");
 				}
 				else
 				{
-					endTest();
-					btnStart.setText("Start");
+					endTest();	
 				}
-				testRun = !testRun;
 			}
 		});
 		btnStart.setFont(new Font("Tahoma", Font.PLAIN, 16));
@@ -176,9 +175,22 @@ public class DataExtractorGUI implements IGUIController {
 		cbxDataSource.setModel(new DefaultComboBoxModel(DataSource.getDataSourceStrings()));
 		cbxDataSource.setBounds(146, 35, 259, 27);
 		frmDf.getContentPane().add(cbxDataSource);
+		
+		JLabel lblTime = new JLabel("Time:");
+		lblTime.setFont(new Font("Tahoma", Font.PLAIN, 16));
+		lblTime.setBounds(32, 268, 103, 27);
+		frmDf.getContentPane().add(lblTime);
+		
+		txdTime = new JTextField();
+		txdTime.setEditable(false);
+		txdTime.setEnabled(false);
+		txdTime.setFont(new Font("Tahoma", Font.PLAIN, 16));
+		txdTime.setColumns(10);
+		txdTime.setBounds(146, 265, 259, 27);
+		frmDf.getContentPane().add(txdTime);
 		frmDf.getContentPane().setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{lblAsset, cbxAsset, lblDataEvent, lblDataSource, lblIntervalTime, cbxIntervalTime, lblSaveFile, cbxDataEvant, tfdSaveFilePath, btnSaveFile, btnStart, cbxDataSource}));
 	}
-	
+	private long timeMili;
 	private void startTest()
 	{
 		DataSource dataSource = DataSource.getDataSourceFromString(cbxDataSource.getSelectedItem().toString());
@@ -196,14 +208,15 @@ public class DataExtractorGUI implements IGUIController {
 		IDataExtractorObserver dataRecorder = new FileDataRecorder(dataSource, assetType, dataEventType, parameters, filePath, this);
 		
 		
-		
+		testRun = true;
 		cbxDataSource.setEnabled(false);
 		cbxAsset.setEnabled(false);
 		cbxDataEvant.setEnabled(false);
 		cbxIntervalTime.setEnabled(false);
 		tfdSaveFilePath.setEnabled(false);
 		btnSaveFile.setEnabled(false);
-		
+		btnStart.setText("Stop");
+		timeMili = System.currentTimeMillis();
 		SwingUtilities.invokeLater((FileDataRecorder)dataRecorder);
 	}
 	
@@ -217,6 +230,10 @@ public class DataExtractorGUI implements IGUIController {
 		cbxIntervalTime.setEnabled(true);
 		tfdSaveFilePath.setEnabled(true);
 		btnSaveFile.setEnabled(true);
+		btnStart.setText("Start");
+		testRun = false;
+		Float deffTime = Float.valueOf((float)(System.currentTimeMillis() - timeMili)/1000);
+		txdTime.setText(deffTime.toString() + " Sec");
 	}
 	
 	public void setErrorMessage(String ErrorMsg, boolean endProgram) {
