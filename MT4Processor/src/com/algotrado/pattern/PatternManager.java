@@ -1,31 +1,32 @@
 package com.algotrado.pattern;
 
-import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-
-import com.algotrado.mt4.impl.Pattern;
-import com.algotrado.util.DebugUtil;
+import com.algotrado.data.event.NewUpdateData;
 
 public class PatternManager {
 
 	private APatternState firstState;
-	private List<StateAndTime> stateArr;
+	private List<PStateAndTime> stateArr;
 	private PatternManagerStatus status;
 	
 	public PatternManager(APatternState firstState)
 	{
 		this.firstState = firstState;
-		stateArr = new ArrayList<StateAndTime>();
-		stateArr.add(new StateAndTime(firstState));
+		stateArr = new ArrayList<PStateAndTime>();
+		stateArr.add(new PStateAndTime(firstState));
 	}
 	
-	public void setNewData(Object[] newData)
+	public void setNewData(NewUpdateData[] newData)
 	{
 		boolean needCreateNewState = true;
-		for(StateAndTime state : stateArr)
+		boolean recordState;
+		status = PatternManagerStatus.RUN;
+		for(PStateAndTime state : stateArr)
 		{
 			state.getState().setNewData(newData);
+			recordState = false;
 			switch(state.getState().getStatus()) // check if we mast switch
 			{
 			case WAIT_TO_START:
@@ -37,19 +38,19 @@ public class PatternManager {
 				break;
 			case RUN_TO_NEXT_STATE:
 				state.setState(state.getState().getNextState()); // TODO - need to check if need to remove and add or the list is pointer to this state
-				state.addTime(null); // TODO - need the time;
+				recordState = true;
 				break;
 			case TRIGGER_BEARISH:
 				status = PatternManagerStatus.TRIGGER_BEARISH;
-				state.addTime(null); // TODO - need the time;
+				recordState = true;
 				break;
 			case TRIGGER_BULLISH:
 				status = PatternManagerStatus.TRIGGER_BULLISH;
-				state.addTime(null); // TODO - need the time;
+				recordState = true;
 				break;
 			case TRIGGER_NOT_SPECIFIED:
 				status = PatternManagerStatus.TRIGGER_NOT_SPECIFIED;
-				state.addTime(null); // TODO - need the time;
+				recordState = true;
 				break;
 			case ERROR:
 				status = PatternManagerStatus.ERROR;
@@ -57,10 +58,19 @@ public class PatternManager {
 			case RUN:
 				break;
 			}
+			if(recordState)
+			{
+				if(state.getTimeList().size() == 0)
+				{
+					IPatternFirstState firstState= (IPatternFirstState)state.getState();
+					state.addTime(firstState.getStartTime());
+				}
+				state.addTime(state.getState().getTrigerTime());
+			}
 		}
 		if(needCreateNewState)
 		{
-			stateArr.add(new StateAndTime(firstState));
+			stateArr.add(new PStateAndTime(firstState));
 		}
 	}
 	
@@ -68,9 +78,9 @@ public class PatternManager {
 		return status;
 	}
 	
-	public List<Time> getTimeListofTriggerState()
+	public List<Date> getTimeListofTriggerState()
 	{
-		for(StateAndTime state : stateArr)
+		for(PStateAndTime state : stateArr)
 		{
 			if(state.getState().getStatus() == PatternStateStatus.TRIGGER_BEARISH || 
 					state.getState().getStatus() == PatternStateStatus.TRIGGER_BULLISH ||
@@ -82,22 +92,24 @@ public class PatternManager {
 		return null;
 	}
 
-	private class StateAndTime
+	private class PStateAndTime
 	{
 		private APatternState state;
-		private List<Time> timeList; 
-		public StateAndTime(APatternState state)
+		private List<Date> timeList; 
+		public PStateAndTime(APatternState state)
 		{
-			this.state = state;
-			timeList = new ArrayList<Time>();
+			
+			IPatternFirstState firstState = (IPatternFirstState)state;
+			this.state = firstState.getCopyPatternState();
+			timeList = new ArrayList<Date>();
 		}
 		
-		public boolean addTime(Time time)
+		public boolean addTime(Date time)
 		{
 			return timeList.add(time);
 		}
 		
-		public List<Time> getTimeList()
+		public List<Date> getTimeList()
 		{
 			return timeList;
 		}

@@ -1,6 +1,8 @@
 package com.algotrado.pattern;
 
-import java.sql.Time;
+import java.util.Date;
+
+import com.algotrado.data.event.NewUpdateData;
 
 public abstract class APatternState {
 
@@ -14,7 +16,7 @@ public abstract class APatternState {
 	static protected Object[] parameterMinValue;
 	static protected Object[] parameterMaxValue;
 	
-	protected Time trigerTime;
+	protected Date trigerTime;
 	
 	// The follow variables for work.
 	static protected Object[] newDataClass;
@@ -32,16 +34,16 @@ public abstract class APatternState {
 	// index parameter constructor
 	public APatternState(int index)
 	{
-		this(parametersList.getParametersFromIndex(index));
+		this.parameters = parametersList.getParametersFromIndex(index);
 	}
 	
 	// copy constructor
 	public APatternState(APatternState patternState)
 	{
-		this(patternState.getParameters());
+		this.parameters = patternState.getParameters();
 	}
 	
-	public abstract void setNewData(Object[] newData);
+	public abstract void setNewData(NewUpdateData[] newData);
 	public abstract APatternState getNextState();
 	
 	/**
@@ -77,7 +79,7 @@ public abstract class APatternState {
 	public static String[] getParameterStringList() {
 		return parameterStringList;
 	}
-	public Time getTrigerTime() {
+	public Date getTrigerTime() {
 		return trigerTime;
 	}
 	public PatternStateStatus getStatus()

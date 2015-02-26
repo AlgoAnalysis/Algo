@@ -116,4 +116,12 @@ public class JapaneseCandleBar extends AbstractCandleBar {
 	public String getDataHeaders() {
 		return "Open Price, High Price, Low Price, Close Price, Volume";
 	}
+	
+	public double getBodySize()	{
+		return Math.abs(open-close);
+	}
+	
+	public double getRangeSize()	{
+		return high - low;
+	}
 }

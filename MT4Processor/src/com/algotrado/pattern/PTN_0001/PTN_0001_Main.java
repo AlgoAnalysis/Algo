@@ -1,6 +1,7 @@
 package com.algotrado.pattern.PTN_0001;
 
-import com.algotrado.mt4.impl.JapaneseCandleBar;
+
+import com.algotrado.data.event.JapaneseCandleBar;
 import com.algotrado.pattern.APatternState;
 import com.algotrado.pattern.PatternParameterList;
 
@@ -18,6 +19,11 @@ public abstract class PTN_0001_Main extends APatternState{
 	
 	public PTN_0001_Main(Object[] parameters) {
 		super(parameters);
+	}
+	
+	public PTN_0001_Main(int index)
+	{
+		super(index);
 	}
 
 }

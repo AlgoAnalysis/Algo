@@ -11,10 +11,10 @@ public abstract class PatternParameterList {
 		{
 			return parametersList[index-1];
 		}
-		if(DebugUtil.debugPatternParameterChecking)
+		if(DebugUtil.debugPatternChecking)
 		{
-			throw new RuntimeException("");
+			throw new RuntimeException("parameter list error index");
 		}
-		return null; // TODO
+		return null; 
 	}
 }
