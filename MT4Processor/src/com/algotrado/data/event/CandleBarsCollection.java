@@ -2,9 +2,10 @@ package com.algotrado.data.event;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
-public class CandleBarsCollection {
+public class CandleBarsCollection implements NewUpdateData {
 	private List<JapaneseCandleBar> candleBars;
 
 	public CandleBarsCollection() {
@@ -18,6 +19,21 @@ public class CandleBarsCollection {
 	
 	public List<JapaneseCandleBar> getCandleBars(){
 		return candleBars;
+	}
+
+	@Override
+	public Date getTime() {
+		return candleBars.get(0).getTime();
+	}
+
+	@Override
+	public String getAssetName() {
+		return candleBars.get(0).getAssetName();
+	}
+
+	@Override
+	public String getDataHeaders() {
+		return candleBars.get(0).getDataHeaders();
 	}
 	
 	
