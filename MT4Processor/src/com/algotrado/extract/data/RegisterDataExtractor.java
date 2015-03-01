@@ -22,7 +22,9 @@ public class RegisterDataExtractor {
 	}
 	
 	public static void setDataSource(DataSource dataSource) {
-		if (DebugUtil.debugRegisterDataExtractor && RegisterDataExtractor.dataSource != null) {
+		if (DebugUtil.debugRegisterDataExtractor && 
+				(RegisterDataExtractor.dataSource != null && 
+				RegisterDataExtractor.dataSource != dataSource)) {
 			throw new RuntimeException("The RegisterDataExtractor setDataSource dataSource is not null!!");
 		}
 		RegisterDataExtractor.dataSource = dataSource;

@@ -175,7 +175,7 @@ public class FileDataExtractor extends IDataExtractorSubject {
 		return "Asset," + assetType.name() + "\n" +
 				"Interval," + TimeFrameType.getTimeFrameFromInterval(parameters.get(0)).getValueString() + "\n" + 
 				"Data Source," + DataSource.FILE.getValueString() + "\n" + 
-				"Date and Time, " + getNewData().getDataHeaders();
+				"Date,Time, " + getNewData().getDataHeaders();
 	}
 	
 	@Override
@@ -186,9 +186,9 @@ public class FileDataExtractor extends IDataExtractorSubject {
 				toStringRet = "";
 			}
 			JapaneseCandleBar candle = jpnCandleIterator.next();
-			SimpleDateFormat dateformatter = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+			SimpleDateFormat dateformatter = new SimpleDateFormat("dd/MM/yyyy,HH:mm:ss");
 			toStringRet += dateformatter.format(candle.getTime()) + " , " + candle.getOpen() + " , " + candle.getHigh() + " , " 
-			+ candle.getLow() + " , " + candle.getClose() + " , " + candle.getVolume() + ((!jpnCandleIterator.hasNext()) ? "" : "\n");
+					+ candle.getLow() + " , " + candle.getClose() + " , " + candle.getVolume() + ((!jpnCandleIterator.hasNext()) ? "" : "\n");
 		}
 		return toStringRet; 
 	}
