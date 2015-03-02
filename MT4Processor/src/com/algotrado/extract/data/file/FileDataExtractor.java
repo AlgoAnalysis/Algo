@@ -7,7 +7,9 @@ import java.io.FilenameFilter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -27,6 +29,7 @@ public class FileDataExtractor extends IDataExtractorSubject {
 	private String filePath;
 	private CandleBarsCollection dataList;
 	private SubjectState subjectState;
+	private JapaneseCandleBar prevCandle = null;
 	
 	public static void main(String [] args)
 	  {
@@ -138,8 +141,48 @@ public class FileDataExtractor extends IDataExtractorSubject {
 			}
 	        
 
+	        if (prevCandle != null) {
+	        	//check for time gaps and add padding.
+	        	Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
+	    		calendar.setTime(formattedDate);
+	    		Calendar prevCalendar = GregorianCalendar.getInstance(); // creates a new calendar instance
+	    		prevCalendar.setTime(prevCandle.getTime());
+	    		Calendar originalPrevCalendar = GregorianCalendar.getInstance(); // creates a new calendar instance
+	    		originalPrevCalendar.setTime(prevCandle.getTime());
+	    		// If gap is more than 24 hour do not fill the gap
+	    		if ((formattedDate.getTime() - prevCandle.getTime().getTime()) < (60 * 1000 * 60 * 24) &&
+    				formattedDate.after(prevCandle.getTime())) { // add padding
+	    			for (int dayIndex = prevCalendar.get(Calendar.DAY_OF_YEAR); dayIndex <= calendar.get(Calendar.DAY_OF_YEAR); dayIndex++) {
+	    				prevCalendar.set(Calendar.DAY_OF_YEAR, dayIndex);
+	    				int maxHour = (dayIndex == calendar.get(Calendar.DAY_OF_YEAR)) ? calendar.get(Calendar.HOUR_OF_DAY) : 23;
+//	    				int maxMinute = calendar.get(Calendar.MINUTE) - 1;
+	    				for (int hourIndex = prevCalendar.get(Calendar.HOUR_OF_DAY); hourIndex <= maxHour; hourIndex++) {
+	    					prevCalendar.set(Calendar.HOUR_OF_DAY, hourIndex);
+	    					int maxMinute = (dayIndex == calendar.get(Calendar.DAY_OF_YEAR) && hourIndex == calendar.get(Calendar.HOUR_OF_DAY)) ? (calendar.get(Calendar.MINUTE) - 1) : 59;
+	    					int startMinute = (dayIndex == prevCalendar.get(Calendar.DAY_OF_YEAR) && hourIndex == originalPrevCalendar.get(Calendar.HOUR_OF_DAY))? 
+	    							prevCalendar.get(Calendar.MINUTE) + 1 : 0;
+	    					for(int minuteIndex = startMinute; minuteIndex <= maxMinute; minuteIndex++) {
+	    						prevCalendar.set(Calendar.MINUTE, minuteIndex);
+	    						JapaneseCandleBar paddingCandle = new JapaneseCandleBar(prevCandle.getClose(), prevCandle.getClose(), prevCandle.getClose(), prevCandle.getClose(), 0, prevCalendar.getTime(), assetType.name());
+	    						dataList.addCandleBar(paddingCandle);
+	    					}
+	    					prevCalendar.set(Calendar.MINUTE, 0);
+	    				}
+	    				prevCalendar.set(Calendar.HOUR_OF_DAY, 0);
+	    			}
+	    		}
+	        	if (prevCalendar.get(Calendar.DAY_OF_WEEK) == 6 && calendar.get(Calendar.DAY_OF_WEEK) != 6) {
+	        		// There was end of week gap.
+	        	} else {
+	        		
+	        	}
+	        	
+	        }
+
 	        JapaneseCandleBar temp = new JapaneseCandleBar(open, close, high, low, volume, formattedDate, assetType.name());
-//	        System.out.println(temp);
+	        
+	        prevCandle = temp;
+	        
 	        dataList.addCandleBar(temp);
 	        // I think that notifying the observers after each read may be bad due to large number of notifications in a short time.
 	        // However we do need to test this as well.

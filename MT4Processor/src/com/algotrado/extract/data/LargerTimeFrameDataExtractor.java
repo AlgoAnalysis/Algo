@@ -152,6 +152,7 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 			}
 			if (!this.dataList.getCandleBars().isEmpty()) {
 				notifyObservers(this.assetType, this.dataEventType, this.parameters);
+				dataList = new CandleBarsCollection();
 			}
 		}
 	}
