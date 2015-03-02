@@ -8,6 +8,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -111,6 +112,7 @@ public class FileDataExtractor extends IDataExtractorSubject {
 //	      SimpleDateFormat dateformatter = new SimpleDateFormat("dd/MM/yyyy");
 	      while( stringRead != null )
 	      {
+	    	dataList.getCandleBars().clear();
 	    	StringTokenizer st = new StringTokenizer(stringRead, ";");
 	        date = st.nextToken( );
 	        period = st.nextToken( );  
@@ -165,7 +167,7 @@ public class FileDataExtractor extends IDataExtractorSubject {
 
 	@Override
 	public NewUpdateData getNewData() {
-		return dataList.getCandleBars().get(dataList.getCandleBars().size() - 1);
+		return dataList/*.getCandleBars().get(dataList.getCandleBars().size() - 1)*/;
 	}
 
 	@Override
@@ -173,14 +175,22 @@ public class FileDataExtractor extends IDataExtractorSubject {
 		return "Asset," + assetType.name() + "\n" +
 				"Interval," + TimeFrameType.getTimeFrameFromInterval(parameters.get(0)).getValueString() + "\n" + 
 				"Data Source," + DataSource.FILE.getValueString() + "\n" + 
-				"Date and Time, " + getNewData().getDataHeaders();
+				"Date,Time, " + getNewData().getDataHeaders();
 	}
 	
 	@Override
 	public String toString() {
-		JapaneseCandleBar candle = dataList.getCandleBars().get(dataList.getCandleBars().size() - 1);
-		return candle.getTime() + " , " + candle.getOpen() + " , " + candle.getHigh() + " , " 
-				+ candle.getLow() + " , " + candle.getClose() + " , " + candle.getVolume();
+		String toStringRet = null;
+		for (Iterator<JapaneseCandleBar> jpnCandleIterator = dataList.getCandleBars().iterator(); jpnCandleIterator.hasNext(); ) {
+			if (toStringRet == null) {
+				toStringRet = "";
+			}
+			JapaneseCandleBar candle = jpnCandleIterator.next();
+			SimpleDateFormat dateformatter = new SimpleDateFormat("dd/MM/yyyy,HH:mm:ss");
+			toStringRet += dateformatter.format(candle.getTime()) + " , " + candle.getOpen() + " , " + candle.getHigh() + " , " 
+					+ candle.getLow() + " , " + candle.getClose() + " , " + candle.getVolume() + ((!jpnCandleIterator.hasNext()) ? "" : "\n");
+		}
+		return toStringRet; 
 	}
 
 	@Override
