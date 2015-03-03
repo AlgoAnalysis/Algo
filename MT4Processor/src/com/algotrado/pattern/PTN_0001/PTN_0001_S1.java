@@ -5,15 +5,17 @@ import java.util.Date;
 
 import com.algotrado.data.event.JapaneseCandleBar;
 import com.algotrado.data.event.NewUpdateData;
-import com.algotrado.pattern.APatternState;
+import com.algotrado.pattern.IPatternState;
 import com.algotrado.pattern.IPatternFirstState;
 import com.algotrado.pattern.PatternStateStatus;
 
 public class PTN_0001_S1 extends PTN_0001_Main implements IPatternFirstState{
 
-	protected final Integer statesNumber = Integer.valueOf(1);
+	protected final Integer stateNumber = Integer.valueOf(1);
 	private JapaneseCandleBar japanese;
 	private Date startTime;
+	private Date triggerTime;
+	private PatternStateStatus status;
 	
 	public PTN_0001_S1(Object[] parameters) {
 		super(parameters);
@@ -31,6 +33,7 @@ public class PTN_0001_S1 extends PTN_0001_Main implements IPatternFirstState{
 		{
 			japanese = (JapaneseCandleBar) newData[0];
 			startTime = newData[0].getTime();
+			triggerTime = newData[0].getTime();
 			status = PatternStateStatus.RUN_TO_NEXT_STATE;
 		}
 		else
@@ -41,7 +44,7 @@ public class PTN_0001_S1 extends PTN_0001_Main implements IPatternFirstState{
 	}
 
 	@Override
-	public APatternState getNextState() {
+	public IPatternState getNextState() {
 		return new PTN_0001_S2(parameters,japanese);
 	}
 
@@ -51,8 +54,22 @@ public class PTN_0001_S1 extends PTN_0001_Main implements IPatternFirstState{
 	}
 
 	@Override
-	public APatternState getCopyPatternState() {
+	public IPatternState getCopyPatternState() {
 		return new PTN_0001_S1(parameters);
 	}
 
+	public Integer getStateNumber() {
+		return stateNumber;
+	}
+
+	public PatternStateStatus getStatus() {
+		return status;
+	}
+
+	public Date getTriggerTime() {
+		return triggerTime;
+	}
+	
+	
+	
 }

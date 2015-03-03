@@ -7,11 +7,11 @@ import com.algotrado.data.event.NewUpdateData;
 
 public class PatternManager {
 
-	private APatternState firstState;
+	private IPatternState firstState;
 	private List<PStateAndTime> stateArr;
 	private PatternManagerStatus status;
 	
-	public PatternManager(APatternState firstState)
+	public PatternManager(IPatternState firstState)
 	{
 		this.firstState = firstState;
 		stateArr = new ArrayList<PStateAndTime>();
@@ -65,7 +65,7 @@ public class PatternManager {
 					IPatternFirstState firstState= (IPatternFirstState)state.getState();
 					state.addTime(firstState.getStartTime());
 				}
-				state.addTime(state.getState().getTrigerTime());
+				state.addTime(state.getState().getTriggerTime());
 			}
 		}
 		if(needCreateNewState)
@@ -94,9 +94,9 @@ public class PatternManager {
 
 	private class PStateAndTime
 	{
-		private APatternState state;
+		private IPatternState state;
 		private List<Date> timeList; 
-		public PStateAndTime(APatternState state)
+		public PStateAndTime(IPatternState state)
 		{
 			
 			IPatternFirstState firstState = (IPatternFirstState)state;
@@ -113,10 +113,10 @@ public class PatternManager {
 		{
 			return timeList;
 		}
-		public APatternState getState() {
+		public IPatternState getState() {
 			return state;
 		}
-		public void setState(APatternState state) {
+		public void setState(IPatternState state) {
 			this.state = state;
 		}
 	}

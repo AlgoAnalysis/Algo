@@ -17,26 +17,16 @@ import com.algotrado.extract.data.IDataExtractorSubject;
 import com.algotrado.extract.data.RegisterDataExtractor;
 import com.algotrado.extract.data.SubjectState;
 
-public class FileDataRecorder implements IDataExtractorObserver, Runnable, Comparable<FileDataRecorder> {
+public class FileDataRecorder implements IDataExtractorObserver, Comparable<FileDataRecorder> {
 	
-	DataSource dataSource;
-	AssetType assetType;
-	DataEventType dataEventType;
-	List<Float> parameters;
-	String saveFilePath;
-	IDataExtractorSubject dataExtractorSubject;
-	boolean appendFileMode;
-	IGUIController guiController;
+	private String saveFilePath;
+	private IDataExtractorSubject dataExtractorSubject;
+	private boolean appendFileMode;
+	private IGUIController guiController;
 	private FileWriter destinationFile;
 
-	public FileDataRecorder(DataSource dataSource, AssetType assetType,
-			DataEventType dataEventType, List<Float> parameters, 
-			String saveFilePath, IGUIController errorOutputter) {
+	public FileDataRecorder(String saveFilePath, IGUIController errorOutputter) {
 		super();
-		this.dataSource = dataSource;
-		this.assetType = assetType;
-		this.dataEventType = dataEventType;
-		this.parameters = parameters;
 		this.saveFilePath = saveFilePath;
 		this.appendFileMode = false;
 		this.guiController = errorOutputter;
@@ -118,10 +108,10 @@ public class FileDataRecorder implements IDataExtractorObserver, Runnable, Compa
 		setSubject(null);
 	}
 
-	@Override
-	public void run() {
-		RegisterDataExtractor.register(assetType, dataEventType, parameters, this);
-	}
+//	@Override
+//	public void run() {
+//		RegisterDataExtractor.register(assetType, dataEventType, parameters, this);
+//	}
 
 	@Override
 	public int compareTo(FileDataRecorder o) {
@@ -129,8 +119,8 @@ public class FileDataRecorder implements IDataExtractorObserver, Runnable, Compa
 			return 1;
 		} else if (o == this) {
 			return 0;
-		} else {
-			if (o.dataSource == this.dataSource && o.assetType == this.assetType && o.dataEventType == this.dataEventType) {
+		} /*else {
+			if (o.saveFilePath.equals(this.saveFilePath) && o.assetType == this.assetType && o.dataEventType == this.dataEventType) {
 				if (o.parameters != null && this.parameters != null) {
 					if (o.parameters.size() != this.parameters.size()) {
 						return this.parameters.size() - o.parameters.size();
@@ -148,7 +138,7 @@ public class FileDataRecorder implements IDataExtractorObserver, Runnable, Compa
 					return 1;
 				}
 			}
-		}
+		}*/
 		return -1;
 	}
 

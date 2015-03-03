@@ -1,17 +1,21 @@
 package com.algotrado.pattern.PTN_0001;
 
 
+import java.util.Date;
+
 import com.algotrado.data.event.JapaneseCandleBar;
 import com.algotrado.data.event.NewUpdateData;
-import com.algotrado.pattern.APatternState;
+import com.algotrado.pattern.IPatternState;
 import com.algotrado.pattern.PatternStateStatus;
 import com.algotrado.util.DebugUtil;
 
 public class PTN_0001_S2 extends PTN_0001_Main{
 	
-	protected final Integer statesNumber = Integer.valueOf(2);
+	protected final Integer stateNumber = Integer.valueOf(2);
 	private JapaneseCandleBar firstCandle;
 	private double maxBodySize;
+	private PatternStateStatus status;
+	private Date triggerTime;
 	
 	public PTN_0001_S2(Object[] parameters,JapaneseCandleBar firstCandle) {
 		super(parameters);
@@ -30,7 +34,7 @@ public class PTN_0001_S2 extends PTN_0001_Main{
 			(secondCandle.getHigh() <= firstCandle.getHigh()) &&
 			(secondCandle.getLow() >= firstCandle.getLow()))	{
 				status = (firstCandle.isBullishBar()) ? PatternStateStatus.TRIGGER_BEARISH :PatternStateStatus.TRIGGER_BULLISH;
-				trigerTime = secondCandle.getTime();
+				triggerTime = secondCandle.getTime();
 			}
 			else {
 				status = PatternStateStatus.KILL_STATE;
@@ -50,8 +54,19 @@ public class PTN_0001_S2 extends PTN_0001_Main{
 	}
 
 	@Override
-	public APatternState getNextState() {
+	public IPatternState getNextState() {
 		return null;
 	}
+	
+	public Integer getStateNumber() {
+		return stateNumber;
+	}
+	
+	public PatternStateStatus getStatus() {
+		return status;
+	}
 
+	public Date getTriggerTime() {
+		return triggerTime;
+	}
 }

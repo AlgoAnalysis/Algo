@@ -26,7 +26,7 @@ import com.algotrado.data.event.TimeFrameType;
 import com.algotrado.output.file.FileDataRecorder;
 import com.algotrado.output.file.IGUIController;
 
-public class DataExtractorGUI implements IGUIController {
+public class DataExtractorGUI implements IGUIController,Runnable {
 
 	private JFrame frmDf;
 	private JTextField tfdSaveFilePath;
@@ -191,12 +191,16 @@ public class DataExtractorGUI implements IGUIController {
 		frmDf.getContentPane().setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{lblAsset, cbxAsset, lblDataEvent, lblDataSource, lblIntervalTime, cbxIntervalTime, lblSaveFile, cbxDataEvant, tfdSaveFilePath, btnSaveFile, btnStart, cbxDataSource}));
 	}
 	private long timeMili;
+	private IDataExtractorObserver dataRecorder;
+	private AssetType assetType;
+	private DataEventType dataEventType;
+	private List<Float> parameters;
 	private void startTest()
 	{
 		DataSource dataSource = DataSource.getDataSourceFromString(cbxDataSource.getSelectedItem().toString());
-		AssetType assetType = AssetType.getAssetTypeFromString(cbxAsset.getSelectedItem().toString());
-		DataEventType dataEventType = DataEventType.getDataEventTypeFromString(cbxDataEvant.getSelectedItem().toString());
-		List<Float> parameters = new ArrayList<Float>();
+		assetType = AssetType.getAssetTypeFromString(cbxAsset.getSelectedItem().toString());
+		dataEventType = DataEventType.getDataEventTypeFromString(cbxDataEvant.getSelectedItem().toString());
+		parameters = new ArrayList<Float>();
 		if(dataEventType == DataEventType.JAPANESE)
 		{
 			parameters.add((float) TimeFrameType.getTimeFrameTypeFromString(cbxIntervalTime.getSelectedItem().toString()).getValueInMinutes());
@@ -205,7 +209,7 @@ public class DataExtractorGUI implements IGUIController {
 		
 		RegisterDataExtractor.setDataSource(dataSource);
 		String filePath = tfdSaveFilePath.getText();
-		IDataExtractorObserver dataRecorder = new FileDataRecorder(dataSource, assetType, dataEventType, parameters, filePath, this);
+		dataRecorder = new FileDataRecorder(filePath, this);
 		
 		
 		testRun = true;
@@ -217,8 +221,14 @@ public class DataExtractorGUI implements IGUIController {
 		btnSaveFile.setEnabled(false);
 		btnStart.setText("Stop");
 		timeMili = System.currentTimeMillis();
-		SwingUtilities.invokeLater((FileDataRecorder)dataRecorder);
+		SwingUtilities.invokeLater((DataExtractorGUI)this);
 	}
+	@Override
+	public void run()
+	{
+		RegisterDataExtractor.register(assetType, dataEventType, parameters, dataRecorder);
+	}
+	
 	
 	private void endTest()
 	{
