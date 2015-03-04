@@ -1,9 +1,12 @@
 package com.algotrado.pattern;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import com.algotrado.data.event.NewUpdateData;
+import com.algotrado.util.Setting;
 
 public class PatternManager {
 
@@ -23,10 +26,13 @@ public class PatternManager {
 		boolean needCreateNewState = true;
 		boolean recordState;
 		status = PatternManagerStatus.RUN;
-		for(PStateAndTime state : stateArr)
+		IPatternState prevState;
+		for(int cnt = stateArr.size() -1; cnt >=0 ;cnt --)
 		{
+			PStateAndTime state = stateArr.get(cnt);
 			state.getState().setNewData(newData);
 			recordState = false;
+			prevState = state.getState();
 			switch(state.getState().getStatus()) // check if we mast switch
 			{
 			case WAIT_TO_START:
@@ -62,10 +68,9 @@ public class PatternManager {
 			{
 				if(state.getTimeList().size() == 0)
 				{
-					IPatternFirstState firstState= (IPatternFirstState)state.getState();
-					state.addTime(firstState.getStartTime());
+					state.addTime(((IPatternFirstState) prevState).getStartTime());
 				}
-				state.addTime(state.getState().getTriggerTime());
+				state.addTime(prevState.getTriggerTime());
 			}
 		}
 		if(needCreateNewState)
@@ -91,6 +96,48 @@ public class PatternManager {
 		}		
 		return null;
 	}
+	
+	
+	
+	public String getDataHeaders() {
+		Integer numOfStates = firstState.getNumberOfStates();
+		String headerString = Setting.getDateTimeHeder("Start Pattern") + ",";
+		for(Integer cnt = 1;cnt <= numOfStates.intValue();cnt++)
+		{
+			headerString += Setting.getDateTimeHeder("State " + cnt.toString() + " triggerd ") + ",";
+		}
+		return headerString;
+	}
+	
+	@Override
+	public String toString() {
+		String valString = "";
+		PStateAndTime stateFolnd = null;
+		Integer numOfStates = firstState.getNumberOfStates();
+		for(PStateAndTime state : stateArr)
+		{
+			if((state.getState().getStatus() == PatternStateStatus.TRIGGER_BEARISH) ||
+				(state.getState().getStatus() == PatternStateStatus.TRIGGER_BULLISH) ||
+				(state.getState().getStatus() == PatternStateStatus.TRIGGER_NOT_SPECIFIED))
+			{
+				stateFolnd = state;
+				break;
+			}
+		}
+		if(stateFolnd != null)
+		{
+			SimpleDateFormat dateformatter = new SimpleDateFormat(Setting.getDateTimeFormat());
+			valString = dateformatter.format(stateFolnd.getTimeList().get(0)) + ",";
+			for(Integer cnt = 1;cnt <= numOfStates.intValue();cnt++)
+			{
+				valString += dateformatter.format(stateFolnd.getTimeList().get(cnt)) + ",";
+			}
+		}
+		return valString;
+	}
+	
+	
+	////////////////////// internal class ///////////////////////////////////
 
 	private class PStateAndTime
 	{
@@ -120,4 +167,5 @@ public class PatternManager {
 			this.state = state;
 		}
 	}
+	
 }

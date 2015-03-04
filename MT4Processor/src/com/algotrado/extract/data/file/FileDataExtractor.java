@@ -22,6 +22,7 @@ import com.algotrado.extract.data.DataSource;
 import com.algotrado.extract.data.IDataExtractorSubject;
 import com.algotrado.extract.data.LargerTimeFrameDataExtractor;
 import com.algotrado.extract.data.SubjectState;
+import com.algotrado.util.Setting;
 
 public class FileDataExtractor extends IDataExtractorSubject {
 	private String filePath;
@@ -175,7 +176,7 @@ public class FileDataExtractor extends IDataExtractorSubject {
 		return "Asset," + assetType.name() + "\n" +
 				"Interval," + TimeFrameType.getTimeFrameFromInterval(parameters.get(0)).getValueString() + "\n" + 
 				"Data Source," + DataSource.FILE.getValueString() + "\n" + 
-				"Date,Time, " + getNewData().getDataHeaders();
+				Setting.getDateTimeHeder("") + "," + getNewData().getDataHeaders();
 	}
 	
 	@Override
@@ -186,7 +187,7 @@ public class FileDataExtractor extends IDataExtractorSubject {
 				toStringRet = "";
 			}
 			JapaneseCandleBar candle = jpnCandleIterator.next();
-			SimpleDateFormat dateformatter = new SimpleDateFormat("dd/MM/yyyy,HH:mm:ss");
+			SimpleDateFormat dateformatter = new SimpleDateFormat(Setting.getDateTimeFormat());
 			toStringRet += dateformatter.format(candle.getTime()) + " , " + candle.getOpen() + " , " + candle.getHigh() + " , " 
 					+ candle.getLow() + " , " + candle.getClose() + " , " + candle.getVolume() + ((!jpnCandleIterator.hasNext()) ? "" : "\n");
 		}

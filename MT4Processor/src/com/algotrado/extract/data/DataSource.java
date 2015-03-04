@@ -13,7 +13,7 @@ public enum DataSource {
 		@Override
         public IDataExtractorSubject getSubjectDataExtractor(AssetType assetType,DataEventType dataEventType,List<Float> parameters) 
 		{
-            return FileDataExtractor.getSubjectDataExtractor(assetType, dataEventType, parameters, Setting.getAssetDirectoryPath());
+            return FileDataExtractor.getSubjectDataExtractor(assetType, dataEventType, parameters, Setting.getAssetDirectoryPath(""));
         }
 	};
 

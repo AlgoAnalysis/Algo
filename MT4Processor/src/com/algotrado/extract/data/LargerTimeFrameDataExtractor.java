@@ -11,6 +11,7 @@ import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.JapaneseCandleBar;
 import com.algotrado.data.event.NewUpdateData;
 import com.algotrado.data.event.TimeFrameType;
+import com.algotrado.util.Setting;
 
 public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implements IDataExtractorObserver, Comparable<LargerTimeFrameDataExtractor> {
 	
@@ -170,7 +171,7 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 		return "Asset," + assetType.name() + "\n" +
 				"Interval," + TimeFrameType.getTimeFrameFromInterval(parameters.get(0)).getValueString() + "\n" + 
 				"Data Source," + DataSource.FILE.getValueString() + "\n" + 
-				"Date,Time, " + getNewData().getDataHeaders();
+				Setting.getDateTimeHeder("") + "," + getNewData().getDataHeaders();
 	}
 	
 	@Override
@@ -181,7 +182,7 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 				toStringRet = "";
 			}
 			JapaneseCandleBar candle = jpnCandleIterator.next();
-			SimpleDateFormat dateformatter = new SimpleDateFormat("dd/MM/yyyy,HH:mm:ss");
+			SimpleDateFormat dateformatter = new SimpleDateFormat(Setting.getDateTimeFormat());
 			toStringRet += dateformatter.format(candle.getTime()) + " , " + candle.getOpen() + " , " + candle.getHigh() + " , " 
 			+ candle.getLow() + " , " + candle.getClose() + " , " + candle.getVolume() + ((!jpnCandleIterator.hasNext()) ? "" : "\n");
 		}
