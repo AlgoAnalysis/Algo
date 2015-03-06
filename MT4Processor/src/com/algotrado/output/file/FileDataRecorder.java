@@ -120,7 +120,7 @@ public class FileDataRecorder implements IDataExtractorObserver, Runnable, Compa
 
 	@Override
 	public void run() {
-		RegisterDataExtractor.register(assetType, dataEventType, parameters, this);
+		RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters, this);
 	}
 
 	@Override

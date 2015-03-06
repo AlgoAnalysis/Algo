@@ -2,6 +2,7 @@ package com.algotrado.extract.data;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -17,9 +18,10 @@ import com.algotrado.output.file.FileDataRecorder;
  * @author Ariel
  *
  */
-public abstract class IDataExtractorSubject implements Runnable{
+public abstract class IDataExtractorSubject implements Runnable, Comparable<IDataExtractorSubject>{
 	
 	protected Collection<IDataExtractorObserver> observers;
+	protected DataSource dataSource;
 	protected AssetType assetType; 
 	protected DataEventType dataEventType;
 	protected List<Float> parameters;
@@ -31,11 +33,12 @@ public abstract class IDataExtractorSubject implements Runnable{
 	 * 						JAPANESE - 	parameters={Interval, historyLength}
 	 * 						NEW_QUOTE - parameters={}
 	 */	
-	public IDataExtractorSubject (AssetType assetType, DataEventType dataEventType, List<Float> parameters) {
+	public IDataExtractorSubject (DataSource dataSource, AssetType assetType, DataEventType dataEventType, List<Float> parameters) {
 		this.observers = new ConcurrentSkipListSet<IDataExtractorObserver>();
 		this.assetType = assetType;
 		this.dataEventType = dataEventType;
 		this.parameters = parameters;
+		this.dataSource = dataSource;
 	}
 	
 	/**
@@ -66,7 +69,7 @@ public abstract class IDataExtractorSubject implements Runnable{
 		this.observers.remove(observer);
 		observer.removeSubject(this);
 		if (this.observers.isEmpty()) {
-			RegisterDataExtractor.removeDataExtractorSubject(assetType, dataEventType, parameters);
+			RegisterDataExtractor.removeDataExtractorSubject(dataSource, assetType, dataEventType, parameters);
 		}
 	}
 	
@@ -88,5 +91,41 @@ public abstract class IDataExtractorSubject implements Runnable{
 
 	public float getPipsValue() {
 		return pipsValue;
+	}
+	
+	@Override
+	public int compareTo(IDataExtractorSubject o) {
+		if (o == null) {
+			return 1;
+		} else if (o == this) {
+			return 0;
+		} else {
+			if (o.assetType == this.assetType && o.dataEventType == this.dataEventType) {
+				if (o.parameters != null && this.parameters != null) {
+					if (o.parameters.size() != this.parameters.size()) {
+						return this.parameters.size() - o.parameters.size();
+					}
+					Iterator<Float> fileDataRecorderIterator = this.parameters.iterator();
+					for (Iterator<Float> oIterator = o.parameters.iterator(); oIterator.hasNext() && fileDataRecorderIterator.hasNext();) {
+						Float oParam = oIterator.next();
+						Float fileDataRecorderParam = fileDataRecorderIterator.next();
+						if (oParam != fileDataRecorderParam) {
+							return new Float(fileDataRecorderParam - oParam).intValue();
+						}
+						
+					}
+					if (o.dataSource == DataSource.FILE && this.dataSource == DataSource.RAM) {
+						return -1;
+					} else if (o.dataSource == DataSource.RAM && this.dataSource == DataSource.FILE) {
+						return 1;
+					} else {
+						return 0;
+					}
+				} else if (o.parameters == null) {
+					return 1;
+				}
+			}
+		}
+		return -1;
 	}
 }

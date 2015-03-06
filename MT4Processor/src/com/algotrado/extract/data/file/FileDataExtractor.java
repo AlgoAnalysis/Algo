@@ -26,6 +26,7 @@ import com.algotrado.extract.data.LargerTimeFrameDataExtractor;
 import com.algotrado.extract.data.SubjectState;
 
 public class FileDataExtractor extends IDataExtractorSubject {
+	public static final int NUM_OF_MILLIS_IN_DAY = 60 * 1000 * 60 * 24;
 	private String filePath;
 	private CandleBarsCollection dataList;
 	private SubjectState subjectState;
@@ -82,12 +83,12 @@ public class FileDataExtractor extends IDataExtractorSubject {
 			}
 		}
 		
-		return new LargerTimeFrameDataExtractor(assetType, dataEventType, parameters);
+		return new LargerTimeFrameDataExtractor(DataSource.FILE, assetType, dataEventType, parameters);
 	}
 
 	public FileDataExtractor(AssetType assetType, DataEventType dataEventType,
 			List<Float> parameters, String filePath) {
-		super(assetType, dataEventType, parameters);
+		super(DataSource.FILE,assetType, dataEventType, parameters);
 		this.filePath = filePath;
 		this.subjectState = SubjectState.RUNNING;
 	}
@@ -142,7 +143,7 @@ public class FileDataExtractor extends IDataExtractorSubject {
 	        
 
 	        if (prevCandle != null) {
-	        	//check for time gaps and add padding.
+	        	//check for time gaps and add padding. Note: This solution only supports 1 minute timeframe input file. => we should check in the future if this is good.
 	        	Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
 	    		calendar.setTime(formattedDate);
 	    		Calendar prevCalendar = GregorianCalendar.getInstance(); // creates a new calendar instance
@@ -150,7 +151,7 @@ public class FileDataExtractor extends IDataExtractorSubject {
 	    		Calendar originalPrevCalendar = GregorianCalendar.getInstance(); // creates a new calendar instance
 	    		originalPrevCalendar.setTime(prevCandle.getTime());
 	    		// If gap is more than 24 hour do not fill the gap
-	    		if ((formattedDate.getTime() - prevCandle.getTime().getTime()) < (60 * 1000 * 60 * 24) &&
+	    		if ((formattedDate.getTime() - prevCandle.getTime().getTime()) < NUM_OF_MILLIS_IN_DAY &&
     				formattedDate.after(prevCandle.getTime())) { // add padding
 	    			for (int dayIndex = prevCalendar.get(Calendar.DAY_OF_YEAR); dayIndex <= calendar.get(Calendar.DAY_OF_YEAR); dayIndex++) {
 	    				prevCalendar.set(Calendar.DAY_OF_YEAR, dayIndex);
@@ -171,12 +172,6 @@ public class FileDataExtractor extends IDataExtractorSubject {
 	    				prevCalendar.set(Calendar.HOUR_OF_DAY, 0);
 	    			}
 	    		}
-	        	if (prevCalendar.get(Calendar.DAY_OF_WEEK) == 6 && calendar.get(Calendar.DAY_OF_WEEK) != 6) {
-	        		// There was end of week gap.
-	        	} else {
-	        		
-	        	}
-	        	
 	        }
 
 	        JapaneseCandleBar temp = new JapaneseCandleBar(open, close, high, low, volume, formattedDate, assetType.name());
@@ -217,7 +212,7 @@ public class FileDataExtractor extends IDataExtractorSubject {
 	public String getDataHeaders() {
 		return "Asset," + assetType.name() + "\n" +
 				"Interval," + TimeFrameType.getTimeFrameFromInterval(parameters.get(0)).getValueString() + "\n" + 
-				"Data Source," + DataSource.FILE.getValueString() + "\n" + 
+				"Data Source," + DataSource.FILE.toString() + "\n" + 
 				"Date,Time, " + getNewData().getDataHeaders();
 	}
 	

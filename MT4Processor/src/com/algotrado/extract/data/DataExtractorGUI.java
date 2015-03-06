@@ -203,7 +203,7 @@ public class DataExtractorGUI implements IGUIController {
 			parameters.add((float)0); // TODO - check if we want history
 		}
 		
-		RegisterDataExtractor.setDataSource(dataSource);
+//		RegisterDataExtractor.setDataSource(dataSource);
 		String filePath = tfdSaveFilePath.getText();
 		IDataExtractorObserver dataRecorder = new FileDataRecorder(dataSource, assetType, dataEventType, parameters, filePath, this);
 		
