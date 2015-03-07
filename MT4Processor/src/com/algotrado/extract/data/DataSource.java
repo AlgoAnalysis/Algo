@@ -15,6 +15,14 @@ public enum DataSource {
 		{
             return FileDataExtractor.getSubjectDataExtractor(assetType, dataEventType, parameters, Setting.getAssetDirectoryPath(""));
         }
+	},
+	RAM("Ram")
+	{
+		@Override
+        public IDataExtractorSubject getSubjectDataExtractor(AssetType assetType,DataEventType dataEventType,List<Float> parameters) 
+		{
+            return RamDataExtractor.getSubjectDataExtractor(assetType, dataEventType, parameters);
+        }
 	};
 
 	private String valueString;
@@ -23,7 +31,8 @@ public enum DataSource {
 		this.valueString = valueString;
 	}
 	
-	public String getValueString() {
+	@Override
+	public String toString() {
 		return valueString;
 	}
 

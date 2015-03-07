@@ -13,7 +13,7 @@ import com.algotrado.data.event.NewUpdateData;
 import com.algotrado.data.event.TimeFrameType;
 import com.algotrado.util.Setting;
 
-public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implements IDataExtractorObserver, Comparable<LargerTimeFrameDataExtractor> {
+public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implements IDataExtractorObserver {
 	
 	private TimeFrameType timeFrameType;
 	private CandleBarsCollection dataList;
@@ -31,9 +31,9 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 	// This varible was created to check if now is a new timeframe in regards to previous time. This was made due to data inconsistencies.
 	private Date prevCandleDate = null;
 	
-	public LargerTimeFrameDataExtractor(AssetType assetType,
+	public LargerTimeFrameDataExtractor(DataSource dataSource, AssetType assetType,
 			DataEventType dataEventType, List<Float> parameters) {
-		super(assetType, dataEventType, parameters);
+		super(dataSource, assetType, dataEventType, parameters);
 		this.timeFrameType = setTimeFarmeType(parameters);
 		this.subjectState = SubjectState.RUNNING;
 		
@@ -46,7 +46,7 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 		lowerTimeFrameParams.add(parameters.get(1) * (parameters.get(0)/lowerTimeFrame.getValueInMinutes()));
 		
 		//tempTime = tempTime.ordinal();
-		RegisterDataExtractor.register(assetType, dataEventType, lowerTimeFrameParams, this);
+		RegisterDataExtractor.register(this.dataSource, assetType, dataEventType, lowerTimeFrameParams, this);
 	}
 
 	public TimeFrameType setTimeFarmeType(List<Float> parameters) {
@@ -153,6 +153,7 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 			}
 			if (!this.dataList.getCandleBars().isEmpty()) {
 				notifyObservers(this.assetType, this.dataEventType, this.parameters);
+				dataList = new CandleBarsCollection();
 			}
 		}
 	}
@@ -170,8 +171,8 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 	public String getDataHeaders() {
 		return "Asset," + assetType.name() + "\n" +
 				"Interval," + TimeFrameType.getTimeFrameFromInterval(parameters.get(0)).getValueString() + "\n" + 
-				"Data Source," + DataSource.FILE.getValueString() + "\n" + 
-				Setting.getDateTimeHeder("") + "," + getNewData().getDataHeaders();
+				"Data Source," + this.dataSource.toString() + "\n" + 
+				Setting.getDateTimeHeader("") + "," + getNewData().getDataHeaders();
 	}
 	
 	@Override
@@ -192,34 +193,5 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 	@Override
 	public SubjectState getSubjectState() {
 		return this.subjectState;
-	}
-
-	@Override
-	public int compareTo(LargerTimeFrameDataExtractor o) {
-		if (o == null) {
-			return 1;
-		} else if (o == this) {
-			return 0;
-		} else {
-			if (o.timeFrameType == this.timeFrameType && o.assetType == this.assetType && o.dataEventType == this.dataEventType) {
-				if (o.parameters != null && this.parameters != null) {
-					if (o.parameters.size() != this.parameters.size()) {
-						return this.parameters.size() - o.parameters.size();
-					}
-					Iterator<Float> fileDataRecorderIterator = this.parameters.iterator();
-					for (Iterator<Float> oIterator = o.parameters.iterator(); oIterator.hasNext() && fileDataRecorderIterator.hasNext();) {
-						Float oParam = oIterator.next();
-						Float fileDataRecorderParam = fileDataRecorderIterator.next();
-						if (oParam != fileDataRecorderParam) {
-							return new Float(fileDataRecorderParam - oParam).intValue();
-						}
-						
-					}
-				} else if (o.parameters == null) {
-					return 1;
-				}
-			}
-		}
-		return -1;
 	}
 }

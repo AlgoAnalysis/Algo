@@ -195,9 +195,10 @@ public class DataExtractorGUI implements IGUIController,Runnable {
 	private AssetType assetType;
 	private DataEventType dataEventType;
 	private List<Float> parameters;
+	private DataSource dataSource;
 	private void startTest()
 	{
-		DataSource dataSource = DataSource.getDataSourceFromString(cbxDataSource.getSelectedItem().toString());
+		dataSource = DataSource.getDataSourceFromString(cbxDataSource.getSelectedItem().toString());
 		assetType = AssetType.getAssetTypeFromString(cbxAsset.getSelectedItem().toString());
 		dataEventType = DataEventType.getDataEventTypeFromString(cbxDataEvant.getSelectedItem().toString());
 		parameters = new ArrayList<Float>();
@@ -207,7 +208,7 @@ public class DataExtractorGUI implements IGUIController,Runnable {
 			parameters.add((float)0); // TODO - check if we want history
 		}
 		
-		RegisterDataExtractor.setDataSource(dataSource);
+//		RegisterDataExtractor.setDataSource(dataSource);
 		String filePath = tfdSaveFilePath.getText();
 		dataRecorder = new FileDataRecorder(filePath, this);
 		
@@ -226,7 +227,7 @@ public class DataExtractorGUI implements IGUIController,Runnable {
 	@Override
 	public void run()
 	{
-		RegisterDataExtractor.register(assetType, dataEventType, parameters, dataRecorder);
+		RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters, dataRecorder);
 	}
 	
 	

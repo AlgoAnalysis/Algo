@@ -101,10 +101,10 @@ public class PatternManager {
 	
 	public String getDataHeaders() {
 		Integer numOfStates = firstState.getNumberOfStates();
-		String headerString = Setting.getDateTimeHeder("Start Pattern") + ",";
+		String headerString = Setting.getDateTimeHeader("Start Pattern") + ",";
 		for(Integer cnt = 1;cnt <= numOfStates.intValue();cnt++)
 		{
-			headerString += Setting.getDateTimeHeder("State " + cnt.toString() + " triggerd ") + ",";
+			headerString += Setting.getDateTimeHeader("State " + cnt.toString() + " triggerd ") + ",";
 		}
 		return headerString;
 	}

@@ -26,16 +26,16 @@ public class InternalPatternTest extends IDataExtractorSubject implements IGUICo
 	IDataExtractorObserver dataRecorder;
 	SubjectState subjectState;
 	PatternManager patternManager;
+	private static DataSource dataSource = DataSource.RAM;
 	public InternalPatternTest()
 	{
-		super(AssetType.USOIL,DataEventType.JAPANESE,(List<Float>)(new ArrayList<Float>()));
-		DataSource dataSource = DataSource.FILE;
+		super(dataSource, AssetType.USOIL,DataEventType.JAPANESE,(List<Float>)(new ArrayList<Float>()));
 		timeMili = System.currentTimeMillis();
 		PTN_0001_S1 state = new PTN_0001_S1(1);
 		String filePath = "C:\\Algo\\test\\" + state.getCode() + ".csv";
 		parameters.add((float) 5);
 		parameters.add((float) 0); // TODO - check if we want history
-		RegisterDataExtractor.setDataSource(dataSource);
+		//RegisterDataExtractor.setDataSource(dataSource);
 		dataRecorder = new FileDataRecorder(filePath, this);
 		dataRecorder.setSubject(this);
 		subjectState = SubjectState.RUNNING;
@@ -59,7 +59,7 @@ public class InternalPatternTest extends IDataExtractorSubject implements IGUICo
 	}
 	@Override
 	public void run() {
-		RegisterDataExtractor.register(assetType, dataEventType, parameters, this);
+		RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters, this);
 
 	}
 	@Override
@@ -105,7 +105,7 @@ public class InternalPatternTest extends IDataExtractorSubject implements IGUICo
 	public String getDataHeaders() {
 		return "Asset," + assetType.name() + "\n" +
 				"Interval," + TimeFrameType.getTimeFrameFromInterval(parameters.get(0)).getValueString() + "\n" + 
-				"Data Source," + DataSource.FILE.getValueString() + "\n" + 
+				"Data Source," + DataSource.FILE.toString() + "\n" + 
 				patternManager.getDataHeaders();
 
 	}

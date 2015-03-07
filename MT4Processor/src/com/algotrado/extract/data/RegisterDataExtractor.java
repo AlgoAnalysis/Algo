@@ -8,30 +8,18 @@ import com.algotrado.data.event.DataEventType;
 import com.algotrado.util.DebugUtil;
 
 public class RegisterDataExtractor {
-	private static Map<AssetType,Map<DataEventType,Map<List<Float>,IDataExtractorSubject>>> extractorSubjectList;
-	private static DataSource dataSource;
+	private static Map<DataSource , Map<AssetType,Map<DataEventType,Map<List<Float>,IDataExtractorSubject>>>> extractorSubjectList;
 	
 	static {
-		extractorSubjectList = new HashMap<AssetType,Map<DataEventType,Map<List<Float>,IDataExtractorSubject>>>();
+		extractorSubjectList = new HashMap<DataSource , Map<AssetType,Map<DataEventType,Map<List<Float>,IDataExtractorSubject>>>>();
 		
 	}
 	
-	public RegisterDataExtractor(/*DataSource dataSource*/)
+	public RegisterDataExtractor()
 	{
-//		this.dataSource = dataSource;
-	}
-	
-	public static void setDataSource(DataSource dataSource) {
-		if (DebugUtil.debugRegisterDataExtractor && 
-				(RegisterDataExtractor.dataSource != null && 
-				RegisterDataExtractor.dataSource != dataSource)) {
-			throw new RuntimeException("The RegisterDataExtractor setDataSource dataSource is not null!!");
-		}
-		RegisterDataExtractor.dataSource = dataSource;
-		validateDataSource();
 	}
 
-	public static void register(AssetType assetType,DataEventType dataEventType,List<Float> parameters,IDataExtractorObserver observer)
+	public static void register(DataSource dataSource,AssetType assetType,DataEventType dataEventType,List<Float> parameters,IDataExtractorObserver observer)
 	{
 		if(DebugUtil.debugRegisterDataExtractor)
 		{
@@ -43,68 +31,90 @@ public class RegisterDataExtractor {
 		}
 		
 		IDataExtractorSubject dataExtractorSubject;
-		Map<DataEventType, Map<List<Float>, IDataExtractorSubject>> assetData =  extractorSubjectList.get(assetType);
-		if(assetData == null) // new Asset
+		Map<AssetType,Map<DataEventType,Map<List<Float>,IDataExtractorSubject>>> dataSourceMap = extractorSubjectList.get(dataSource);
+		if(dataSourceMap == null)
 		{
-			assetData = createAssetList(assetType,dataEventType,parameters);
-			extractorSubjectList.put(assetType, assetData); // TODO - need to check if needed 
-			dataExtractorSubject = assetData.get(dataEventType).get(parameters); // TODO - need to check if this notation work
+			// Create data source.
+			dataSourceMap = createDataSourceList(dataSource, assetType, dataEventType, parameters);
+			extractorSubjectList.put(dataSource, dataSourceMap);
+			dataExtractorSubject = dataSourceMap.get(assetType).get(dataEventType).get(parameters);
 		}
-		else // the Asset exist
+		else
 		{
-			Map<List<Float>, IDataExtractorSubject> dataEventData = assetData.get(dataEventType);
-			if(dataEventData == null)
+			Map<DataEventType, Map<List<Float>, IDataExtractorSubject>> assetData =  dataSourceMap.get(assetType);
+			if(assetData == null) // new Asset
 			{
-				dataEventData = createDataEventData(assetType,dataEventType,parameters);
-				assetData.put(dataEventType, dataEventData); 	// TODO - need to check if needed 
-				extractorSubjectList.put(assetType, assetData); // TODO - need to check if needed
-				dataExtractorSubject = dataEventData.get(parameters); // TODO - need to check if this notation work
+				assetData = createAssetList(dataSource,assetType,dataEventType,parameters);
+	//			extractorSubjectList.put(assetType, assetData); // TODO - need to check if needed 
+				dataExtractorSubject = assetData.get(dataEventType).get(parameters); // TODO - need to check if this notation work
 			}
-			else
+			else // the Asset exist
 			{
-				dataExtractorSubject = dataEventData.get(parameters); // TODO - need to check if this notation work
-				if(dataExtractorSubject == null)
+				Map<List<Float>, IDataExtractorSubject> dataEventData = assetData.get(dataEventType);
+				if(dataEventData == null)
 				{
-					dataExtractorSubject = createParametersData(assetType,dataEventType,parameters);
-					dataEventData.put(parameters, dataExtractorSubject);
-					assetData.put(dataEventType, dataEventData); 	// TODO - need to check if needed 
-					extractorSubjectList.put(assetType, assetData); // TODO - need to check if needed 
+					dataEventData = createDataEventData(dataSource,assetType,dataEventType,parameters);
+	//				assetData.put(dataEventType, dataEventData); 	// TODO - need to check if needed 
+	//				extractorSubjectList.put(assetType, assetData); // TODO - need to check if needed
+					dataExtractorSubject = dataEventData.get(parameters); // TODO - need to check if this notation work
+				}
+				else
+				{
+					dataExtractorSubject = dataEventData.get(parameters); // TODO - need to check if this notation work
+					if(dataExtractorSubject == null)
+					{
+						dataExtractorSubject = createParametersData(dataSource,assetType,dataEventType,parameters);
+						dataEventData.put(parameters, dataExtractorSubject);
+	//					assetData.put(dataEventType, dataEventData); 	// TODO - need to check if needed 
+	//					extractorSubjectList.put(assetType, assetData); // TODO - need to check if needed 
+					}
 				}
 			}
 		}
 		dataExtractorSubject.registerObserver(observer);
 	}
 	
-	public static void removeDataExtractorSubject(AssetType assetType,DataEventType dataEventType,List<Float> parameters)
+	public static void removeDataExtractorSubject(DataSource dataSource ,AssetType assetType,DataEventType dataEventType,List<Float> parameters)
 	{
-		extractorSubjectList.get(assetType).get(dataEventType).remove(parameters);  // TODO - need to check if this notation work
-		if(extractorSubjectList.get(assetType).get(dataEventType).isEmpty())
+		extractorSubjectList.get(dataSource).get(assetType).get(dataEventType).remove(parameters);  // TODO - need to check if this notation work
+		if(extractorSubjectList.get(dataSource).get(assetType).get(dataEventType).isEmpty())
 		{
-			extractorSubjectList.get(assetType).remove(dataEventType);
-			if(extractorSubjectList.get(assetType).isEmpty())
+			extractorSubjectList.get(dataSource).get(assetType).remove(dataEventType);
+			if(extractorSubjectList.get(dataSource).get(assetType).isEmpty())
 			{
-				extractorSubjectList.remove(assetType);
+				extractorSubjectList.get(dataSource).remove(assetType);
+				if (extractorSubjectList.get(dataSource).isEmpty()) {
+					extractorSubjectList.remove(dataSource);
+				}
 			}
 		}
 	}
 	
-	private static Map<DataEventType, Map<List<Float>, IDataExtractorSubject>> createAssetList(AssetType assetType,DataEventType dataEventType,List<Float> parameters)
+	private static Map<AssetType, Map<DataEventType, Map<List<Float>, IDataExtractorSubject>>> createDataSourceList(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Float> parameters)
 	{
-		Map<List<Float>, IDataExtractorSubject> dataEventData = createDataEventData(assetType,dataEventType,parameters);
+		Map<DataEventType, Map<List<Float>, IDataExtractorSubject>> assetMap = createAssetList(dataSource, assetType,dataEventType,parameters);
+		Map<AssetType, Map<DataEventType, Map<List<Float>, IDataExtractorSubject>>> ret = new HashMap<AssetType, Map<DataEventType, Map<List<Float>, IDataExtractorSubject>>>();
+		ret.put(assetType, assetMap);
+		return ret;
+	}
+	
+	private static Map<DataEventType, Map<List<Float>, IDataExtractorSubject>> createAssetList(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Float> parameters)
+	{
+		Map<List<Float>, IDataExtractorSubject> dataEventData = createDataEventData(dataSource, assetType,dataEventType,parameters);
 		Map<DataEventType, Map<List<Float>, IDataExtractorSubject>> ret = new HashMap<DataEventType, Map<List<Float>,IDataExtractorSubject>>();
 		ret.put(dataEventType, dataEventData);
 		return ret;
 	}
 	
-	private static Map<List<Float>, IDataExtractorSubject> createDataEventData(AssetType assetType,DataEventType dataEventType,List<Float> parameters)
+	private static Map<List<Float>, IDataExtractorSubject> createDataEventData(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Float> parameters)
 	{
-		IDataExtractorSubject dataExtractorSubject = createParametersData(assetType,dataEventType,parameters);
+		IDataExtractorSubject dataExtractorSubject = createParametersData(dataSource,assetType,dataEventType,parameters);
 		Map<List<Float>, IDataExtractorSubject> ret = new HashMap<List<Float>, IDataExtractorSubject>();
 		ret.put(parameters, dataExtractorSubject);
 		return ret;
 	}
 	
-	private static IDataExtractorSubject createParametersData(AssetType assetType,DataEventType dataEventType,List<Float> parameters)
+	private static IDataExtractorSubject createParametersData(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Float> parameters)
 	{
 		validateDataSource();
 		IDataExtractorSubject dataExtractorSubject = dataSource.getSubjectDataExtractor(assetType, dataEventType, parameters);
@@ -112,9 +122,9 @@ public class RegisterDataExtractor {
 	}
 
 	public static void validateDataSource() {
-		if(DebugUtil.debugRegisterDataExtractor && (dataSource == null))
-		{
-			throw new RuntimeException("The RegisterDataExtractor setDataSource cannot get null in dataSource");
-		}
+//		if(DebugUtil.debugRegisterDataExtractor && (dataSource == null))
+//		{
+//			throw new RuntimeException("The RegisterDataExtractor setDataSource cannot get null in dataSource");
+//		}
 	}
 }

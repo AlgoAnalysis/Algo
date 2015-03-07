@@ -8,7 +8,7 @@ public class Setting {
 		return dateTimeFormat;
 	}
 
-	public static String getDateTimeHeder(String addString) {
+	public static String getDateTimeHeader(String addString) {
 		return addString + "Date," + addString + "Time";
 	}
 
