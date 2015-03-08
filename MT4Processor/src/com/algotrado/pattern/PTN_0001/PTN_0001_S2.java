@@ -27,6 +27,14 @@ public class PTN_0001_S2 extends PTN_0001_Main{
 
 	@Override
 	public void setNewData(NewUpdateData[] newData) {	
+//		Date chachDate = new Date(2014,4,8,1,50,0);
+//		if((newData[0].getTime().getMonth() == 4 )&& 
+//				(newData[0].getTime().getDate() == 8) && 
+//				(newData[0].getTime().getHours() == 1) &&
+//				(newData[0].getTime().getMinutes() >= 45))
+//		{
+//			status = PatternStateStatus.RUN;
+//		}
 		if(status == PatternStateStatus.RUN)
 		{
 			JapaneseCandleBar secondCandle = (JapaneseCandleBar)newData[0];
@@ -43,7 +51,7 @@ public class PTN_0001_S2 extends PTN_0001_Main{
 		else if(status == PatternStateStatus.TRIGGER_NOT_SPECIFIED ||
 		status == PatternStateStatus.TRIGGER_BEARISH ||
 		status == PatternStateStatus.TRIGGER_BULLISH) {
-			status = PatternStateStatus.ALREADY_TRIGGERD;
+			status = PatternStateStatus.KILL_STATE;
 		}
 		else {
 			status = PatternStateStatus.ERROR;

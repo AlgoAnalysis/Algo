@@ -3,6 +3,7 @@ package com.algotrado.pattern;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import com.algotrado.data.event.NewUpdateData;
@@ -27,23 +28,22 @@ public class PatternManager {
 		boolean recordState;
 		status = PatternManagerStatus.RUN;
 		IPatternState prevState;
-		for(int cnt = stateArr.size() -1; cnt >=0 ;cnt --)
+		for(Iterator<PStateAndTime> iterator = stateArr.iterator(); iterator.hasNext() ;)
 		{
-			PStateAndTime state = stateArr.get(cnt);
+			PStateAndTime state = iterator.next();
 			state.getState().setNewData(newData);
 			recordState = false;
 			prevState = state.getState();
-			switch(state.getState().getStatus()) // check if we mast switch
+			switch(state.getState().getStatus())
 			{
 			case WAIT_TO_START:
 				needCreateNewState = false;
 				break;
 			case KILL_STATE:
-			case ALREADY_TRIGGERD:
-				stateArr.remove(state);
+				iterator.remove();
 				break;
 			case RUN_TO_NEXT_STATE:
-				state.setState(state.getState().getNextState()); // TODO - need to check if need to remove and add or the list is pointer to this state
+				state.setState(state.getState().getNextState());
 				recordState = true;
 				break;
 			case TRIGGER_BEARISH:
