@@ -107,8 +107,9 @@ public class FileDataExtractor extends IDataExtractorSubject {
 //	    	  parameters.add(pipsValue);
 	    	  stringRead = br.readLine();
 	      }
-	      int index = 0;
-	      String date = null, period = null;
+//	      int index = 0;
+	      String date = null;
+//	      String period = null;
 	      Double open = null, high = null, low = null, close = null;
 	      
 	      //2014.04.15 04:00:00
@@ -120,7 +121,7 @@ public class FileDataExtractor extends IDataExtractorSubject {
 	    	dataList.getCandleBars().clear();
 	    	StringTokenizer st = new StringTokenizer(stringRead, ";");
 	        date = st.nextToken( );
-	        period = st.nextToken( );  
+//	        period = st.nextToken( );  
 	        open = Double.valueOf(st.nextToken( )); 
 	        high = Double.valueOf(st.nextToken( ));
 	        low = Double.valueOf(st.nextToken( ));  

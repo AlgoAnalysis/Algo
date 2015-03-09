@@ -32,4 +32,9 @@ public enum AssetType {
 		}
 		return null;
 	}
+	
+	@Override
+	public String toString() {
+		return valueString;
+	}
 }

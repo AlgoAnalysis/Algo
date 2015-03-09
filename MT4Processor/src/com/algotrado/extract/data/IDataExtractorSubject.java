@@ -1,6 +1,5 @@
 package com.algotrado.extract.data;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -10,7 +9,6 @@ import javax.swing.SwingUtilities;
 
 import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.NewUpdateData;
-import com.algotrado.output.file.FileDataRecorder;
 
 /**
  * This is the abstract class for data extractor.
@@ -32,6 +30,7 @@ public abstract class IDataExtractorSubject implements Runnable, Comparable<IDat
 	 * @param parameters - 	may be different parameters according to event type.
 	 * 						JAPANESE - 	parameters={Interval, historyLength}
 	 * 						NEW_QUOTE - parameters={}
+	 * 						RSI - parameters={Interval, JapaneseCandleBarPropertyType , Length, historyLength}
 	 */	
 	public IDataExtractorSubject (DataSource dataSource, AssetType assetType, DataEventType dataEventType, List<Float> parameters) {
 		this.observers = new ConcurrentSkipListSet<IDataExtractorObserver>();

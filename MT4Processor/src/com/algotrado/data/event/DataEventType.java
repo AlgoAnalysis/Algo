@@ -73,8 +73,54 @@ public enum DataEventType {
 			return "Current Price";
 		}*/
 		
-	};/*Get price quote update when new quote arrives*/
-	//RSI;
+	},/*Get price quote update when new quote arrives*/
+	RSI("RSI")
+	{
+
+		@Override
+		public boolean checkIfTheParametersValid(List<Float> parameters,
+				boolean generteException) {
+			boolean ret = true;
+			if(parameters.size() != 2)
+			{
+				if(generteException)
+				{
+					throw new RuntimeException	("The RSI data event need 2 parameters.\n"
+												+"And not " + new Integer(parameters.size()).toString());
+				}
+				else
+				{
+					ret =false;
+				}
+			}
+			else if( !TimeFrameType.isIntervalValid(parameters.get(0)))
+			{
+				if(generteException)
+				{
+					throw new RuntimeException	("The RSI data event get not valid interval size (or not suppurted).\n"
+												+"The setting interval was " + parameters.get(0).toString());
+				}
+				else
+				{
+					ret =false;
+				}
+			}
+			else if((parameters.get(1).intValue() != parameters.get(1)) || parameters.get(1) < 0)
+			{
+				if(generteException)
+				{
+					throw new RuntimeException	("The RSI data event get not valid length.\n"
+												+"The length was " + parameters.get(1).toString());
+				}
+				else
+				{
+					ret =false;
+				}
+			}
+			return ret;
+		}
+		
+	};
 	
 	private String valueString;
 	
