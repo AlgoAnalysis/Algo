@@ -85,6 +85,7 @@ public class IND_0001 extends IDataExtractorSubject implements
 		}
 		newUpdateDate = new IND_0001_NewUpdateDate(this.assetType,japaneseCandleBar.getTime(),rsiValue);
 		preInputValue = inputValue;
+		movingIndex = (movingIndex+1)%length;
 		notifyObservers(this.assetType, this.dataEventType, this.parameters);
 	}
 
