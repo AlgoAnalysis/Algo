@@ -5,4 +5,5 @@ public class DebugUtil {
 	
 	public static final boolean debugRegisterDataExtractor 	= debugMode && true;
 	public static final boolean debugPatternChecking 		= debugMode && true;
+	public static final boolean debugEntryStrategyChecking 		= debugMode && true;
 }
