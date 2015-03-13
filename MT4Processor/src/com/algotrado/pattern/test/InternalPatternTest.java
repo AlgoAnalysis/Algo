@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.algotrado.data.event.CandleBarsCollection;
 import com.algotrado.data.event.DataEventType;
+import com.algotrado.data.event.JapaneseCandleBar;
 import com.algotrado.data.event.NewUpdateData;
 import com.algotrado.data.event.TimeFrameType;
 import com.algotrado.extract.data.AssetType;
@@ -66,8 +67,8 @@ public class InternalPatternTest extends IDataExtractorSubject implements IGUICo
 	public void notifyObserver(DataEventType dataEventType,
 			List<Float> parameters) {
 		subjectState = dataExtractorSubject.getSubjectState();
-		CandleBarsCollection newDataCollection = (CandleBarsCollection) dataExtractorSubject.getNewData();
-		NewUpdateData[] newData = {newDataCollection.getCandleBars().get(0)};
+		JapaneseCandleBar japaneseCandleBar = (JapaneseCandleBar) dataExtractorSubject.getNewData();
+		NewUpdateData[] newData = {japaneseCandleBar};
 		patternManager.setNewData(newData);
 		if((patternManager.getStatus() == PatternManagerStatus.TRIGGER_BEARISH) || 
 				(patternManager.getStatus() == PatternManagerStatus.TRIGGER_BULLISH) ||

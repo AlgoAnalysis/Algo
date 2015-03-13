@@ -3,7 +3,6 @@ package com.algotrado.extract.data;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import com.algotrado.data.event.CandleBarsCollection;
@@ -91,74 +90,70 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 		dataList = new CandleBarsCollection();
 		TimeFrameType subjectTimeFrame = setTimeFarmeType(parameters);
 		
-		CandleBarsCollection subjectCandles = (CandleBarsCollection)this.dataExtractorSubject.getNewData();
+		JapaneseCandleBar subjectCandle = (JapaneseCandleBar)this.dataExtractorSubject.getNewData();
 		
-		for (Iterator<JapaneseCandleBar> jpnCandleIterator = subjectCandles.getCandleBars().iterator(); jpnCandleIterator.hasNext(); ) {
-			JapaneseCandleBar subjectCandle = jpnCandleIterator.next();
-			
-			if (subjectTimeFrame.isLargerTimeFrame(timeFrameType)) {
-				throw new RuntimeException("Cannot use larger time frame " + subjectTimeFrame.getValueInMinutes() + 
-						" to get lower time frame " + timeFrameType.getValueInMinutes());
-			}
+		if (subjectTimeFrame.isLargerTimeFrame(timeFrameType)) {
+			throw new RuntimeException("Cannot use larger time frame " + subjectTimeFrame.getValueInMinutes() + 
+					" to get lower time frame " + timeFrameType.getValueInMinutes());
+		}
 
 
-			boolean isNewTimeFrame = false;
-			if (previousDate != null && openTime != null &&  
-					!timeFrameType.isTimeFrameEndTime(prevCandleDate, subjectTimeFrame.getValueInMinutes())) {//Support new candle when a new time frame starts. 
-				if (timeFrameType.isTimeFrameStartTime(subjectCandle.getTime(), prevCandleDate)) {
-					isNewTimeFrame = true;
-					dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, volume, openTime, subjectCandle.getAssetName()));
-					previousDate = openTime;
-				}
-			}
-			close = subjectCandle.getClose();
-			//Take the candle bar from subject and create new candle bar in larger time frame.
-			boolean timeFrameEndTime = timeFrameType.isTimeFrameEndTime(subjectCandle.getTime(), subjectTimeFrame.getValueInMinutes());
-			if ((open < 0) || timeFrameType.isTimeFrameStartTime(subjectCandle.getTime(), prevCandleDate) || isNewTimeFrame) {
-				open = subjectCandle.getOpen();
-				high = subjectCandle.getHigh();
-				low = subjectCandle.getLow();
-				openTime = subjectCandle.getTime();
-				volume = subjectCandle.getVolume();
-				if (timeFrameEndTime) {
-					dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, volume, openTime, subjectCandle.getAssetName()));
-					previousDate = openTime;
-				}
-			} else if (timeFrameEndTime) {
-				volume += subjectCandle.getVolume();
-				if (subjectCandle.getHigh() > high) {
-					high = subjectCandle.getHigh();
-				} else if (subjectCandle.getLow() < low) {
-					low = subjectCandle.getLow();
-				}
+		boolean isNewTimeFrame = false;
+		if (previousDate != null && openTime != null &&  
+				!timeFrameType.isTimeFrameEndTime(prevCandleDate, subjectTimeFrame.getValueInMinutes())) {//Support new candle when a new time frame starts. 
+			if (timeFrameType.isTimeFrameStartTime(subjectCandle.getTime(), prevCandleDate)) {
+				isNewTimeFrame = true;
 				dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, volume, openTime, subjectCandle.getAssetName()));
 				previousDate = openTime;
-			} else {
-				volume += subjectCandle.getVolume();
-				if (subjectCandle.getHigh() > high) {
-					high = subjectCandle.getHigh();
-				} else if (subjectCandle.getLow() < low) {
-					low = subjectCandle.getLow();
-				}
 			}
-
-			prevCandleDate = subjectCandle.getTime();
-
-			if (this.dataExtractorSubject.getSubjectState() == SubjectState.END_OF_LIFE && !jpnCandleIterator.hasNext()) {
-				this.subjectState = SubjectState.END_OF_LIFE;
-				if (!timeFrameEndTime) {
-					dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, volume, openTime, subjectCandle.getAssetName()));
-				}
-				this.dataExtractorSubject.unregisterObserver(this);
-
+		}
+		close = subjectCandle.getClose();
+		//Take the candle bar from subject and create new candle bar in larger time frame.
+		boolean timeFrameEndTime = timeFrameType.isTimeFrameEndTime(subjectCandle.getTime(), subjectTimeFrame.getValueInMinutes());
+		if ((open < 0) || timeFrameType.isTimeFrameStartTime(subjectCandle.getTime(), prevCandleDate) || isNewTimeFrame) {
+			open = subjectCandle.getOpen();
+			high = subjectCandle.getHigh();
+			low = subjectCandle.getLow();
+			openTime = subjectCandle.getTime();
+			volume = subjectCandle.getVolume();
+			if (timeFrameEndTime) {
+				dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, volume, openTime, subjectCandle.getAssetName()));
+				previousDate = openTime;
 			}
-			if (!this.dataList.getCandleBars().isEmpty()) {
-				for (JapaneseCandleBar bar : this.dataList.getCandleBars()) {
-					japaneseCandleBarNewData = bar;
-					notifyObservers(this.assetType, this.dataEventType, this.parameters);
-				}
-				dataList = new CandleBarsCollection();
+		} else if (timeFrameEndTime) {
+			volume += subjectCandle.getVolume();
+			if (subjectCandle.getHigh() > high) {
+				high = subjectCandle.getHigh();
+			} else if (subjectCandle.getLow() < low) {
+				low = subjectCandle.getLow();
 			}
+			dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, volume, openTime, subjectCandle.getAssetName()));
+			previousDate = openTime;
+		} else {
+			volume += subjectCandle.getVolume();
+			if (subjectCandle.getHigh() > high) {
+				high = subjectCandle.getHigh();
+			} else if (subjectCandle.getLow() < low) {
+				low = subjectCandle.getLow();
+			}
+		}
+
+		prevCandleDate = subjectCandle.getTime();
+
+		if (this.dataExtractorSubject.getSubjectState() == SubjectState.END_OF_LIFE /*&& !jpnCandleIterator.hasNext()*/) {
+			this.subjectState = SubjectState.END_OF_LIFE;
+			if (!timeFrameEndTime) {
+				dataList.addCandleBar(new JapaneseCandleBar(open, close, high, low, volume, openTime, subjectCandle.getAssetName()));
+			}
+			this.dataExtractorSubject.unregisterObserver(this);
+
+		}
+		if (!this.dataList.getCandleBars().isEmpty()) {
+			for (JapaneseCandleBar bar : this.dataList.getCandleBars()) {
+				japaneseCandleBarNewData = bar;
+				notifyObservers(this.assetType, this.dataEventType, this.parameters);
+			}
+			dataList.getCandleBars().clear();
 		}
 	}
 
@@ -181,16 +176,9 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 	
 	@Override
 	public String toString() {
-		String toStringRet = null;
-		for (Iterator<JapaneseCandleBar> jpnCandleIterator = dataList.getCandleBars().iterator(); jpnCandleIterator.hasNext(); ) {
-			if (toStringRet == null) {
-				toStringRet = "";
-			}
-			JapaneseCandleBar candle = jpnCandleIterator.next();
-			SimpleDateFormat dateformatter = new SimpleDateFormat(Setting.getDateTimeFormat());
-			toStringRet += dateformatter.format(candle.getTime()) + " , " + candle.getOpen() + " , " + candle.getHigh() + " , " 
-			+ candle.getLow() + " , " + candle.getClose() + " , " + candle.getVolume() + ((!jpnCandleIterator.hasNext()) ? "" : "\n");
-		}
+		SimpleDateFormat dateformatter = new SimpleDateFormat(Setting.getDateTimeFormat());
+		String toStringRet = dateformatter.format(japaneseCandleBarNewData.getTime()) + " , " + japaneseCandleBarNewData.getOpen() + " , " + japaneseCandleBarNewData.getHigh() + " , " 
+		+ japaneseCandleBarNewData.getLow() + " , " + japaneseCandleBarNewData.getClose() + " , " + japaneseCandleBarNewData.getVolume() + ((this.dataExtractorSubject.getSubjectState() == SubjectState.END_OF_LIFE) ? "" : "\n");
 		return toStringRet; 
 	}
 

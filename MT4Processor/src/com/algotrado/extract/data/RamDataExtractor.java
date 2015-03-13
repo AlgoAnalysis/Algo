@@ -7,7 +7,6 @@ import java.util.List;
 
 import javax.swing.SwingUtilities;
 
-import com.algotrado.data.event.CandleBarsCollection;
 import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.JapaneseCandleBar;
 import com.algotrado.data.event.NewUpdateData;
@@ -17,7 +16,6 @@ public class RamDataExtractor extends IDataExtractorSubject implements IDataExtr
 	
 	private List<JapaneseCandleBar> candles = null;
 	private IDataExtractorSubject dataExtractorSubject;
-	private CandleBarsCollection dataList = null;
 	private JapaneseCandleBar japaneseCandleBarNewData;
 	private SubjectState subjectState = null;
 
@@ -37,25 +35,20 @@ public class RamDataExtractor extends IDataExtractorSubject implements IDataExtr
 	@Override
 	public void run() {
 		subjectState = SubjectState.RUNNING;
-		dataList = new CandleBarsCollection();
 		for(Iterator<JapaneseCandleBar> japaneseCandlesIter = candles.iterator() ; japaneseCandlesIter.hasNext();) {
 			JapaneseCandleBar candle = japaneseCandlesIter.next();
-			dataList.addCandleBar(candle);
 			if (!japaneseCandlesIter.hasNext()) {
 				subjectState = SubjectState.END_OF_LIFE;
 			}
-			for(JapaneseCandleBar bar : dataList.getCandleBars()) {
-				japaneseCandleBarNewData = bar;
-				notifyObservers(assetType, dataEventType, parameters);
-			}
-			dataList.getCandleBars().clear();
+			japaneseCandleBarNewData = candle;
+			notifyObservers(assetType, dataEventType, parameters);
 		}
 	}
 
 	@Override
 	public void notifyObserver(DataEventType dataEventType,
 			List<Float> parameters) {
-		candles.addAll(((CandleBarsCollection)this.dataExtractorSubject.getNewData()).getCandleBars());
+		candles.add(((JapaneseCandleBar)this.dataExtractorSubject.getNewData()));
 		if (this.dataExtractorSubject.getSubjectState() == SubjectState.END_OF_LIFE) {
 			SwingUtilities.invokeLater(this);
 		}
@@ -86,16 +79,9 @@ public class RamDataExtractor extends IDataExtractorSubject implements IDataExtr
 	
 	@Override
 	public String toString() {
-		String toStringRet = null;
-		for (Iterator<JapaneseCandleBar> jpnCandleIterator = dataList.getCandleBars().iterator(); jpnCandleIterator.hasNext(); ) {
-			if (toStringRet == null) {
-				toStringRet = "";
-			}
-			JapaneseCandleBar candle = jpnCandleIterator.next();
-			SimpleDateFormat dateformatter = new SimpleDateFormat("dd/MM/yyyy,HH:mm:ss");
-			toStringRet += dateformatter.format(candle.getTime()) + " , " + candle.getOpen() + " , " + candle.getHigh() + " , " 
-			+ candle.getLow() + " , " + candle.getClose() + " , " + candle.getVolume() + ((!jpnCandleIterator.hasNext()) ? "" : "\n");
-		}
+		SimpleDateFormat dateformatter = new SimpleDateFormat("dd/MM/yyyy,HH:mm:ss");
+		String toStringRet = dateformatter.format(japaneseCandleBarNewData.getTime()) + " , " + japaneseCandleBarNewData.getOpen() + " , " + japaneseCandleBarNewData.getHigh() + " , " 
+		+ japaneseCandleBarNewData.getLow() + " , " + japaneseCandleBarNewData.getClose() + " , " + japaneseCandleBarNewData.getVolume() + ((this.dataExtractorSubject.getSubjectState() == SubjectState.END_OF_LIFE) ? "" : "\n");
 		return toStringRet; 
 	}
 

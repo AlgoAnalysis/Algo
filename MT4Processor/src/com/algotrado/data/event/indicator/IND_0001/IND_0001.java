@@ -2,7 +2,6 @@ package com.algotrado.data.event.indicator.IND_0001;
 
 import java.util.List;
 
-import com.algotrado.data.event.CandleBarsCollection;
 import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.JapaneseCandleBar;
 import com.algotrado.data.event.JapaneseCandleBarPropertyType;
@@ -53,9 +52,7 @@ public class IND_0001 extends IDataExtractorSubject implements
 	@Override
 	public void notifyObserver(DataEventType dataEventType,
 			List<Float> parameters) {
-		JapaneseCandleBar japaneseCandleBar;
-		CandleBarsCollection newDataCollection = (CandleBarsCollection) dataExtractorSubject.getNewData();
-		japaneseCandleBar = newDataCollection.getCandleBars().get(0);
+		JapaneseCandleBar japaneseCandleBar = (JapaneseCandleBar) dataExtractorSubject.getNewData();
 		double inputValue = japaneseCandleBarPropertyType.getJapaneseCandleBarValue(japaneseCandleBar);
 		if(gainLossValues[movingIndex] >= 0)
 		{

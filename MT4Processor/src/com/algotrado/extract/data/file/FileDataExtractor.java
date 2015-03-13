@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -210,7 +209,7 @@ public class FileDataExtractor extends IDataExtractorSubject {
 
 	@Override
 	public NewUpdateData getNewData() {
-		return japaneseCandleBarNewData;// dataList/*.getCandleBars().get(dataList.getCandleBars().size() - 1)*/;
+		return japaneseCandleBarNewData;
 	}
 
 	@Override
@@ -223,16 +222,9 @@ public class FileDataExtractor extends IDataExtractorSubject {
 	
 	@Override
 	public String toString() {
-		String toStringRet = null;
-		for (Iterator<JapaneseCandleBar> jpnCandleIterator = dataList.getCandleBars().iterator(); jpnCandleIterator.hasNext(); ) {
-			if (toStringRet == null) {
-				toStringRet = "";
-			}
-			JapaneseCandleBar candle = jpnCandleIterator.next();
-			SimpleDateFormat dateformatter = new SimpleDateFormat(Setting.getDateTimeFormat());
-			toStringRet += dateformatter.format(candle.getTime()) + " , " + candle.getOpen() + " , " + candle.getHigh() + " , " 
-					+ candle.getLow() + " , " + candle.getClose() + " , " + candle.getVolume() + ((!jpnCandleIterator.hasNext()) ? "" : "\n");
-		}
+		SimpleDateFormat dateformatter = new SimpleDateFormat(Setting.getDateTimeFormat());
+		String toStringRet = dateformatter.format(japaneseCandleBarNewData.getTime()) + " , " + japaneseCandleBarNewData.getOpen() + " , " + japaneseCandleBarNewData.getHigh() + " , " 
+				+ japaneseCandleBarNewData.getLow() + " , " + japaneseCandleBarNewData.getClose() + " , " + japaneseCandleBarNewData.getVolume() + ((this.subjectState == SubjectState.END_OF_LIFE) ? "" : "\n");
 		return toStringRet; 
 	}
 
