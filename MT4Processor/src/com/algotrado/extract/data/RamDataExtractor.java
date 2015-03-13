@@ -18,6 +18,7 @@ public class RamDataExtractor extends IDataExtractorSubject implements IDataExtr
 	private List<JapaneseCandleBar> candles = null;
 	private IDataExtractorSubject dataExtractorSubject;
 	private CandleBarsCollection dataList = null;
+	private JapaneseCandleBar japaneseCandleBarNewData;
 	private SubjectState subjectState = null;
 
 	public RamDataExtractor(AssetType assetType, DataEventType dataEventType,
@@ -43,7 +44,10 @@ public class RamDataExtractor extends IDataExtractorSubject implements IDataExtr
 			if (!japaneseCandlesIter.hasNext()) {
 				subjectState = SubjectState.END_OF_LIFE;
 			}
-			notifyObservers(assetType, dataEventType, parameters);
+			for(JapaneseCandleBar bar : dataList.getCandleBars()) {
+				japaneseCandleBarNewData = bar;
+				notifyObservers(assetType, dataEventType, parameters);
+			}
 			dataList.getCandleBars().clear();
 		}
 	}
@@ -69,7 +73,7 @@ public class RamDataExtractor extends IDataExtractorSubject implements IDataExtr
 
 	@Override
 	public NewUpdateData getNewData() {
-		return dataList;
+		return japaneseCandleBarNewData;
 	}
 
 	@Override

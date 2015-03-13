@@ -30,6 +30,7 @@ public class FileDataExtractor extends IDataExtractorSubject {
 	public static final int NUM_OF_MILLIS_IN_DAY = 60 * 1000 * 60 * 24;
 	private String filePath;
 	private CandleBarsCollection dataList;
+	private JapaneseCandleBar japaneseCandleBarNewData;
 	private SubjectState subjectState;
 	private JapaneseCandleBar prevCandle = null;
 	
@@ -189,8 +190,10 @@ public class FileDataExtractor extends IDataExtractorSubject {
 	        if (stringRead == null) {
 	        	this.subjectState = SubjectState.END_OF_LIFE;
 	        }
-	        
-	        notifyObservers(assetType, dataEventType, parameters);
+	        for (JapaneseCandleBar bar : dataList.getCandleBars()) {
+	        	japaneseCandleBarNewData = bar;
+	        	notifyObservers(assetType, dataEventType, parameters);
+	        }
 	      }
 	      br.close( );
 	      
@@ -207,7 +210,7 @@ public class FileDataExtractor extends IDataExtractorSubject {
 
 	@Override
 	public NewUpdateData getNewData() {
-		return dataList/*.getCandleBars().get(dataList.getCandleBars().size() - 1)*/;
+		return japaneseCandleBarNewData;// dataList/*.getCandleBars().get(dataList.getCandleBars().size() - 1)*/;
 	}
 
 	@Override

@@ -3,7 +3,7 @@ package com.algotrado.entry.strategy;
 import com.algotrado.util.DebugUtil;
 
 public class EntryStrategyParameterList {
-	static protected Object[][] parametersList;
+	protected static Object[][] parametersList;
 	public EntryStrategyParameterList(Object[][] parametersList)
 	{
 		this.parametersList = parametersList;

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class CandleBarsCollection implements NewUpdateData {
+public class CandleBarsCollection /*implements NewUpdateData*/ {
 	private List<JapaneseCandleBar> candleBars;
 
 	public CandleBarsCollection() {
@@ -20,7 +20,7 @@ public class CandleBarsCollection implements NewUpdateData {
 		return candleBars;
 	}
 
-	@Override
+	/*@Override
 	public Date getTime() {
 		return candleBars.get(0).getTime();
 	}
@@ -33,7 +33,7 @@ public class CandleBarsCollection implements NewUpdateData {
 	@Override
 	public String getDataHeaders() {
 		return candleBars.get(0).getDataHeaders();
-	}
+	}*/
 	
 	
 	

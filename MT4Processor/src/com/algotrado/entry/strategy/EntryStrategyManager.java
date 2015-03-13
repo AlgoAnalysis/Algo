@@ -33,49 +33,45 @@ public class EntryStrategyManager {
 			state.getState().setNewData(newData);
 			recordState = false;
 			prevState = state.getState();
-//			switch(state.getState().getStatus())
-//			{
-//			case WAIT_TO_START:
-//				needCreateNewState = false;
-//				break;
-//			case KILL_STATE:
-//				iterator.remove();
-//				break;
-//			case RUN_TO_NEXT_STATE:
-//				state.setState(state.getState().getNextState());
-//				recordState = true;
-//				break;
-//			case TRIGGER_BEARISH:
-//				status = PatternManagerStatus.TRIGGER_BEARISH;
-//				recordState = true;
-//				break;
-//			case TRIGGER_BULLISH:
-//				status = PatternManagerStatus.TRIGGER_BULLISH;
-//				recordState = true;
-//				break;
-//			case TRIGGER_NOT_SPECIFIED:
-//				status = PatternManagerStatus.TRIGGER_NOT_SPECIFIED;
-//				recordState = true;
-//				break;
-//			case ERROR:
-//				status = PatternManagerStatus.ERROR;
-//				break;
-//			case RUN:
-//				break;
-//			}
-//			if(recordState)
-//			{
-//				if(state.getTimeList().size() == 0)
-//				{
-//					state.addTime(((IPatternFirstState) prevState).getStartTime());
-//				}
-//				state.addTime(prevState.getTriggerTime());
-//			}
+			switch(state.getState().getStatus())
+			{
+			case WAIT_TO_START:
+				needCreateNewState = false;
+				break;
+			case KILL_STATE:
+				iterator.remove();
+				break;
+			case RUN_TO_NEXT_STATE:
+				state.setState(state.getState().getNextState());
+				recordState = true;
+				break;
+			case TRIGGER_BEARISH:
+				status = EntryStrategyManagerStatus.TRIGGER_BEARISH;
+				recordState = true;
+				break;
+			case TRIGGER_BULLISH:
+				status = EntryStrategyManagerStatus.TRIGGER_BULLISH;
+				recordState = true;
+				break;
+			case ERROR:
+				status = EntryStrategyManagerStatus.ERROR;
+				break;
+			case RUN:
+				break;
+			}
+			if(recordState)
+			{
+				if(state.getTimeList().size() == 0)
+				{
+					state.addTime(((IEntryStrategyFirstState) prevState).getStartTime());
+				}
+				state.addTime(prevState.getTriggerTime());
+			}
 		}
-//		if(needCreateNewState)
-//		{
-//			stateArr.add(new PStateAndTime(firstState));
-//		}
+		if(needCreateNewState)
+		{
+			stateArr.add(new EntryStrategyStateAndTime(firstState));
+		}
 	}
 	
 	public EntryStrategyManagerStatus getStatus() {

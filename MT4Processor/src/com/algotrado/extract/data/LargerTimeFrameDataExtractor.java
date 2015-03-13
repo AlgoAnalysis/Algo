@@ -17,6 +17,7 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 	
 	private TimeFrameType timeFrameType;
 	private CandleBarsCollection dataList;
+	private JapaneseCandleBar japaneseCandleBarNewData;
 	private IDataExtractorSubject dataExtractorSubject;
 	private Date previousDate = null;
 	private Date openTime = null;
@@ -78,7 +79,7 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 
 	@Override
 	public NewUpdateData getNewData() {
-		return dataList/*.getCandleBars().get(dataList.getCandleBars().size() - 1)*/;
+		return japaneseCandleBarNewData;
 	}
 
 	public TimeFrameType getTimeFrameType() {
@@ -152,7 +153,10 @@ public class LargerTimeFrameDataExtractor extends IDataExtractorSubject implemen
 
 			}
 			if (!this.dataList.getCandleBars().isEmpty()) {
-				notifyObservers(this.assetType, this.dataEventType, this.parameters);
+				for (JapaneseCandleBar bar : this.dataList.getCandleBars()) {
+					japaneseCandleBarNewData = bar;
+					notifyObservers(this.assetType, this.dataEventType, this.parameters);
+				}
 				dataList = new CandleBarsCollection();
 			}
 		}
