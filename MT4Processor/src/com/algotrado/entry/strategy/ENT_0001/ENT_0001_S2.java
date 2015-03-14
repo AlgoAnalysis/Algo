@@ -11,6 +11,7 @@ import com.algotrado.pattern.PatternManagerStatus;
 
 
 public class ENT_0001_S2 extends ENT_0001_MAIN implements IEntryStrategyLastState {
+	private static final int MAX_NUM_OF_CANDLES_AFTER_PATTERN = 5;
 	protected final Integer stateNumber = Integer.valueOf(2);
 	private PatternManagerStatus patternDirection = null;
 	private double patternHighLimit;
@@ -31,7 +32,7 @@ public class ENT_0001_S2 extends ENT_0001_MAIN implements IEntryStrategyLastStat
 	@Override
 	public void setNewData(NewUpdateData[] newData) {
 		if (this.status == EntryStrategyStateStatus.RUN) {
-			if (countCandlesIndex > 5) {// We have already checked 5 candles. kill state.
+			if (countCandlesIndex > MAX_NUM_OF_CANDLES_AFTER_PATTERN) {// We have already checked 5 candles. kill state.
 				this.status = EntryStrategyStateStatus.KILL_STATE;
 			} else {
 				double candleBarClosePrice = ((JapaneseCandleBar)newData[0]).getClose();
