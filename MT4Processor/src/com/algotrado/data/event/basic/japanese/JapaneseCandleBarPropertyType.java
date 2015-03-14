@@ -1,4 +1,5 @@
-package com.algotrado.data.event;
+package com.algotrado.data.event.basic.japanese;
+
 
 public enum JapaneseCandleBarPropertyType {
 	OPEN

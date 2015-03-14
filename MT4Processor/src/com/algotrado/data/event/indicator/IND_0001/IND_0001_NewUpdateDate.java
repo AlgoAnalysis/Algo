@@ -4,6 +4,7 @@ import java.util.Date;
 
 import com.algotrado.data.event.NewUpdateData;
 import com.algotrado.extract.data.AssetType;
+import com.algotrado.util.Setting;
 
 public class IND_0001_NewUpdateDate implements NewUpdateData {
 	Date time;
@@ -22,14 +23,16 @@ public class IND_0001_NewUpdateDate implements NewUpdateData {
 
 	@Override
 	public String getAssetName() {
-		// TODO Auto-generated method stub
 		return asset.toString();
 	}
 
 	@Override
 	public String getDataHeaders() {
-		// TODO Auto-generated method stub
-		return null;
+		return Setting.getDateTimeHeader("") +",value" ;
+	}
+	@Override
+	public String toString() {
+		return Setting.getDateTimeFormat(time) +"," + value ;
 	}
 	public double getValue() {
 		return value;

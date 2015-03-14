@@ -1,6 +1,6 @@
 package com.algotrado.mt4.impl;
 
-import com.algotrado.data.event.JapaneseCandleBar;
+import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 
 public class PinbarCandle extends Candle {
 

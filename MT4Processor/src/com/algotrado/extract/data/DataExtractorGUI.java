@@ -16,10 +16,11 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+
 import org.eclipse.wb.swing.FocusTraversalOnArray;
 
 import com.algotrado.data.event.DataEventType;
-import com.algotrado.data.event.TimeFrameType;
+import com.algotrado.data.event.basic.japanese.JapaneseTimeFrameType;
 import com.algotrado.output.file.FileDataRecorder;
 import com.algotrado.output.file.IGUIController;
 
@@ -100,7 +101,7 @@ public class DataExtractorGUI implements IGUIController,Runnable {
 		cbxIntervalTime = new JComboBox();
 		cbxIntervalTime.setBounds(146, 136, 259, 27);
 		cbxIntervalTime.setFont(new Font("Tahoma", Font.PLAIN, 16));
-		cbxIntervalTime.setModel(new DefaultComboBoxModel(TimeFrameType.getTimeFrameStrings()));
+		cbxIntervalTime.setModel(new DefaultComboBoxModel(JapaneseTimeFrameType.getTimeFrameStrings()));
 		frmDf.getContentPane().add(cbxIntervalTime);
 		
 		cbxDataEvant = new JComboBox();
@@ -201,7 +202,7 @@ public class DataExtractorGUI implements IGUIController,Runnable {
 		parameters = new ArrayList<Float>();
 		if(dataEventType == DataEventType.JAPANESE)
 		{
-			parameters.add((float) TimeFrameType.getTimeFrameTypeFromString(cbxIntervalTime.getSelectedItem().toString()).getValueInMinutes());
+			parameters.add((float) JapaneseTimeFrameType.getTimeFrameTypeFromString(cbxIntervalTime.getSelectedItem().toString()).getValueInMinutes());
 			parameters.add((float)0); // TODO - check if we want history
 		}
 		

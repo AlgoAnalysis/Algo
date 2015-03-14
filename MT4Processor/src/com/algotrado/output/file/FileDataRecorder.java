@@ -18,12 +18,13 @@ import com.algotrado.extract.data.RegisterDataExtractor;
 import com.algotrado.extract.data.SubjectState;
 
 public class FileDataRecorder implements IDataExtractorObserver, Comparable<FileDataRecorder> {
-	
+	private final int chuckSizeToWrite = 1<<9;
 	private String saveFilePath;
 	private IDataExtractorSubject dataExtractorSubject;
 	private boolean appendFileMode;
 	private IGUIController guiController;
 	private FileWriter destinationFile;
+	private String bufferString;
 
 	public FileDataRecorder(String saveFilePath, IGUIController errorOutputter) {
 		super();
@@ -31,45 +32,36 @@ public class FileDataRecorder implements IDataExtractorObserver, Comparable<File
 		this.appendFileMode = false;
 		this.guiController = errorOutputter;
 		this.destinationFile = null;
+		this.bufferString = "";
+		String directoryPathStr = saveFilePath.substring(0, saveFilePath.lastIndexOf(File.separator));
+		Path directoryPath = Paths.get(directoryPathStr);
+		if (!Files.exists(directoryPath)) {
+			this.guiController.setErrorMessage("Directory: " + directoryPathStr, true);
+			return;
+		}
+		try {
+			destinationFile = new FileWriter(saveFilePath, this.appendFileMode);
+		} catch (IOException e) {
+			this.guiController.setErrorMessage("File: " + saveFilePath + " could not be created for some reason. " + e.getMessage(), true);
+			return;
+		}
 	}
 
 	@Override
 	public void notifyObserver(DataEventType dataEventType,
 			List<Float> parameters) {
-		if (destinationFile == null) {
-			String directoryPathStr = saveFilePath.substring(0, saveFilePath.lastIndexOf(File.separator));
-			Path directoryPath = Paths.get(directoryPathStr);
-			if (!Files.exists(directoryPath)) {
-				this.guiController.setErrorMessage("Directory: " + directoryPathStr, true);
-				return;
-			}
-			try {
-				destinationFile = new FileWriter(saveFilePath, this.appendFileMode);
-			} catch (IOException e) {
-				this.guiController.setErrorMessage("File: " + saveFilePath + " could not be created for some reason. " + e.getMessage(), true);
-				return;
-			}
-		}
 		
-		if (!this.appendFileMode) {
+		bufferString += this.dataExtractorSubject.toString() + "\n";
+		if(bufferString.length() >= chuckSizeToWrite)
+		{
 			try {
-				destinationFile.append(this.dataExtractorSubject.getDataHeaders());
-				destinationFile.append("\n");
+				destinationFile.append(bufferString);
 			} catch (IOException e1) {
 				this.guiController.setErrorMessage("File: " + saveFilePath + " could not be changed for some reason. " + e1.getMessage(), true);
 				closeResourcesAndExit();
 				return;
 			}
-			this.appendFileMode = true;
-		}
-		
-		try {
-			destinationFile.append(this.dataExtractorSubject.toString());
-			destinationFile.append("\n");
-		} catch (IOException e1) {
-			this.guiController.setErrorMessage("File: " + saveFilePath + " could not be changed for some reason. " + e1.getMessage(), true);
-			closeResourcesAndExit();
-			return;
+			bufferString = "";
 		}
 		
 		try {
@@ -80,6 +72,13 @@ public class FileDataRecorder implements IDataExtractorObserver, Comparable<File
 		}
 		
 		if (this.dataExtractorSubject.getSubjectState() == SubjectState.END_OF_LIFE) {
+			try {
+				destinationFile.append(bufferString);
+			} catch (IOException e1) {
+				this.guiController.setErrorMessage("File: " + saveFilePath + " could not be changed for some reason. " + e1.getMessage(), true);
+				closeResourcesAndExit();
+				return;
+			}
 			this.dataExtractorSubject.unregisterObserver(this);
 			this.guiController.resetGUI();
 			closeResourcesAndExit();
@@ -101,11 +100,12 @@ public class FileDataRecorder implements IDataExtractorObserver, Comparable<File
 	@Override
 	public void setSubject(IDataExtractorSubject dataExtractorSubject) {
 		this.dataExtractorSubject = dataExtractorSubject;
+		bufferString += this.dataExtractorSubject.getDataHeaders() + "\n";
 	}
 
 	@Override
 	public void removeSubject(IDataExtractorSubject dataExtractorSubject) {
-		setSubject(null);
+		this.dataExtractorSubject  = null;
 	}
 
 //	@Override

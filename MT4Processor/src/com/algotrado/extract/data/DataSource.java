@@ -12,15 +12,7 @@ public enum DataSource {
 		@Override
         public IDataExtractorSubject getSubjectDataExtractor(AssetType assetType,DataEventType dataEventType,List<Float> parameters) 
 		{
-            return FileDataExtractor.getSubjectDataExtractor(assetType, dataEventType, parameters, Setting.getAssetDirectoryPath(""));
-        }
-	},
-	RAM("Ram")
-	{
-		@Override
-        public IDataExtractorSubject getSubjectDataExtractor(AssetType assetType,DataEventType dataEventType,List<Float> parameters) 
-		{
-            return RamDataExtractor.getSubjectDataExtractor(assetType, dataEventType, parameters);
+            return FileDataExtractor.getSubjectDataExtractor(assetType, dataEventType, parameters, Setting.getAssetDirectoryPath());
         }
 	};
 

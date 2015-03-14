@@ -3,10 +3,9 @@ package com.algotrado.pattern.test;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.algotrado.data.event.CandleBarsCollection;
 import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.NewUpdateData;
-import com.algotrado.data.event.TimeFrameType;
+import com.algotrado.data.event.basic.japanese.JapaneseTimeFrameType;
 import com.algotrado.extract.data.AssetType;
 import com.algotrado.extract.data.DataSource;
 import com.algotrado.extract.data.IDataExtractorObserver;
@@ -26,7 +25,7 @@ public class InternalPatternTest extends IDataExtractorSubject implements IGUICo
 	IDataExtractorObserver dataRecorder;
 	SubjectState subjectState;
 	PatternManager patternManager;
-	private static DataSource dataSource = DataSource.RAM;
+	private static DataSource dataSource = DataSource.FILE;
 	public InternalPatternTest()
 	{
 		super(dataSource, AssetType.USOIL,DataEventType.JAPANESE,(List<Float>)(new ArrayList<Float>()));
@@ -66,8 +65,7 @@ public class InternalPatternTest extends IDataExtractorSubject implements IGUICo
 	public void notifyObserver(DataEventType dataEventType,
 			List<Float> parameters) {
 		subjectState = dataExtractorSubject.getSubjectState();
-		CandleBarsCollection newDataCollection = (CandleBarsCollection) dataExtractorSubject.getNewData();
-		NewUpdateData[] newData = {newDataCollection.getCandleBars().get(0)};
+		NewUpdateData[] newData = {dataExtractorSubject.getNewData()};
 		patternManager.setNewData(newData);
 		if((patternManager.getStatus() == PatternManagerStatus.TRIGGER_BEARISH) || 
 				(patternManager.getStatus() == PatternManagerStatus.TRIGGER_BULLISH) ||
@@ -104,7 +102,7 @@ public class InternalPatternTest extends IDataExtractorSubject implements IGUICo
 	@Override
 	public String getDataHeaders() {
 		return "Asset," + assetType.name() + "\n" +
-				"Interval," + TimeFrameType.getTimeFrameFromInterval(parameters.get(0)).getValueString() + "\n" + 
+				"Interval," + JapaneseTimeFrameType.getTimeFrameFromInterval(parameters.get(0)).getValueString() + "\n" + 
 				"Data Source," + DataSource.FILE.toString() + "\n" + 
 				patternManager.getDataHeaders();
 
@@ -114,5 +112,18 @@ public class InternalPatternTest extends IDataExtractorSubject implements IGUICo
 	@Override
 	public SubjectState getSubjectState() {
 		return subjectState;
+	}
+
+
+	@Override
+	public DataEventType getDataEventType() {
+		return null;
+	}
+
+
+	@Override
+	public void setParameters(List<Float> parameters) {
+		// TODO Auto-generated method stub
+		
 	}
 }

@@ -1,37 +1,39 @@
 package com.algotrado.data.event.indicator.IND_0001;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import com.algotrado.data.event.CandleBarsCollection;
 import com.algotrado.data.event.DataEventType;
-import com.algotrado.data.event.JapaneseCandleBar;
-import com.algotrado.data.event.JapaneseCandleBarPropertyType;
 import com.algotrado.data.event.NewUpdateData;
+import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
+import com.algotrado.data.event.basic.japanese.JapaneseCandleBarPropertyType;
 import com.algotrado.extract.data.AssetType;
 import com.algotrado.extract.data.DataSource;
 import com.algotrado.extract.data.IDataExtractorObserver;
 import com.algotrado.extract.data.IDataExtractorSubject;
+import com.algotrado.extract.data.RegisterDataExtractor;
 import com.algotrado.extract.data.SubjectState;
 
 public class IND_0001 extends IDataExtractorSubject implements
 		IDataExtractorObserver {
-	
-	IDataExtractorSubject dataExtractorSubject;
-	SubjectState subjectState;
-	JapaneseCandleBarPropertyType japaneseCandleBarPropertyType;
-	double gainLossValues[];
-	int movingIndex;
-	int length;
-	double sumGain;
-	double sumLoss;
-	double preInputValue;
-	IND_0001_NewUpdateDate newUpdateDate;
+	private final DataEventType dataEventType = DataEventType.RSI;
+	private IDataExtractorSubject dataExtractorSubject;
+	private SubjectState subjectState;
+	private JapaneseCandleBarPropertyType japaneseCandleBarPropertyType;
+	private double gainLossValues[];
+	private int movingIndex;
+	private int length;
+	private int historyLength;
+	private double sumGain;
+	private double sumLoss;
+	private double preInputValue;
+	private IND_0001_NewUpdateDate newUpdateDate;
+	private Float japaneseCandleInterval;
 	
 	public IND_0001(DataSource dataSource, AssetType assetType,
 			DataEventType dataEventType, List<Float> parameters) {
 		super(dataSource, assetType, dataEventType, parameters);
-		japaneseCandleBarPropertyType = JapaneseCandleBarPropertyType.getJapaneseCandleBarPropertyType(parameters.get(1));
-		length = parameters.get(2).intValue();
+
 		gainLossValues = new double[length];
 		movingIndex = 0;
 		for(int index =0;index < length;index++)
@@ -42,20 +44,16 @@ public class IND_0001 extends IDataExtractorSubject implements
 		sumLoss = 0;
 		preInputValue = 0;
 		subjectState = SubjectState.RUNNING;
-	}
-
-	@Override
-	public void run() {
-		// TODO Auto-generated method stub
-
+		List<Float> japaneseParameters = new ArrayList<Float>();
+		japaneseParameters.add(japaneseCandleInterval);
+		japaneseParameters.add((float)(historyLength + length));
+		RegisterDataExtractor.register(dataSource,assetType,DataEventType.JAPANESE,japaneseParameters,this);
 	}
 
 	@Override
 	public void notifyObserver(DataEventType dataEventType,
 			List<Float> parameters) {
-		JapaneseCandleBar japaneseCandleBar;
-		CandleBarsCollection newDataCollection = (CandleBarsCollection) dataExtractorSubject.getNewData();
-		japaneseCandleBar = newDataCollection.getCandleBars().get(0);
+		JapaneseCandleBar japaneseCandleBar = (JapaneseCandleBar) dataExtractorSubject.getNewData();
 		double inputValue = japaneseCandleBarPropertyType.getJapaneseCandleBarValue(japaneseCandleBar);
 		if(gainLossValues[movingIndex] >= 0)
 		{
@@ -115,6 +113,19 @@ public class IND_0001 extends IDataExtractorSubject implements
 	@Override
 	public SubjectState getSubjectState() {
 		return subjectState;
+	}
+
+	@Override
+	public DataEventType getDataEventType() {
+		return dataEventType;
+	}
+
+	@Override
+	public void setParameters(List<Float> parameters) {
+		japaneseCandleInterval = parameters.get(0);
+		japaneseCandleBarPropertyType = JapaneseCandleBarPropertyType.getJapaneseCandleBarPropertyType(parameters.get(1));
+		length = parameters.get(2).intValue();
+		historyLength = parameters.get(3).intValue();
 	}
 
 }
