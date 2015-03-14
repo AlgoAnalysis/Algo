@@ -2,8 +2,8 @@ package com.algotrado.entry.strategy.ENT_0001;
 
 import java.util.Date;
 
-import com.algotrado.data.event.JapaneseCandleBar;
 import com.algotrado.data.event.NewUpdateData;
+import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 import com.algotrado.entry.strategy.EntryStrategyStateStatus;
 import com.algotrado.entry.strategy.IEntryStrategyLastState;
 import com.algotrado.entry.strategy.IEntryStrategyState;

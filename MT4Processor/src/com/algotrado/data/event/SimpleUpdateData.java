@@ -5,12 +5,12 @@ import java.util.Date;
 import com.algotrado.extract.data.AssetType;
 import com.algotrado.util.Setting;
 
-public class SimpleUpdateDate implements NewUpdateData {
+public class SimpleUpdateData implements NewUpdateData {
 
 	Date time;
 	AssetType asset;
 	double value;
-	public SimpleUpdateDate(AssetType asset,Date time,double value)
+	public SimpleUpdateData(AssetType asset,Date time,double value)
 	{
 		this.asset = asset;
 		this.time = time;

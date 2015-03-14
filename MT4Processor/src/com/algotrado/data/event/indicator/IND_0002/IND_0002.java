@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.NewUpdateData;
-import com.algotrado.data.event.SimpleUpdateDate;
+import com.algotrado.data.event.SimpleUpdateData;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBarPropertyType;
 import com.algotrado.data.event.basic.japanese.JapaneseTimeFrameType;
@@ -53,7 +53,7 @@ public class IND_0002 extends IDataExtractorSubject implements
 	private double preValue;
 	private double inputFactor;
 	private double avrFactor;
-	private SimpleUpdateDate newUpdateDate;
+	private SimpleUpdateData newUpdateDate;
 	private Float japaneseCandleInterval;
 	
 	
@@ -101,7 +101,7 @@ public class IND_0002 extends IDataExtractorSubject implements
 			movingIndex++;
 		}
 		preValue = inputValue;
-		newUpdateDate = new SimpleUpdateDate(this.assetType,japaneseCandleBar.getTime(),rsiValue);
+		newUpdateDate = new SimpleUpdateData(this.assetType,japaneseCandleBar.getTime(),rsiValue);
 		notifyObservers(this.assetType, this.dataEventType, this.parameters);
 	}
 
@@ -136,7 +136,7 @@ public class IND_0002 extends IDataExtractorSubject implements
 
 	@Override
 	public String getDataHeaders() {
-		SimpleUpdateDate temp = new SimpleUpdateDate(null,null,0);
+		SimpleUpdateData temp = new SimpleUpdateData(null,null,0);
 		return "Asset," + assetType.name() + "\n" +
 				"Interval," + japaneseCandleInterval+ "\n" + 
 				"Data Source," + this.dataSource.toString() + "\n" +
