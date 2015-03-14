@@ -2,8 +2,10 @@ package com.algotrado.data.event;
 
 import java.util.List;
 
+import com.algotrado.data.event.basic.japanese.JapaneseCandleBarPropertyType;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleDataExtractor;
 import com.algotrado.data.event.basic.japanese.JapaneseTimeFrameType;
+import com.algotrado.data.event.indicator.IND_0001.IND_0001;
 import com.algotrado.extract.data.AssetType;
 import com.algotrado.extract.data.DataSource;
 import com.algotrado.extract.data.IDataExtractorSubject;
@@ -117,15 +119,15 @@ public enum DataEventType {
 			{
 				if(generteException)
 				{
-					throw new RuntimeException	("The RSI data event need 2 parameters.\n"
-												+"And not " + new Integer(parameters.size()).toString());
+					throw new RuntimeException	("The RSI data event need "+ parameterStrings.length+" parameters.\n"
+												+"And not " + parameters.size());
 				}
 				else
 				{
 					ret =false;
 				}
 			}
-			else if( !JapaneseTimeFrameType.isIntervalValid(parameters.get(0)))
+			else if( !JapaneseTimeFrameType.isIntervalValid(parameters.get(0))) // Interval
 			{
 				if(generteException)
 				{
@@ -137,12 +139,36 @@ public enum DataEventType {
 					ret =false;
 				}
 			}
-			else if((parameters.get(1).intValue() != parameters.get(1)) || parameters.get(1) < 0)
+			else if( !JapaneseCandleBarPropertyType.isPropertyValid(parameters.get(1)) ) // Interval
+			{
+				if(generteException)
+				{
+					throw new RuntimeException	("The RSI data event get not valid property (or not suppurted).\n"
+												+"The setting property was " + parameters.get(1).toString());
+				}
+				else
+				{
+					ret =false;
+				}
+			}
+			else if((parameters.get(2).intValue() != parameters.get(2)) || parameters.get(2) <= 0) // Length
 			{
 				if(generteException)
 				{
 					throw new RuntimeException	("The RSI data event get not valid length.\n"
-												+"The length was " + parameters.get(1).toString());
+												+"The length was " + parameters.get(2).toString());
+				}
+				else
+				{
+					ret =false;
+				}
+			}
+			else if((parameters.get(3).intValue() != parameters.get(3)) || parameters.get(3) < 0) // historyLength
+			{
+				if(generteException)
+				{
+					throw new RuntimeException	("The RSI data event get not valid history length.\n"
+												+"The length was " + parameters.get(3).toString());
 				}
 				else
 				{
@@ -154,14 +180,13 @@ public enum DataEventType {
 
 		@Override
 		public String[] getParametersStrings() {
-			// TODO Auto-generated method stub
-			return null;
+			String[] ret = {"Interval", "JapaneseCandleBarPropertyType" , "Length", "historyLength"};
+			return ret;
 		}
 
 		@Override
 		public IDataExtractorSubject getSubjectDataExtractor(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Float> parameters) {
-			// TODO Auto-generated method stub
-			return null;
+			return new IND_0001(dataSource, assetType,dataEventType,parameters);
 		}
 		
 	},

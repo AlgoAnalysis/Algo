@@ -7,12 +7,14 @@ import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.NewUpdateData;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBarPropertyType;
+import com.algotrado.data.event.basic.japanese.JapaneseTimeFrameType;
 import com.algotrado.extract.data.AssetType;
 import com.algotrado.extract.data.DataSource;
 import com.algotrado.extract.data.IDataExtractorObserver;
 import com.algotrado.extract.data.IDataExtractorSubject;
 import com.algotrado.extract.data.RegisterDataExtractor;
 import com.algotrado.extract.data.SubjectState;
+import com.algotrado.output.file.FileDataRecorder;
 
 public class IND_0001 extends IDataExtractorSubject implements
 		IDataExtractorObserver {
@@ -29,6 +31,29 @@ public class IND_0001 extends IDataExtractorSubject implements
 	private double preInputValue;
 	private IND_0001_NewUpdateDate newUpdateDate;
 	private Float japaneseCandleInterval;
+	
+	public static void main(String [] args)
+	{
+		//////// change hare ///////////////////
+		DataSource dataSource = DataSource.FILE;
+		AssetType assetType = AssetType.USOIL;
+		JapaneseTimeFrameType japaneseTimeFrameType = JapaneseTimeFrameType.FIVE_MINUTE;
+		JapaneseCandleBarPropertyType japaneseCandleBarPropertyType = JapaneseCandleBarPropertyType.CLOSE;
+		int rsiLength = 7;
+		int rsiHistoryLength = 0;
+		String filePath = "C:\\Algo\\test\\RSI_on_" + assetType.name()+"_in_len"+ rsiLength + ".csv";
+		///////////////////////////////////////
+		IDataExtractorObserver dataRecorder;
+		List<Float> parameters = new ArrayList<Float>();
+		
+		parameters.add((float)japaneseTimeFrameType.getValueInMinutes());
+		parameters.add((float)japaneseCandleBarPropertyType.ordinal());
+		parameters.add((float)rsiLength);
+		parameters.add((float)rsiHistoryLength);
+		dataRecorder = new FileDataRecorder(filePath, null);
+		RegisterDataExtractor.register(dataSource, assetType, DataEventType.RSI, parameters, dataRecorder);	
+	}
+	
 	
 	public IND_0001(DataSource dataSource, AssetType assetType,
 			DataEventType dataEventType, List<Float> parameters) {
@@ -106,8 +131,17 @@ public class IND_0001 extends IDataExtractorSubject implements
 
 	@Override
 	public String getDataHeaders() {
-		// TODO Auto-generated method stub
-		return null;
+		IND_0001_NewUpdateDate temp = new IND_0001_NewUpdateDate(null,null,0);
+		return "Asset," + assetType.name() + "\n" +
+				"Interval," + japaneseCandleInterval+ "\n" + 
+				"Data Source," + this.dataSource.toString() + "\n" +
+				"Length," + length + "\n" +
+				temp.getDataHeaders();
+	}
+	
+	@Override
+	public String toString() {
+		return newUpdateDate.toString(); 
 	}
 
 	@Override

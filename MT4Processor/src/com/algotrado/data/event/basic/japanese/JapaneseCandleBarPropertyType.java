@@ -42,4 +42,17 @@ public enum JapaneseCandleBarPropertyType {
 		}
 		return JapaneseCandleBarPropertyType.values()[index.intValue()];
 	}
+	
+	static public boolean isPropertyValid(Float Property)
+	{
+		if(Property.intValue() != Property)
+		{
+			return false;
+		}
+		if(Property<0 || Property >=JapaneseCandleBarPropertyType.values().length)
+		{
+			return false;
+		}
+		return true;
+	}
 }

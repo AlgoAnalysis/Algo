@@ -36,13 +36,15 @@ public class FileDataRecorder implements IDataExtractorObserver, Comparable<File
 		String directoryPathStr = saveFilePath.substring(0, saveFilePath.lastIndexOf(File.separator));
 		Path directoryPath = Paths.get(directoryPathStr);
 		if (!Files.exists(directoryPath)) {
-			this.guiController.setErrorMessage("Directory: " + directoryPathStr, true);
+			if(guiController != null) 
+				this.guiController.setErrorMessage("Directory: " + directoryPathStr, true);
 			return;
 		}
 		try {
 			destinationFile = new FileWriter(saveFilePath, this.appendFileMode);
 		} catch (IOException e) {
-			this.guiController.setErrorMessage("File: " + saveFilePath + " could not be created for some reason. " + e.getMessage(), true);
+			if(guiController != null)
+				this.guiController.setErrorMessage("File: " + saveFilePath + " could not be created for some reason. " + e.getMessage(), true);
 			return;
 		}
 	}
@@ -57,7 +59,8 @@ public class FileDataRecorder implements IDataExtractorObserver, Comparable<File
 			try {
 				destinationFile.append(bufferString);
 			} catch (IOException e1) {
-				this.guiController.setErrorMessage("File: " + saveFilePath + " could not be changed for some reason. " + e1.getMessage(), true);
+				if(guiController != null)
+					this.guiController.setErrorMessage("File: " + saveFilePath + " could not be changed for some reason. " + e1.getMessage(), true);
 				closeResourcesAndExit();
 				return;
 			}
@@ -67,7 +70,8 @@ public class FileDataRecorder implements IDataExtractorObserver, Comparable<File
 		try {
 			destinationFile.flush();
 		} catch (IOException e) {
-			this.guiController.setErrorMessage("File: " + saveFilePath + " could not be closed for some reason. " + e.getMessage(), false);
+			if(guiController != null)
+				this.guiController.setErrorMessage("File: " + saveFilePath + " could not be closed for some reason. " + e.getMessage(), false);
 			return;
 		}
 		
@@ -75,12 +79,14 @@ public class FileDataRecorder implements IDataExtractorObserver, Comparable<File
 			try {
 				destinationFile.append(bufferString);
 			} catch (IOException e1) {
-				this.guiController.setErrorMessage("File: " + saveFilePath + " could not be changed for some reason. " + e1.getMessage(), true);
+				if(guiController != null)
+					this.guiController.setErrorMessage("File: " + saveFilePath + " could not be changed for some reason. " + e1.getMessage(), true);
 				closeResourcesAndExit();
 				return;
 			}
 			this.dataExtractorSubject.unregisterObserver(this);
-			this.guiController.resetGUI();
+			if(guiController != null)
+				this.guiController.resetGUI();
 			closeResourcesAndExit();
 			destinationFile = null;
 		}
@@ -91,7 +97,8 @@ public class FileDataRecorder implements IDataExtractorObserver, Comparable<File
 //				destinationFile.flush();
 			destinationFile.close();
 		} catch (IOException e) {
-			this.guiController.setErrorMessage("File: " + saveFilePath + " could not be closed for some reason. " + e.getMessage(), false);
+			if(guiController != null)
+				this.guiController.setErrorMessage("File: " + saveFilePath + " could not be closed for some reason. " + e.getMessage(), false);
 			return;
 		}
 		return;
