@@ -6,6 +6,7 @@ import com.algotrado.data.event.basic.japanese.JapaneseCandleBarPropertyType;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleDataExtractor;
 import com.algotrado.data.event.basic.japanese.JapaneseTimeFrameType;
 import com.algotrado.data.event.indicator.IND_0001.IND_0001;
+import com.algotrado.data.event.indicator.IND_0002.IND_0002;
 import com.algotrado.extract.data.AssetType;
 import com.algotrado.extract.data.DataSource;
 import com.algotrado.extract.data.IDataExtractorSubject;
@@ -175,18 +176,38 @@ public enum DataEventType {
 					ret =false;
 				}
 			}
+			else if((parameters.get(4).intValue() != parameters.get(4)) || parameters.get(4) <= 0 || parameters.get(4) > 2) // rsi type
+			{
+				if(generteException)
+				{
+					throw new RuntimeException	("The RSI data event get not valid rsi type.\n"
+												+"The rsi type was " + parameters.get(4).toString());
+				}
+				else
+				{
+					ret =false;
+				}
+			}
 			return ret;
 		}
 
 		@Override
 		public String[] getParametersStrings() {
-			String[] ret = {"Interval", "JapaneseCandleBarPropertyType" , "Length", "historyLength"};
+			String[] ret = {"Interval", "JapaneseCandleBarPropertyType" , "Length", "historyLength","rsi type"};
 			return ret;
 		}
 
 		@Override
 		public IDataExtractorSubject getSubjectDataExtractor(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Float> parameters) {
-			return new IND_0001(dataSource, assetType,dataEventType,parameters);
+			switch(parameters.get(4).intValue())
+			{
+			case 1:	
+				return new IND_0001(dataSource, assetType,dataEventType,parameters);
+			case 2:	
+				return new IND_0002(dataSource, assetType,dataEventType,parameters);
+			default:
+				return null;
+			}
 		}
 		
 	},

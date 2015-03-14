@@ -23,6 +23,12 @@ import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.basic.japanese.JapaneseTimeFrameType;
 import com.algotrado.output.file.FileDataRecorder;
 import com.algotrado.output.file.IGUIController;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+import java.awt.ScrollPane;
+import javax.swing.JRadioButton;
+import java.awt.Choice;
+import java.awt.Panel;
 
 public class DataExtractorGUI implements IGUIController,Runnable {
 
