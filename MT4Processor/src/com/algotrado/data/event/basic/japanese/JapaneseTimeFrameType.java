@@ -1,6 +1,8 @@
 package com.algotrado.data.event.basic.japanese;
 
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 
 
@@ -23,7 +25,7 @@ public enum JapaneseTimeFrameType {
 	private int valueInMinutes;
 	private String valueString;
 	private long timeOffsetFromZeroDateInMinutes;
-	private static final int weekStartDay = 0; // sunday
+	private static final int weekStartDay = Calendar.SUNDAY;
 	
 	private JapaneseTimeFrameType(int valueInMinutes,String valueString){
 		this.valueInMinutes = valueInMinutes;
@@ -31,7 +33,9 @@ public enum JapaneseTimeFrameType {
 		if(valueInMinutes == 10080) // one week - TODO, check way we can't use this == ONE_WEEK ???
 		{
 			Date tempDate = new Date(0);
-			timeOffsetFromZeroDateInMinutes = (tempDate.getDay() - weekStartDay)*DAY_IN_MINUTES;
+			Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
+			calendar.setTime(tempDate);
+			timeOffsetFromZeroDateInMinutes = (calendar.get(Calendar.DAY_OF_WEEK) - weekStartDay)*DAY_IN_MINUTES;
 		}
 		else
 		{

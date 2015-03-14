@@ -7,11 +7,11 @@ import java.util.TimeZone;
 public class Setting {
 	private static String assetDirectoryPath = "C:\\Algo\\Asset History Date";
 	private static String dateTimeFormat = "dd/MM/yyyy,HH:mm:ss";
-	private static TimeZone fileTimeZone = TimeZone.getTimeZone("IST");
+	private static TimeZone fileTimeZone = TimeZone.getTimeZone("UTC");
 	
 	public static String getDateTimeFormat(Date date) {
 		SimpleDateFormat dateformatter = new SimpleDateFormat(dateTimeFormat);
-//		dateformatter.setTimeZone(TimeZone.getTimeZone("IST"));
+		dateformatter.setTimeZone(TimeZone.getTimeZone("UTC"));
 		return dateformatter.format(date);
 	}
 

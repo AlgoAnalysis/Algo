@@ -19,7 +19,7 @@ public class JapaneseCandleDataExtractor extends IDataExtractorSubject implement
 	private final DataEventType dataEventType = DataEventType.JAPANESE;
 	private JapaneseTimeFrameType timeFrameType;
 	private int historyLength;
-	private List<JapaneseCandleBar> dataList;
+//	private List<JapaneseCandleBar> dataList; // TODO - record history
 	private JapaneseCandleBar newData = null;
 	private IDataExtractorSubject dataExtractorSubject;
 	private Date openTime = null;
@@ -39,8 +39,8 @@ public class JapaneseCandleDataExtractor extends IDataExtractorSubject implement
 			JapaneseTimeFrameType lowerTimeFrame = JapaneseTimeFrameType.values()[timeFrameOrder - 1];
 			
 			List<Float> lowerTimeFrameParams = new ArrayList<Float>();
-			lowerTimeFrameParams.add(Integer.valueOf(lowerTimeFrame.getValueInMinutes()).floatValue());
-			lowerTimeFrameParams.add(parameters.get(1) * (parameters.get(0)/lowerTimeFrame.getValueInMinutes()));
+			lowerTimeFrameParams.add((float)lowerTimeFrame.getValueInMinutes());
+			lowerTimeFrameParams.add((float)historyLength * (timeFrameType.getValueInMinutes()/lowerTimeFrame.getValueInMinutes()));
 			
 			//tempTime = tempTime.ordinal();
 			RegisterDataExtractor.register(this.dataSource, assetType, dataEventType, lowerTimeFrameParams, this);

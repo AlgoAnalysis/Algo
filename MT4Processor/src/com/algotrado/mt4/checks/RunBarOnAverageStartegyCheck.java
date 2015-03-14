@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
-import com.algotrado.mt4.impl.BarOnAverageStrategy;
 import com.algotrado.mt4.impl.CandleDaySuccessStatistics;
 import com.algotrado.mt4.impl.CandleHourSuccessStatistics;
 import com.algotrado.mt4.impl.FileNameTimeFrame;

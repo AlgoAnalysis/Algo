@@ -1,6 +1,5 @@
 package com.algotrado.mt4.tal.strategy;
 
-import com.algotrado.mt4.tal.strategy.check.pattern.SingleCandleBarData;
 
 public class ExtremeConditionOutside25StandartDeviation /*extends Strategy*/ {
 

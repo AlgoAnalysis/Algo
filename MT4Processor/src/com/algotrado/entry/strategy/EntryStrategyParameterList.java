@@ -3,12 +3,12 @@ package com.algotrado.entry.strategy;
 import com.algotrado.util.DebugUtil;
 
 public class EntryStrategyParameterList {
-	protected static Object[][] parametersList;
+	protected Object[][] parametersList;
 	public EntryStrategyParameterList(Object[][] parametersList)
 	{
 		this.parametersList = parametersList;
 	}
-	public static Object[] getParametersFromIndex(int index)
+	public Object[] getParametersFromIndex(int index)
 	{
 		if(index != 0 && index <= parametersList.length)
 		{

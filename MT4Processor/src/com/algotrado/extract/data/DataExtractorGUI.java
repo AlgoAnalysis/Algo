@@ -23,12 +23,6 @@ import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.basic.japanese.JapaneseTimeFrameType;
 import com.algotrado.output.file.FileDataRecorder;
 import com.algotrado.output.file.IGUIController;
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
-import java.awt.ScrollPane;
-import javax.swing.JRadioButton;
-import java.awt.Choice;
-import java.awt.Panel;
 
 public class DataExtractorGUI implements IGUIController,Runnable {
 
@@ -36,11 +30,11 @@ public class DataExtractorGUI implements IGUIController,Runnable {
 	private JTextField tfdSaveFilePath;
 	private boolean testRun = false;
 	private JButton btnStart;
-	private JComboBox cbxIntervalTime;
-	private JComboBox cbxDataEvant;
-	private JComboBox cbxAsset;
+	private JComboBox<String> cbxIntervalTime;
+	private JComboBox<String> cbxDataEvant;
+	private JComboBox<String> cbxAsset;
 	private JLabel lblDataSource;
-	private JComboBox cbxDataSource;
+	private JComboBox<String> cbxDataSource;
 	private JButton btnSaveFile;
 	private JTextField txdTime;
 
@@ -77,9 +71,9 @@ public class DataExtractorGUI implements IGUIController,Runnable {
 		frmDf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmDf.getContentPane().setLayout(null);
 		
-		cbxAsset = new JComboBox();
+		cbxAsset = new JComboBox<String>();
 		cbxAsset.setBounds(146, 68, 259, 27);
-		cbxAsset.setModel(new DefaultComboBoxModel(AssetType.getAssetsStrings()));
+		cbxAsset.setModel(new DefaultComboBoxModel<String>(AssetType.getAssetsStrings()));
 		cbxAsset.setFont(new Font("Tahoma", Font.PLAIN, 16));
 		frmDf.getContentPane().add(cbxAsset);
 		
@@ -104,18 +98,17 @@ public class DataExtractorGUI implements IGUIController,Runnable {
 		lblSaveFile.setFont(new Font("Tahoma", Font.PLAIN, 16));
 		frmDf.getContentPane().add(lblSaveFile);
 		
-		cbxIntervalTime = new JComboBox();
+		cbxIntervalTime = new JComboBox<String>();
 		cbxIntervalTime.setBounds(146, 136, 259, 27);
 		cbxIntervalTime.setFont(new Font("Tahoma", Font.PLAIN, 16));
-		cbxIntervalTime.setModel(new DefaultComboBoxModel(JapaneseTimeFrameType.getTimeFrameStrings()));
+		cbxIntervalTime.setModel(new DefaultComboBoxModel<String>(JapaneseTimeFrameType.getTimeFrameStrings()));
 		frmDf.getContentPane().add(cbxIntervalTime);
 		
-		cbxDataEvant = new JComboBox();
+		cbxDataEvant = new JComboBox<String>();
 		cbxDataEvant.setBounds(146, 101, 259, 27);
 		cbxDataEvant.setFont(new Font("Tahoma", Font.PLAIN, 16));
-		cbxDataEvant.setModel(new DefaultComboBoxModel(DataEventType.getDataEventStrings()));
+		cbxDataEvant.setModel(new DefaultComboBoxModel<String>(DataEventType.getDataEventStrings()));
 		cbxDataEvant.addActionListener(new ActionListener() {
-			@SuppressWarnings("deprecation")
 			public void actionPerformed(ActionEvent e) {
 				if(DataEventType.getDataEventTypeFromString(cbxDataEvant.getSelectedItem().toString()) == DataEventType.JAPANESE)
 				{
@@ -174,9 +167,9 @@ public class DataExtractorGUI implements IGUIController,Runnable {
 		lblDataSource.setBounds(32, 35, 103, 27);
 		frmDf.getContentPane().add(lblDataSource);
 		
-		cbxDataSource = new JComboBox();
+		cbxDataSource = new JComboBox<String>();
 		cbxDataSource.setFont(new Font("Tahoma", Font.PLAIN, 16));
-		cbxDataSource.setModel(new DefaultComboBoxModel(DataSource.getDataSourceStrings()));
+		cbxDataSource.setModel(new DefaultComboBoxModel<String>(DataSource.getDataSourceStrings()));
 		cbxDataSource.setBounds(146, 35, 259, 27);
 		frmDf.getContentPane().add(cbxDataSource);
 		

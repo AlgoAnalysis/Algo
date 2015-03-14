@@ -1,12 +1,7 @@
 package com.algotrado.mt4.tal.patterns.reversal;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 import com.algotrado.mt4.impl.Pattern;
 import com.algotrado.mt4.tal.strategy.check.pattern.SingleCandleBarData;
-import com.algotrado.util.PriceUtil;
 
 public class HaramiPattern extends Pattern {
 	public boolean isBullishReversalPattern(SingleCandleBarData[] previousCandles, int index, double pipsValue) {

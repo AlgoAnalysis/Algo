@@ -1,7 +1,5 @@
 package com.algotrado.mt4.tal.strategy;
 
-import com.algotrado.mt4.impl.Candle;
-import com.algotrado.mt4.tal.strategy.check.pattern.SingleCandleBarData;
 
 public class ExtremeConditionStrategy /*extends Strategy*/ {
 	

@@ -7,13 +7,9 @@ import java.io.FilenameFilter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Locale;
 import java.util.StringTokenizer;
-import java.util.TimeZone;
 
 import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.NewUpdateData;
@@ -128,7 +124,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 
 				//2014.04.15 04:00:00
 				SimpleDateFormat formatter = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
-//				formatter.setTimeZone(Setting.getFileTimeZone());
+				formatter.setTimeZone(Setting.getFileTimeZone());
 				//	      SimpleDateFormat hourformatter = new SimpleDateFormat("HH:mm");
 				//	      SimpleDateFormat dateformatter = new SimpleDateFormat("dd/MM/yyyy");
 				while( stringRead != null )
@@ -156,6 +152,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 					try {
 						formattedDate = formatter.parse(date /*+ " " + hour*/);
 					} catch (ParseException e) {
+						br.close();
 						e.printStackTrace();
 					}
 
@@ -191,13 +188,11 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 //							}
 //						}
 
-//						if(prevCandle.getTime().after(formattedDate)) // TODO - add the excaption back to the code!!!
-//						{
-//							throw new RuntimeException("File error, the time are not in orders");
-//						}
-						if((formattedDate.getTime() - prevCandle.getTime().getTime() < MAXIMUM_PADDING_TIME) 
-								&& (prevCandle.getTime().after(formattedDate)) // TODO - remove this line after fix the time problem
-								)
+						if(prevCandle.getTime().after(formattedDate))
+						{
+							throw new RuntimeException("File error, the time are not in orders");
+						}
+						if(formattedDate.getTime() - prevCandle.getTime().getTime() < MAXIMUM_PADDING_TIME) 
 						{
 							long intervalPaddingTime = intervalTime * NUM_OF_MILLIS_IN_MINUTES;
 							double preClose = prevCandle.getClose();
@@ -233,6 +228,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 				e.printStackTrace();
 			}
 			dataList = null;
+			
 		}
 		int cnt;
 		for(cnt = 0;cnt <recordDataList.size() - 1;cnt++)

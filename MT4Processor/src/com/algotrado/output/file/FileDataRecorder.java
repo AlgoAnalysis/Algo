@@ -6,15 +6,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Iterator;
 import java.util.List;
 
 import com.algotrado.data.event.DataEventType;
-import com.algotrado.extract.data.AssetType;
-import com.algotrado.extract.data.DataSource;
 import com.algotrado.extract.data.IDataExtractorObserver;
 import com.algotrado.extract.data.IDataExtractorSubject;
-import com.algotrado.extract.data.RegisterDataExtractor;
 import com.algotrado.extract.data.SubjectState;
 
 public class FileDataRecorder implements IDataExtractorObserver, Comparable<FileDataRecorder> {

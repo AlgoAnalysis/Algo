@@ -4,12 +4,12 @@ import com.algotrado.util.DebugUtil;
 
 public abstract class PatternParameterList {
 
-	static protected Object[][] parametersList;
+	protected Object[][] parametersList;
 	public PatternParameterList(Object[][] parametersList)
 	{
 		this.parametersList = parametersList;
 	}
-	public static Object[] getParametersFromIndex(int index)
+	public Object[] getParametersFromIndex(int index)
 	{
 		if(index != 0 && index <= parametersList.length)
 		{

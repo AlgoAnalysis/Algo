@@ -18,7 +18,6 @@ import java.util.StringTokenizer;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 import com.algotrado.mt4.impl.CandleHourSuccessStatistics;
 import com.algotrado.mt4.impl.FileNameTimeFrame;
-import com.algotrado.mt4.tal.strategy.ExtremeConditionOutside25StandartDeviation;
 import com.algotrado.mt4.tal.strategy.Strategy;
 import com.algotrado.mt4.tal.strategy.check.pattern.SingleCandleBarData;
 

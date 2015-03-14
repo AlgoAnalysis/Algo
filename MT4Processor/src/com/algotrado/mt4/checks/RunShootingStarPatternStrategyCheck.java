@@ -19,7 +19,6 @@ import com.algotrado.mt4.impl.CandleHourSuccessStatistics;
 import com.algotrado.mt4.impl.FileNameTimeFrame;
 import com.algotrado.mt4.tal.patterns.reversal.ShootingStar;
 import com.algotrado.mt4.tal.strategy.Strategy;
-import com.algotrado.mt4.tal.strategy.check.pattern.EngulfingPatternStrategy;
 import com.algotrado.mt4.tal.strategy.check.pattern.ShootingStarStrategy;
 import com.algotrado.mt4.tal.strategy.check.pattern.SingleCandleBarData;
 
