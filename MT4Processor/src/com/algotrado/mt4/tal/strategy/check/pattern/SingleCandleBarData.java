@@ -2,7 +2,7 @@ package com.algotrado.mt4.tal.strategy.check.pattern;
 
 import java.util.Date;
 
-import com.algotrado.data.event.JapaneseCandleBar;
+import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 
 public class SingleCandleBarData extends JapaneseCandleBar {
 

@@ -126,11 +126,10 @@ public class PatternManager {
 		}
 		if(stateFolnd != null)
 		{
-			SimpleDateFormat dateformatter = new SimpleDateFormat(Setting.getDateTimeFormat());
-			valString = dateformatter.format(stateFolnd.getTimeList().get(0)) + ",";
+			valString = Setting.getDateTimeFormat(stateFolnd.getTimeList().get(0)) + ",";
 			for(Integer cnt = 1;cnt <= numOfStates.intValue();cnt++)
 			{
-				valString += dateformatter.format(stateFolnd.getTimeList().get(cnt)) + ",";
+				valString += Setting.getDateTimeFormat(stateFolnd.getTimeList().get(cnt)) + ",";
 			}
 		}
 		return valString;

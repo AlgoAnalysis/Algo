@@ -1,6 +1,9 @@
-package com.algotrado.data.event;
+package com.algotrado.data.event.basic.japanese;
 
 import java.util.Date;
+
+import com.algotrado.util.Setting;
+
 
 
 public class JapaneseCandleBar extends AbstractCandleBar {
@@ -100,8 +103,16 @@ public class JapaneseCandleBar extends AbstractCandleBar {
 		return Math.abs(high - low) * multiplierOfPips;
 	}
 	
+	@Override
+	public String getDataHeaders() {
+		return Setting.getDateTimeHeader("") + ",volume,open,high,low,close";
+	}
+	
 	public String toString() {
-		return "time: " + time + " ,open price= " + open + " ,close price= " + close + " ,high price= " + high + " ,low price= " + low;
+//		SimpleDateFormat dateformatter = new SimpleDateFormat(Setting.getDateTimeFormat());
+		String toStringRet = Setting.getDateTimeFormat(time) + "," + volume + "," + open + "," + high + "," 
+				+ low + "," + close;
+		return toStringRet;
 	}
 
 	public double getVolume() {
@@ -110,11 +121,6 @@ public class JapaneseCandleBar extends AbstractCandleBar {
 
 	public void setVolume(double volume) {
 		this.volume = volume;
-	}
-	
-	@Override
-	public String getDataHeaders() {
-		return "Open Price, High Price, Low Price, Close Price, Volume";
 	}
 	
 	public double getBodySize()	{

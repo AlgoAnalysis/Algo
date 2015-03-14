@@ -9,6 +9,8 @@ import javax.swing.SwingUtilities;
 
 import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.NewUpdateData;
+import com.algotrado.data.event.basic.minimal.time.frame.MinimalTimeFrame;
+import com.algotrado.util.DebugUtil;
 
 /**
  * This is the abstract class for data extractor.
@@ -16,7 +18,7 @@ import com.algotrado.data.event.NewUpdateData;
  * @author Ariel
  *
  */
-public abstract class IDataExtractorSubject implements Runnable, Comparable<IDataExtractorSubject>{
+public abstract class IDataExtractorSubject implements Comparable<IDataExtractorSubject>{
 	
 	protected Collection<IDataExtractorObserver> observers;
 	protected DataSource dataSource;
@@ -33,10 +35,18 @@ public abstract class IDataExtractorSubject implements Runnable, Comparable<IDat
 	 * 						RSI - parameters={Interval, JapaneseCandleBarPropertyType , Length, historyLength}
 	 */	
 	public IDataExtractorSubject (DataSource dataSource, AssetType assetType, DataEventType dataEventType, List<Float> parameters) {
+		if(DebugUtil.debugDataExtractor)
+		{
+			if(checkIfDataConstractorValid(dataSource,assetType,dataEventType,parameters))
+			{
+				throw new RuntimeException("DataExtractorSubject data input not valid");
+			}
+		}
 		this.observers = new ConcurrentSkipListSet<IDataExtractorObserver>();
 		this.assetType = assetType;
 		this.dataEventType = dataEventType;
 		this.parameters = parameters;
+		setParameters(parameters);
 		this.dataSource = dataSource;
 	}
 	
@@ -53,8 +63,8 @@ public abstract class IDataExtractorSubject implements Runnable, Comparable<IDat
 			this.observers.add(observer);
 			observer.setSubject(this);
 		}
-		if (runNewTask) {
-			SwingUtilities.invokeLater(this);
+		if (runNewTask && dataEventType == DataEventType.MINIMAL_TIME_FRAME) {
+			SwingUtilities.invokeLater((MinimalTimeFrame)this);
 //			new Thread(this).run();
 		}
 		return this;
@@ -78,7 +88,26 @@ public abstract class IDataExtractorSubject implements Runnable, Comparable<IDat
 		}
 	}
 	
+	public boolean checkIfDataConstractorValid(DataSource dataSource,
+			AssetType assetType, DataEventType dataEventType,
+			List<Float> parameters) {
+		if((dataSource == null) || (assetType == null) || (dataEventType == null) || (parameters == null))
+			return false;
+		if(dataEventType != getDataEventType())
+			return false;
+		if(!dataEventType.checkIfTheParametersValid(parameters, DebugUtil.debugDataExtractor))
+			return false;
+		if(dataEventType == DataEventType.MINIMAL_TIME_FRAME)
+		{
+			if(((MinimalTimeFrame)this).getDataSource() != dataSource)
+				return false;
+		}
+		return true;
+	}
+	
 	public abstract NewUpdateData getNewData();
+	public abstract DataEventType getDataEventType();
+	public abstract void setParameters(List<Float> parameters);
 	
 	/**
 	 * Returns the file headers line.
@@ -113,13 +142,7 @@ public abstract class IDataExtractorSubject implements Runnable, Comparable<IDat
 						}
 						
 					}
-					if (o.dataSource == DataSource.FILE && this.dataSource == DataSource.RAM) {
-						return -1;
-					} else if (o.dataSource == DataSource.RAM && this.dataSource == DataSource.FILE) {
-						return 1;
-					} else {
-						return 0;
-					}
+					return (o.dataSource.ordinal() - this.dataSource.ordinal());
 				} else if (o.parameters == null) {
 					return 1;
 				}

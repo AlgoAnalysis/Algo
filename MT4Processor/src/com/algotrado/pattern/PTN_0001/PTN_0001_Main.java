@@ -1,7 +1,7 @@
 package com.algotrado.pattern.PTN_0001;
 
 
-import com.algotrado.data.event.JapaneseCandleBar;
+import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 import com.algotrado.pattern.IPatternState;
 import com.algotrado.pattern.PatternParameterList;
 

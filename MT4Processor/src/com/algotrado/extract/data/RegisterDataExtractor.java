@@ -23,7 +23,7 @@ public class RegisterDataExtractor {
 	{
 		if(DebugUtil.debugRegisterDataExtractor)
 		{
-			if((assetType == null) || (dataEventType == null) || (parameters == null) || (observer == null))
+			if((dataSource == null) || (assetType == null) || (dataEventType == null) || (parameters == null) || (observer == null))
 			{
 				throw new RuntimeException("The RegisterDataExtractor.register contractor canot get null");
 			}
@@ -45,7 +45,6 @@ public class RegisterDataExtractor {
 			if(assetData == null) // new Asset
 			{
 				assetData = createAssetList(dataSource,assetType,dataEventType,parameters);
-	//			extractorSubjectList.put(assetType, assetData); // TODO - need to check if needed 
 				dataExtractorSubject = assetData.get(dataEventType).get(parameters); // TODO - need to check if this notation work
 			}
 			else // the Asset exist
@@ -54,8 +53,6 @@ public class RegisterDataExtractor {
 				if(dataEventData == null)
 				{
 					dataEventData = createDataEventData(dataSource,assetType,dataEventType,parameters);
-	//				assetData.put(dataEventType, dataEventData); 	// TODO - need to check if needed 
-	//				extractorSubjectList.put(assetType, assetData); // TODO - need to check if needed
 					dataExtractorSubject = dataEventData.get(parameters); // TODO - need to check if this notation work
 				}
 				else
@@ -65,8 +62,6 @@ public class RegisterDataExtractor {
 					{
 						dataExtractorSubject = createParametersData(dataSource,assetType,dataEventType,parameters);
 						dataEventData.put(parameters, dataExtractorSubject);
-	//					assetData.put(dataEventType, dataEventData); 	// TODO - need to check if needed 
-	//					extractorSubjectList.put(assetType, assetData); // TODO - need to check if needed 
 					}
 				}
 			}
@@ -116,15 +111,7 @@ public class RegisterDataExtractor {
 	
 	private static IDataExtractorSubject createParametersData(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Float> parameters)
 	{
-		validateDataSource();
-		IDataExtractorSubject dataExtractorSubject = dataSource.getSubjectDataExtractor(assetType, dataEventType, parameters);
+		IDataExtractorSubject dataExtractorSubject = dataEventType.getSubjectDataExtractor(dataSource,assetType, dataEventType, parameters);
 		return dataExtractorSubject;
-	}
-
-	public static void validateDataSource() {
-//		if(DebugUtil.debugRegisterDataExtractor && (dataSource == null))
-//		{
-//			throw new RuntimeException("The RegisterDataExtractor setDataSource cannot get null in dataSource");
-//		}
 	}
 }

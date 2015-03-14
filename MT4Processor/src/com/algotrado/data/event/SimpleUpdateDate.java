@@ -1,15 +1,16 @@
-package com.algotrado.data.event.indicator.IND_0001;
+package com.algotrado.data.event;
 
 import java.util.Date;
 
-import com.algotrado.data.event.NewUpdateData;
 import com.algotrado.extract.data.AssetType;
+import com.algotrado.util.Setting;
 
-public class IND_0001_NewUpdateDate implements NewUpdateData {
+public class SimpleUpdateDate implements NewUpdateData {
+
 	Date time;
 	AssetType asset;
 	double value;
-	public IND_0001_NewUpdateDate(AssetType asset,Date time,double value)
+	public SimpleUpdateDate(AssetType asset,Date time,double value)
 	{
 		this.asset = asset;
 		this.time = time;
@@ -22,18 +23,19 @@ public class IND_0001_NewUpdateDate implements NewUpdateData {
 
 	@Override
 	public String getAssetName() {
-		// TODO Auto-generated method stub
 		return asset.toString();
 	}
 
 	@Override
 	public String getDataHeaders() {
-		// TODO Auto-generated method stub
-		return null;
+		return Setting.getDateTimeHeader("") +",value" ;
+	}
+	@Override
+	public String toString() {
+		return Setting.getDateTimeFormat(time) +"," + value ;
 	}
 	public double getValue() {
 		return value;
 	}
-	
 
 }

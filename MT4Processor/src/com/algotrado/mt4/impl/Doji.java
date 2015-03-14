@@ -1,6 +1,6 @@
 package com.algotrado.mt4.impl;
 
-import com.algotrado.data.event.JapaneseCandleBar;
+import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 import com.algotrado.mt4.tal.strategy.check.pattern.SingleCandleBarData;
 
 public class Doji extends Candle {

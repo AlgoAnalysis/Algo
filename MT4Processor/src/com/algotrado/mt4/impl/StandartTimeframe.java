@@ -3,8 +3,8 @@ package com.algotrado.mt4.impl;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.algotrado.data.event.AbstractCandleBar;
-import com.algotrado.data.event.JapaneseCandleBar;
+import com.algotrado.data.event.basic.japanese.AbstractCandleBar;
+import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 
 public class StandartTimeframe {
 

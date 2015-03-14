@@ -1,4 +1,5 @@
-package com.algotrado.data.event;
+package com.algotrado.data.event.basic.japanese;
+
 
 public enum JapaneseCandleBarPropertyType {
 	OPEN
@@ -40,5 +41,18 @@ public enum JapaneseCandleBarPropertyType {
 			return null;
 		}
 		return JapaneseCandleBarPropertyType.values()[index.intValue()];
+	}
+	
+	static public boolean isPropertyValid(Float Property)
+	{
+		if(Property.intValue() != Property)
+		{
+			return false;
+		}
+		if(Property<0 || Property >=JapaneseCandleBarPropertyType.values().length)
+		{
+			return false;
+		}
+		return true;
 	}
 }

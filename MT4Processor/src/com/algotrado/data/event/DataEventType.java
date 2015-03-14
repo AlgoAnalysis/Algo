@@ -2,17 +2,27 @@ package com.algotrado.data.event;
 
 import java.util.List;
 
+import com.algotrado.data.event.basic.japanese.JapaneseCandleBarPropertyType;
+import com.algotrado.data.event.basic.japanese.JapaneseCandleDataExtractor;
+import com.algotrado.data.event.basic.japanese.JapaneseTimeFrameType;
+import com.algotrado.data.event.indicator.IND_0001.IND_0001;
+import com.algotrado.data.event.indicator.IND_0002.IND_0002;
+import com.algotrado.extract.data.AssetType;
+import com.algotrado.extract.data.DataSource;
+import com.algotrado.extract.data.IDataExtractorSubject;
+
 public enum DataEventType {
 	JAPANESE("Japanese"){
 		@Override
 		public boolean checkIfTheParametersValid(List<Float> parameters,boolean generteException)
 		{
 			boolean ret = true;
-			if(parameters.size() != 2)
+			String[] parameterStrings = JAPANESE.getParametersStrings();
+			if(parameters.size() != parameterStrings.length)
 			{
 				if(generteException)
 				{
-					throw new RuntimeException	("The Japanse data event need 2 parameters.\n"
+					throw new RuntimeException	("The Japanse data event need " + Integer.toString(parameterStrings.length)+ " parameters.\n"
 												+"And not " + new Integer(parameters.size()).toString());
 				}
 				else
@@ -20,7 +30,7 @@ public enum DataEventType {
 					ret =false;
 				}
 			}
-			else if( !TimeFrameType.isIntervalValid(parameters.get(0)))
+			else if( !JapaneseTimeFrameType.isIntervalValid(parameters.get(0)))
 			{
 				if(generteException)
 				{
@@ -46,6 +56,17 @@ public enum DataEventType {
 			}
 			return ret;
 		}
+
+		@Override
+		public String[] getParametersStrings() {
+			String[] ret = {"Interval","History lenght"};
+			return ret;
+		}
+
+		@Override
+		public IDataExtractorSubject getSubjectDataExtractor(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Float> parameters) {
+			return new JapaneseCandleDataExtractor(dataSource,assetType,dataEventType,parameters);
+		}
 		
 	},/*After close of candle, send candle data*/
 	NEW_QUOTE("New quote"){
@@ -53,11 +74,12 @@ public enum DataEventType {
 		public boolean checkIfTheParametersValid(List<Float> parameters,boolean generteException)
 		{
 			boolean ret = true;
-			if(parameters.size() != 0)
+			String[] parameterStrings = NEW_QUOTE.getParametersStrings();
+			if(parameters.size() != parameterStrings.length)
 			{
 				if(generteException)
 				{
-					throw new RuntimeException	("The New quote data event need 0 parameters.\n"
+					throw new RuntimeException	("The New quote data event need " + Integer.toString(parameterStrings.length) + " parameters.\n"
 												+"And not " + new Integer(parameters.size()).toString());
 				}
 				else
@@ -66,6 +88,18 @@ public enum DataEventType {
 				}
 			}
 			return ret;
+		}
+
+		@Override
+		public String[] getParametersStrings() {
+			String[] ret = {};
+			return ret;
+		}
+
+		@Override
+		public IDataExtractorSubject getSubjectDataExtractor(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Float> parameters) {
+			// TODO Auto-generated method stub
+			return null;
 		}
 		
 		/*@Override
@@ -81,19 +115,20 @@ public enum DataEventType {
 		public boolean checkIfTheParametersValid(List<Float> parameters,
 				boolean generteException) {
 			boolean ret = true;
-			if(parameters.size() != 2)
+			String[] parameterStrings = RSI.getParametersStrings();
+			if(parameters.size() != parameterStrings.length) // TODO
 			{
 				if(generteException)
 				{
-					throw new RuntimeException	("The RSI data event need 2 parameters.\n"
-												+"And not " + new Integer(parameters.size()).toString());
+					throw new RuntimeException	("The RSI data event need "+ parameterStrings.length+" parameters.\n"
+												+"And not " + parameters.size());
 				}
 				else
 				{
 					ret =false;
 				}
 			}
-			else if( !TimeFrameType.isIntervalValid(parameters.get(0)))
+			else if( !JapaneseTimeFrameType.isIntervalValid(parameters.get(0))) // Interval
 			{
 				if(generteException)
 				{
@@ -105,12 +140,48 @@ public enum DataEventType {
 					ret =false;
 				}
 			}
-			else if((parameters.get(1).intValue() != parameters.get(1)) || parameters.get(1) < 0)
+			else if( !JapaneseCandleBarPropertyType.isPropertyValid(parameters.get(1)) ) // Interval
+			{
+				if(generteException)
+				{
+					throw new RuntimeException	("The RSI data event get not valid property (or not suppurted).\n"
+												+"The setting property was " + parameters.get(1).toString());
+				}
+				else
+				{
+					ret =false;
+				}
+			}
+			else if((parameters.get(2).intValue() != parameters.get(2)) || parameters.get(2) <= 0) // Length
 			{
 				if(generteException)
 				{
 					throw new RuntimeException	("The RSI data event get not valid length.\n"
-												+"The length was " + parameters.get(1).toString());
+												+"The length was " + parameters.get(2).toString());
+				}
+				else
+				{
+					ret =false;
+				}
+			}
+			else if((parameters.get(3).intValue() != parameters.get(3)) || parameters.get(3) < 0) // historyLength
+			{
+				if(generteException)
+				{
+					throw new RuntimeException	("The RSI data event get not valid history length.\n"
+												+"The length was " + parameters.get(3).toString());
+				}
+				else
+				{
+					ret =false;
+				}
+			}
+			else if((parameters.get(4).intValue() != parameters.get(4)) || parameters.get(4) <= 0 || parameters.get(4) > 2) // rsi type
+			{
+				if(generteException)
+				{
+					throw new RuntimeException	("The RSI data event get not valid rsi type.\n"
+												+"The rsi type was " + parameters.get(4).toString());
 				}
 				else
 				{
@@ -118,6 +189,59 @@ public enum DataEventType {
 				}
 			}
 			return ret;
+		}
+
+		@Override
+		public String[] getParametersStrings() {
+			String[] ret = {"Interval", "JapaneseCandleBarPropertyType" , "Length", "historyLength","rsi type"};
+			return ret;
+		}
+
+		@Override
+		public IDataExtractorSubject getSubjectDataExtractor(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Float> parameters) {
+			switch(parameters.get(4).intValue())
+			{
+			case 1:	
+				return new IND_0001(dataSource, assetType,dataEventType,parameters);
+			case 2:	
+				return new IND_0002(dataSource, assetType,dataEventType,parameters);
+			default:
+				return null;
+			}
+		}
+		
+	},
+	MINIMAL_TIME_FRAME("Minimal time frame"){
+
+		@Override
+		public boolean checkIfTheParametersValid(List<Float> parameters,boolean generteException)
+		{
+			boolean ret = true;
+			String[] parameterStrings = MINIMAL_TIME_FRAME.getParametersStrings();
+			if(parameters.size() != parameterStrings.length)
+			{
+				if(generteException)
+				{
+					throw new RuntimeException	("The Minimal time frame need " + Integer.toString(parameterStrings.length) + " parameters.\n"
+												+"And not " + new Integer(parameters.size()).toString());
+				}
+				else
+				{
+					ret =false;
+				}
+			}
+			return ret;
+		}
+
+		@Override
+		public String[] getParametersStrings() {
+			String[] ret = {};
+			return ret;
+		}
+
+		@Override
+		public IDataExtractorSubject getSubjectDataExtractor(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Float> parameters) {
+			return dataSource.getSubjectDataExtractor(assetType, dataEventType, parameters);
 		}
 		
 	};
@@ -155,8 +279,9 @@ public enum DataEventType {
 	{
 		return valueString;
 	}
-	
+
+	public abstract String[] getParametersStrings();
 	public abstract boolean checkIfTheParametersValid(List<Float> parameters,boolean generteException);
-	
+	public abstract IDataExtractorSubject getSubjectDataExtractor(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Float> parameters);	
 	
 }
