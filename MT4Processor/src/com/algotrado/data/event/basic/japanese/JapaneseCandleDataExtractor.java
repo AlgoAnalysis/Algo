@@ -118,7 +118,8 @@ public class JapaneseCandleDataExtractor extends IDataExtractorSubject implement
 			volume += subjectCandle.getVolume();
 			if (subjectCandle.getHigh() > high) {
 				high = subjectCandle.getHigh();
-			} else if (subjectCandle.getLow() < low) {
+			}
+			if (subjectCandle.getLow() < low) {
 				low = subjectCandle.getLow();
 			}
 		}
