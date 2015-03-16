@@ -19,10 +19,10 @@ public class PTN_0001_S2 extends PTN_0001_Main{
 	
 	public PTN_0001_S2(Object[] parameters,JapaneseCandleBar firstCandle) {
 		super(parameters);
-		Float percent = (Float) parameters[0];
+		Double percent = (Double) parameters[0];
 		status = PatternStateStatus.RUN;
 		this.firstCandle = firstCandle;
-		maxBodySize = firstCandle.getBodySize() * ((float)1 - percent.floatValue());
+		maxBodySize = firstCandle.getBodySize() * ((double)1 - percent.doubleValue());
 	}
 
 	@Override

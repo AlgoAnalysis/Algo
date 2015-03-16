@@ -28,13 +28,13 @@ public class InternalPatternTest extends IDataExtractorSubject implements IGUICo
 	private static DataSource dataSource = DataSource.FILE;
 	public InternalPatternTest()
 	{
-		super(dataSource, AssetType.USOIL,DataEventType.JAPANESE,(List<Float>)(new ArrayList<Float>()));
+		super(dataSource, AssetType.USOIL,DataEventType.JAPANESE,(List<Double>)(new ArrayList<Double>()));
 		timeMili = System.currentTimeMillis();
 		PTN_0001_S1 state = new PTN_0001_S1(1);
 		patternManager = new PatternManager(state);
 		String filePath = "C:\\Algo\\test\\" + state.getCode() + ".csv";
-		parameters.add((float) 5);
-		parameters.add((float) 0); // TODO - check if we want history
+		parameters.add((double) 5);
+		parameters.add((double) 0); // TODO - check if we want history
 		//RegisterDataExtractor.setDataSource(dataSource);
 		dataRecorder = new FileDataRecorder(filePath, this);
 		dataRecorder.setSubject(this);
@@ -53,7 +53,7 @@ public class InternalPatternTest extends IDataExtractorSubject implements IGUICo
 
 	@Override
 	public void resetGUI() {
-		Float deffTime = Float.valueOf((float)(System.currentTimeMillis() - timeMili)/1000);
+		Double deffTime = Double.valueOf((double)(System.currentTimeMillis() - timeMili)/1000);
 		System.out.println(deffTime.toString() + " Sec");
 	}
 	@Override
@@ -63,7 +63,7 @@ public class InternalPatternTest extends IDataExtractorSubject implements IGUICo
 	}
 	@Override
 	public void notifyObserver(DataEventType dataEventType,
-			List<Float> parameters) {
+			List<Double> parameters) {
 		subjectState = dataExtractorSubject.getSubjectState();
 		NewUpdateData[] newData = {dataExtractorSubject.getNewData()};
 		patternManager.setNewData(newData);
@@ -122,7 +122,7 @@ public class InternalPatternTest extends IDataExtractorSubject implements IGUICo
 
 
 	@Override
-	public void setParameters(List<Float> parameters) {
+	public void setParameters(List<Double> parameters) {
 		// TODO Auto-generated method stub
 		
 	}

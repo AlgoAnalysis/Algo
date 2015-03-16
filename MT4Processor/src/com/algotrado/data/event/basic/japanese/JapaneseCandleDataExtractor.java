@@ -29,7 +29,7 @@ public class JapaneseCandleDataExtractor extends IDataExtractorSubject implement
 	private double low;
 	private double volume;
 	
-	public JapaneseCandleDataExtractor(DataSource dataSource, AssetType assetType, DataEventType dataEventType, List<Float> parameters) {
+	public JapaneseCandleDataExtractor(DataSource dataSource, AssetType assetType, DataEventType dataEventType, List<Double> parameters) {
 		super(dataSource, assetType, dataEventType, parameters);
 		open = -1;
 		if(timeFrameType != JapaneseTimeFrameType.ONE_MINUTE)
@@ -38,16 +38,16 @@ public class JapaneseCandleDataExtractor extends IDataExtractorSubject implement
 			int timeFrameOrder = timeFrameType.ordinal();
 			JapaneseTimeFrameType lowerTimeFrame = JapaneseTimeFrameType.values()[timeFrameOrder - 1];
 			
-			List<Float> lowerTimeFrameParams = new ArrayList<Float>();
-			lowerTimeFrameParams.add((float)lowerTimeFrame.getValueInMinutes());
-			lowerTimeFrameParams.add((float)historyLength * (timeFrameType.getValueInMinutes()/lowerTimeFrame.getValueInMinutes()));
+			List<Double> lowerTimeFrameParams = new ArrayList<Double>();
+			lowerTimeFrameParams.add((double)lowerTimeFrame.getValueInMinutes());
+			lowerTimeFrameParams.add((double)historyLength * (timeFrameType.getValueInMinutes()/lowerTimeFrame.getValueInMinutes()));
 			
 			//tempTime = tempTime.ordinal();
 			RegisterDataExtractor.register(this.dataSource, assetType, dataEventType, lowerTimeFrameParams, this);
 		}
 		else
 		{
-			List<Float> minimalTimeFrameParams = new ArrayList<Float>();
+			List<Double> minimalTimeFrameParams = new ArrayList<Double>();
 			RegisterDataExtractor.register(this.dataSource, assetType, DataEventType.MINIMAL_TIME_FRAME, minimalTimeFrameParams, this);
 		}
 		
@@ -76,7 +76,7 @@ public class JapaneseCandleDataExtractor extends IDataExtractorSubject implement
 	}
 
 	@Override
-	public void notifyObserver(DataEventType dataEventType, List<Float> parameters) {
+	public void notifyObserver(DataEventType dataEventType, List<Double> parameters) {
 		int subjectTimeFrameInterval;
 		JapaneseCandleBar subjectCandle;
 		if(dataEventType == DataEventType.JAPANESE)
@@ -157,7 +157,7 @@ public class JapaneseCandleDataExtractor extends IDataExtractorSubject implement
 	}
 
 	@Override
-	public void setParameters(List<Float> parameters) {
+	public void setParameters(List<Double> parameters) {
 		timeFrameType = JapaneseTimeFrameType.getTimeFrameFromInterval(parameters.get(0));
 		historyLength = parameters.get(1).intValue();		
 	}

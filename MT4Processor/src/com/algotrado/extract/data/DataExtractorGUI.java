@@ -191,18 +191,18 @@ public class DataExtractorGUI implements IGUIController,Runnable {
 	private IDataExtractorObserver dataRecorder;
 	private AssetType assetType;
 	private DataEventType dataEventType;
-	private List<Float> parameters;
+	private List<Double> parameters;
 	private DataSource dataSource;
 	private void startTest()
 	{
 		dataSource = DataSource.getDataSourceFromString(cbxDataSource.getSelectedItem().toString());
 		assetType = AssetType.getAssetTypeFromString(cbxAsset.getSelectedItem().toString());
 		dataEventType = DataEventType.getDataEventTypeFromString(cbxDataEvant.getSelectedItem().toString());
-		parameters = new ArrayList<Float>();
+		parameters = new ArrayList<Double>();
 		if(dataEventType == DataEventType.JAPANESE)
 		{
-			parameters.add((float) JapaneseTimeFrameType.getTimeFrameTypeFromString(cbxIntervalTime.getSelectedItem().toString()).getValueInMinutes());
-			parameters.add((float)0); // TODO - check if we want history
+			parameters.add((double) JapaneseTimeFrameType.getTimeFrameTypeFromString(cbxIntervalTime.getSelectedItem().toString()).getValueInMinutes());
+			parameters.add((double)0); // TODO - check if we want history
 		}
 		
 //		RegisterDataExtractor.setDataSource(dataSource);
@@ -240,7 +240,7 @@ public class DataExtractorGUI implements IGUIController,Runnable {
 		btnSaveFile.setEnabled(true);
 		btnStart.setText("Start");
 		testRun = false;
-		Float deffTime = Float.valueOf((float)(System.currentTimeMillis() - timeMili)/1000);
+		Double deffTime = Double.valueOf((double)(System.currentTimeMillis() - timeMili)/1000);
 		txdTime.setText(deffTime.toString() + " Sec");
 	}
 	

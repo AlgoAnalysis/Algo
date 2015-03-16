@@ -6,7 +6,7 @@ import com.algotrado.data.event.DataEventType;
 
 public interface IDataExtractorObserver {
 
-	public void notifyObserver(DataEventType dataEventType, List<Float> parameters);
+	public void notifyObserver(DataEventType dataEventType, List<Double> parameters);
 	
 	/**
 	 * Use this method to pass the subject to the observer, so the observer can get the new data updates.

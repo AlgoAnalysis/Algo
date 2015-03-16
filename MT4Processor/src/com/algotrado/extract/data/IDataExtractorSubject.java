@@ -24,8 +24,8 @@ public abstract class IDataExtractorSubject implements Comparable<IDataExtractor
 	protected DataSource dataSource;
 	protected AssetType assetType; 
 	protected DataEventType dataEventType;
-	protected List<Float> parameters;
-	protected float pipsValue;
+	protected List<Double> parameters;
+	protected double pipsValue;
 	/** 
 	* @param assetType
 	 * @param dataEventType
@@ -34,7 +34,7 @@ public abstract class IDataExtractorSubject implements Comparable<IDataExtractor
 	 * 						NEW_QUOTE - parameters={}
 	 * 						RSI - parameters={Interval, JapaneseCandleBarPropertyType , Length, historyLength}
 	 */	
-	public IDataExtractorSubject (DataSource dataSource, AssetType assetType, DataEventType dataEventType, List<Float> parameters) {
+	public IDataExtractorSubject (DataSource dataSource, AssetType assetType, DataEventType dataEventType, List<Double> parameters) {
 		if(DebugUtil.debugDataExtractor)
 		{
 			if(checkIfDataConstractorValid(dataSource,assetType,dataEventType,parameters))
@@ -82,7 +82,7 @@ public abstract class IDataExtractorSubject implements Comparable<IDataExtractor
 		}
 	}
 	
-	public void notifyObservers(AssetType assetType, DataEventType dataEventType, List<Float> parameters) {
+	public void notifyObservers(AssetType assetType, DataEventType dataEventType, List<Double> parameters) {
 		for (IDataExtractorObserver observer : this.observers) {
 			observer.notifyObserver(dataEventType, parameters);
 		}
@@ -90,7 +90,7 @@ public abstract class IDataExtractorSubject implements Comparable<IDataExtractor
 	
 	public boolean checkIfDataConstractorValid(DataSource dataSource,
 			AssetType assetType, DataEventType dataEventType,
-			List<Float> parameters) {
+			List<Double> parameters) {
 		if((dataSource == null) || (assetType == null) || (dataEventType == null) || (parameters == null))
 			return false;
 		if(dataEventType != getDataEventType())
@@ -107,7 +107,7 @@ public abstract class IDataExtractorSubject implements Comparable<IDataExtractor
 	
 	public abstract NewUpdateData getNewData();
 	public abstract DataEventType getDataEventType();
-	public abstract void setParameters(List<Float> parameters);
+	public abstract void setParameters(List<Double> parameters);
 	
 	/**
 	 * Returns the file headers line.
@@ -117,7 +117,7 @@ public abstract class IDataExtractorSubject implements Comparable<IDataExtractor
 	
 	public abstract SubjectState getSubjectState();
 
-	public float getPipsValue() {
+	public double getPipsValue() {
 		return pipsValue;
 	}
 	
@@ -133,12 +133,12 @@ public abstract class IDataExtractorSubject implements Comparable<IDataExtractor
 					if (o.parameters.size() != this.parameters.size()) {
 						return this.parameters.size() - o.parameters.size();
 					}
-					Iterator<Float> fileDataRecorderIterator = this.parameters.iterator();
-					for (Iterator<Float> oIterator = o.parameters.iterator(); oIterator.hasNext() && fileDataRecorderIterator.hasNext();) {
-						Float oParam = oIterator.next();
-						Float fileDataRecorderParam = fileDataRecorderIterator.next();
+					Iterator<Double> fileDataRecorderIterator = this.parameters.iterator();
+					for (Iterator<Double> oIterator = o.parameters.iterator(); oIterator.hasNext() && fileDataRecorderIterator.hasNext();) {
+						Double oParam = oIterator.next();
+						Double fileDataRecorderParam = fileDataRecorderIterator.next();
 						if (oParam != fileDataRecorderParam) {
-							return new Float(fileDataRecorderParam - oParam).intValue();
+							return new Double(fileDataRecorderParam - oParam).intValue();
 						}
 						
 					}

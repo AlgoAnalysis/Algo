@@ -31,13 +31,13 @@ public class IND_0002 extends IDataExtractorSubject implements
 		String filePath = "C:\\Algo\\test\\RSI2_on_" + assetType.name()+"_in_len"+ rsiLength + ".csv";
 		///////////////////////////////////////
 		IDataExtractorObserver dataRecorder;
-		List<Float> parameters = new ArrayList<Float>();
+		List<Double> parameters = new ArrayList<Double>();
 		
-		parameters.add((float)japaneseTimeFrameType.getValueInMinutes());
-		parameters.add((float)japaneseCandleBarPropertyType.ordinal());
-		parameters.add((float)rsiLength);
-		parameters.add((float)rsiHistoryLength);
-		parameters.add((float)2); // RSI type
+		parameters.add((double)japaneseTimeFrameType.getValueInMinutes());
+		parameters.add((double)japaneseCandleBarPropertyType.ordinal());
+		parameters.add((double)rsiLength);
+		parameters.add((double)rsiHistoryLength);
+		parameters.add((double)2); // RSI type
 		dataRecorder = new FileDataRecorder(filePath, null);
 		RegisterDataExtractor.register(dataSource, assetType, DataEventType.RSI, parameters, dataRecorder);	
 	}
@@ -54,11 +54,11 @@ public class IND_0002 extends IDataExtractorSubject implements
 	private double inputFactor;
 	private double avrFactor;
 	private SimpleUpdateData newUpdateDate;
-	private Float japaneseCandleInterval;
+	private Double japaneseCandleInterval;
 	
 	
 	public IND_0002(DataSource dataSource, AssetType assetType,
-			DataEventType dataEventType, List<Float> parameters) {
+			DataEventType dataEventType, List<Double> parameters) {
 		super(dataSource, assetType, dataEventType, parameters);
 		movingIndex = 0;
 		avrGain = 0;
@@ -66,15 +66,15 @@ public class IND_0002 extends IDataExtractorSubject implements
 		preValue = 0;
 		inputFactor = 1/(double)length;
 		avrFactor = 1 - inputFactor;
-		List<Float> japaneseParameters = new ArrayList<Float>();
+		List<Double> japaneseParameters = new ArrayList<Double>();
 		japaneseParameters.add(japaneseCandleInterval);
-		japaneseParameters.add((float)(historyLength + length));
+		japaneseParameters.add((double)(historyLength + length));
 		RegisterDataExtractor.register(dataSource,assetType,DataEventType.JAPANESE,japaneseParameters,this);
 	}
 	
 	@Override
 	public void notifyObserver(DataEventType dataEventType,
-			List<Float> parameters) {
+			List<Double> parameters) {
 		JapaneseCandleBar japaneseCandleBar = (JapaneseCandleBar) dataExtractorSubject.getNewData();
 		double inputValue = japaneseCandleBarPropertyType.getJapaneseCandleBarValue(japaneseCandleBar);
 		double rsiValue;
@@ -127,7 +127,7 @@ public class IND_0002 extends IDataExtractorSubject implements
 	}
 
 	@Override
-	public void setParameters(List<Float> parameters) {
+	public void setParameters(List<Double> parameters) {
 		japaneseCandleInterval = parameters.get(0);
 		japaneseCandleBarPropertyType = JapaneseCandleBarPropertyType.getJapaneseCandleBarPropertyType(parameters.get(1));
 		length = parameters.get(2).intValue();

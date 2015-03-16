@@ -6,7 +6,7 @@ public class PTN_0001_Parameters extends PatternParameterList{
 
 	static protected Object[][] parametersList = 
 		{
-			{(Object)Float.valueOf((float) 0.1)}, // 1	
+			{(Object)Double.valueOf((double) 0.1)}, // 1	
 		};
 	public PTN_0001_Parameters() {
 		super(parametersList);

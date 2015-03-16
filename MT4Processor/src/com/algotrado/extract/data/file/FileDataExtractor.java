@@ -42,8 +42,8 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 	public static void main(String [] args)
 	{
 		// Check that static method is working.
-		List<Float> params = new ArrayList<Float>();
-		params.add((float) 5.0);
+		List<Double> params = new ArrayList<Double>();
+		params.add((double) 5.0);
 		System.out.println(getSubjectDataExtractor(AssetType.USOIL, DataEventType.JAPANESE, params, "./root").getClass().getSimpleName());
 	}
 
@@ -56,9 +56,9 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 	 * @param dirPath
 	 * @return
 	 */
-	public static IDataExtractorSubject getSubjectDataExtractor(final AssetType assetType,DataEventType dataEventType,final List<Float> parameters, String dirPath){
+	public static IDataExtractorSubject getSubjectDataExtractor(final AssetType assetType,DataEventType dataEventType,final List<Double> parameters, String dirPath){
 		//		final AssetType assetTypeFinal = assetType;
-		//		final List<Float> parametersFinal = parameters;
+		//		final List<Double> parametersFinal = parameters;
 		if (dirPath == null || dirPath.equals("")) {
 			throw new RuntimeException("FileDataExtractor = > getSubjectDataExtractor() : dirPath must not be null.");
 		}
@@ -93,7 +93,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 	}
 
 	public FileDataExtractor(AssetType assetType, DataEventType dataEventType,
-			List<Float> parameters, String filePath,int intervalTime) {
+			List<Double> parameters, String filePath,int intervalTime) {
 		super(DataSource.FILE,assetType, dataEventType, parameters);
 		this.filePath = filePath;
 		this.subjectState = SubjectState.RUNNING;
@@ -113,7 +113,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 				BufferedReader br = new BufferedReader(fr);
 				String stringRead = br.readLine();
 				if (stringRead != null) {
-					pipsValue = Float.valueOf(stringRead);
+					pipsValue = Double.valueOf(stringRead);
 					//	    	  parameters.add(pipsValue);
 					stringRead = br.readLine();
 				}
@@ -283,7 +283,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 	}
 
 	@Override
-	public void setParameters(List<Float> parameters) {
+	public void setParameters(List<Double> parameters) {
 		// no parameters
 	}
 }

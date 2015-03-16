@@ -14,7 +14,7 @@ import com.algotrado.extract.data.IDataExtractorSubject;
 public enum DataEventType {
 	JAPANESE("Japanese"){
 		@Override
-		public boolean checkIfTheParametersValid(List<Float> parameters,boolean generteException)
+		public boolean checkIfTheParametersValid(List<Double> parameters,boolean generteException)
 		{
 			boolean ret = true;
 			String[] parameterStrings = JAPANESE.getParametersStrings();
@@ -64,14 +64,14 @@ public enum DataEventType {
 		}
 
 		@Override
-		public IDataExtractorSubject getSubjectDataExtractor(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Float> parameters) {
+		public IDataExtractorSubject getSubjectDataExtractor(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Double> parameters) {
 			return new JapaneseCandleDataExtractor(dataSource,assetType,dataEventType,parameters);
 		}
 		
 	},/*After close of candle, send candle data*/
 	NEW_QUOTE("New quote"){
 		@Override
-		public boolean checkIfTheParametersValid(List<Float> parameters,boolean generteException)
+		public boolean checkIfTheParametersValid(List<Double> parameters,boolean generteException)
 		{
 			boolean ret = true;
 			String[] parameterStrings = NEW_QUOTE.getParametersStrings();
@@ -97,7 +97,7 @@ public enum DataEventType {
 		}
 
 		@Override
-		public IDataExtractorSubject getSubjectDataExtractor(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Float> parameters) {
+		public IDataExtractorSubject getSubjectDataExtractor(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Double> parameters) {
 			// TODO Auto-generated method stub
 			return null;
 		}
@@ -112,7 +112,7 @@ public enum DataEventType {
 	{
 
 		@Override
-		public boolean checkIfTheParametersValid(List<Float> parameters,
+		public boolean checkIfTheParametersValid(List<Double> parameters,
 				boolean generteException) {
 			boolean ret = true;
 			String[] parameterStrings = RSI.getParametersStrings();
@@ -198,7 +198,7 @@ public enum DataEventType {
 		}
 
 		@Override
-		public IDataExtractorSubject getSubjectDataExtractor(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Float> parameters) {
+		public IDataExtractorSubject getSubjectDataExtractor(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Double> parameters) {
 			switch(parameters.get(4).intValue())
 			{
 			case 1:	
@@ -214,7 +214,7 @@ public enum DataEventType {
 	MINIMAL_TIME_FRAME("Minimal time frame"){
 
 		@Override
-		public boolean checkIfTheParametersValid(List<Float> parameters,boolean generteException)
+		public boolean checkIfTheParametersValid(List<Double> parameters,boolean generteException)
 		{
 			boolean ret = true;
 			String[] parameterStrings = MINIMAL_TIME_FRAME.getParametersStrings();
@@ -240,7 +240,7 @@ public enum DataEventType {
 		}
 
 		@Override
-		public IDataExtractorSubject getSubjectDataExtractor(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Float> parameters) {
+		public IDataExtractorSubject getSubjectDataExtractor(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Double> parameters) {
 			return dataSource.getSubjectDataExtractor(assetType, dataEventType, parameters);
 		}
 		
@@ -281,7 +281,7 @@ public enum DataEventType {
 	}
 
 	public abstract String[] getParametersStrings();
-	public abstract boolean checkIfTheParametersValid(List<Float> parameters,boolean generteException);
-	public abstract IDataExtractorSubject getSubjectDataExtractor(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Float> parameters);	
+	public abstract boolean checkIfTheParametersValid(List<Double> parameters,boolean generteException);
+	public abstract IDataExtractorSubject getSubjectDataExtractor(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Double> parameters);	
 	
 }

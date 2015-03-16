@@ -47,7 +47,7 @@ public class FileDataRecorder implements IDataExtractorObserver, Comparable<File
 
 	@Override
 	public void notifyObserver(DataEventType dataEventType,
-			List<Float> parameters) {
+			List<Double> parameters) {
 		
 		bufferString += this.dataExtractorSubject.toString() + "\n";
 		if(bufferString.length() >= chuckSizeToWrite)
@@ -128,12 +128,12 @@ public class FileDataRecorder implements IDataExtractorObserver, Comparable<File
 					if (o.parameters.size() != this.parameters.size()) {
 						return this.parameters.size() - o.parameters.size();
 					}
-					Iterator<Float> fileDataRecorderIterator = this.parameters.iterator();
-					for (Iterator<Float> oIterator = o.parameters.iterator(); oIterator.hasNext() && fileDataRecorderIterator.hasNext();) {
-						Float oParam = oIterator.next();
-						Float fileDataRecorderParam = fileDataRecorderIterator.next();
+					Iterator<Double> fileDataRecorderIterator = this.parameters.iterator();
+					for (Iterator<Double> oIterator = o.parameters.iterator(); oIterator.hasNext() && fileDataRecorderIterator.hasNext();) {
+						Double oParam = oIterator.next();
+						Double fileDataRecorderParam = fileDataRecorderIterator.next();
 						if (oParam != fileDataRecorderParam) {
-							return new Float(fileDataRecorderParam - oParam).intValue();
+							return new Double(fileDataRecorderParam - oParam).intValue();
 						}
 						
 					}

@@ -10,7 +10,7 @@ public enum DataSource {
 	FILE("File")
 	{
 		@Override
-        public IDataExtractorSubject getSubjectDataExtractor(AssetType assetType,DataEventType dataEventType,List<Float> parameters) 
+        public IDataExtractorSubject getSubjectDataExtractor(AssetType assetType,DataEventType dataEventType,List<Double> parameters) 
 		{
             return FileDataExtractor.getSubjectDataExtractor(assetType, dataEventType, parameters, Setting.getAssetDirectoryPath());
         }
@@ -50,5 +50,5 @@ public enum DataSource {
 	}
 	
 	
-	public abstract IDataExtractorSubject getSubjectDataExtractor(AssetType assetType,DataEventType dataEventType,List<Float> parameters);
+	public abstract IDataExtractorSubject getSubjectDataExtractor(AssetType assetType,DataEventType dataEventType,List<Double> parameters);
 }

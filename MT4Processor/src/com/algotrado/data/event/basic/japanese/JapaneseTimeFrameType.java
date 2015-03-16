@@ -58,7 +58,7 @@ public enum JapaneseTimeFrameType {
 		Date newDate = new Date(newDateInMinutes*MINUTES_IN_MILISEC);
 		return newDate;
 	}
-	public static boolean isIntervalValid(float interval)
+	public static boolean isIntervalValid(double interval)
 	{
 		for(JapaneseTimeFrameType eInterval:JapaneseTimeFrameType.values())
 		{
@@ -70,7 +70,7 @@ public enum JapaneseTimeFrameType {
 		return false;
 	}
 	
-	public static JapaneseTimeFrameType getTimeFrameFromInterval(float interval)
+	public static JapaneseTimeFrameType getTimeFrameFromInterval(double interval)
 	{
 		for(JapaneseTimeFrameType eInterval:JapaneseTimeFrameType.values())
 		{

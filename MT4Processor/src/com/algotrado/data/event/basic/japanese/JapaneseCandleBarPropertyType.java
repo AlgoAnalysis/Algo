@@ -32,9 +32,9 @@ public enum JapaneseCandleBarPropertyType {
 	};
 	
 	public abstract double getJapaneseCandleBarValue(JapaneseCandleBar candle);
-	static public JapaneseCandleBarPropertyType getJapaneseCandleBarPropertyType(Float index)
+	static public JapaneseCandleBarPropertyType getJapaneseCandleBarPropertyType(Double index)
 	{
-		if((index.intValue() != index.floatValue()) ||
+		if((index.intValue() != index.doubleValue()) ||
 			(index.intValue() < 0) ||
 			(index.intValue() >= JapaneseCandleBarPropertyType.values().length))
 		{
@@ -43,7 +43,7 @@ public enum JapaneseCandleBarPropertyType {
 		return JapaneseCandleBarPropertyType.values()[index.intValue()];
 	}
 	
-	static public boolean isPropertyValid(Float Property)
+	static public boolean isPropertyValid(Double Property)
 	{
 		if(Property.intValue() != Property)
 		{

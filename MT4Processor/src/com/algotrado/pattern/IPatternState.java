@@ -11,7 +11,7 @@ public interface IPatternState {
 	public abstract IPatternState getNextState();
 	
 	/**
-	 * @return - the class that the state work on (JapaneseCandleBar , Float, RSI and etc. )
+	 * @return - the class that the state work on (JapaneseCandleBar , RSI and etc. )
 	 */
 	
 	public Integer getStateNumber();
