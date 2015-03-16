@@ -2,11 +2,12 @@ package com.algotrado.data.event.basic.japanese;
 
 import java.util.Date;
 
+import com.algotrado.data.event.NewUpdateData;
 import com.algotrado.util.Setting;
 
 
 
-public class JapaneseCandleBar extends AbstractCandleBar {
+public class JapaneseCandleBar implements NewUpdateData {
 	public static final String _5_MINUTES = "5 Minutes";
 	public static final String _15_MINUTES = "15 Minutes";
 	public static final String _4_HOUR = "4 Hour";

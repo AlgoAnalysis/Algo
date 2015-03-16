@@ -1,12 +1,12 @@
 package com.algotrado.mt4.impl;
 
-import com.algotrado.data.event.basic.japanese.AbstractCandleBar;
+import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 
 public class FileNameTimeFrame extends StandartTimeframe {
 
 	
-	public static String getTimeFrame(AbstractCandleBar[] candles, String fileName) {
+	public static String getTimeFrame(JapaneseCandleBar[] candles, String fileName) {
 		if (fileName.contains("240")) {
 			return JapaneseCandleBar._4_HOUR;
 		} else if (fileName.contains("1440")) {
