@@ -131,4 +131,21 @@ public class JapaneseCandleBar implements NewUpdateData {
 	public double getRangeSize()	{
 		return high - low;
 	}
+	
+	public double getBadyMinimum()	{
+		return (open > close) ? close : open;
+	}
+	
+	public double getBadyMaximum()	{
+		return (open > close) ? open : close;
+	}
+	
+	public boolean isTheBadyOutside(JapaneseCandleBar inBady)	{
+		if((this.getBadyMaximum() > inBady.getBadyMaximum()) && 
+			(this.getBadyMinimum() < inBady.getBadyMinimum()) )
+		{
+			return true;
+		}
+		return false;
+	}
 }

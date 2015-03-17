@@ -1,45 +1,54 @@
-package com.algotrado.pattern.PTN_0001;
-
+package com.algotrado.pattern.PTN_0003;
 
 import java.util.Date;
 
 import com.algotrado.data.event.NewUpdateData;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
+import com.algotrado.pattern.IPatternLastState;
 import com.algotrado.pattern.IPatternState;
 import com.algotrado.pattern.PatternStateStatus;
 import com.algotrado.util.DebugUtil;
 
-public class PTN_0001_S2 extends PTN_0001_Main{
-	
+public class PTN_0003_S2  extends PTN_0003_Main implements IPatternLastState{
 	protected final Integer stateNumber = Integer.valueOf(2);
 	private JapaneseCandleBar firstCandle;
-	private double maxBodySize;
 	private PatternStateStatus status;
 	private Date triggerTime;
+	private boolean firstCandleBullish;
+	private boolean firstCandleBearish;
 	
-	public PTN_0001_S2(Object[] parameters,JapaneseCandleBar firstCandle) {
+	public PTN_0003_S2(Object[] parameters,JapaneseCandleBar firstCandle) {
 		super(parameters);
-		Double percent = (Double) parameters[0];
 		status = PatternStateStatus.RUN;
 		this.firstCandle = firstCandle;
-		maxBodySize = firstCandle.getBodySize() * ((double)1 - percent.doubleValue());
+		firstCandleBullish = firstCandle.isBullishBar();
+		firstCandleBearish = firstCandle.isBearishBar();
 	}
 
 	@Override
 	public void setNewData(NewUpdateData[] newData) {	
-
 		if(status == PatternStateStatus.RUN)
 		{
+			PatternStateStatus tempStatus = PatternStateStatus.KILL_STATE;
 			JapaneseCandleBar secondCandle = (JapaneseCandleBar)newData[0];
-			if((secondCandle.getBodySize() <= maxBodySize) &&
-			(secondCandle.getHigh() <= firstCandle.getHigh()) &&
-			(secondCandle.getLow() >= firstCandle.getLow()))	{
-				status = (firstCandle.isBullishBar()) ? PatternStateStatus.TRIGGER_BEARISH :PatternStateStatus.TRIGGER_BULLISH;
+			if(firstCandleBullish)			{
+				if((secondCandle.getHigh() < firstCandle.getClose()) && (secondCandle.getLow() > firstCandle.getOpen()))
+				{
+					status = (firstCandleBullish) ? PatternStateStatus.TRIGGER_BEARISH :PatternStateStatus.TRIGGER_BULLISH;
+				}
+			}
+			else if(firstCandleBearish){
+				if((secondCandle.getHigh() < firstCandle.getOpen()) && (secondCandle.getLow() > firstCandle.getClose()))
+				{
+					status = (firstCandleBullish) ? PatternStateStatus.TRIGGER_BEARISH :PatternStateStatus.TRIGGER_BULLISH;
+				}				
+			}
+			status = tempStatus;
+			if(status != PatternStateStatus.KILL_STATE)
+			{
 				triggerTime = secondCandle.getTime();
 			}
-			else {
-				status = PatternStateStatus.KILL_STATE;
-			}
+			
 		}
 		else if(status == PatternStateStatus.TRIGGER_NOT_SPECIFIED ||
 		status == PatternStateStatus.TRIGGER_BEARISH ||
@@ -70,4 +79,5 @@ public class PTN_0001_S2 extends PTN_0001_Main{
 	public Date getTriggerTime() {
 		return triggerTime;
 	}
+
 }
