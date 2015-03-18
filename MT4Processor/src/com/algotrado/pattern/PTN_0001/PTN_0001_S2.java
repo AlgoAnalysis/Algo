@@ -34,7 +34,8 @@ public class PTN_0001_S2 extends PTN_0001_Main{
 			if((secondCandle.getBodySize() <= maxBodySize) &&
 			(secondCandle.getHigh() <= firstCandle.getHigh()) &&
 			(secondCandle.getLow() >= firstCandle.getLow()))	{
-				status = (firstCandle.isBullishBar()) ? PatternStateStatus.TRIGGER_BEARISH :PatternStateStatus.TRIGGER_BULLISH;
+				status =  PatternStateStatus.TRIGGER_NOT_SPECIFIED;
+//				status = (firstCandle.isBullishBar()) ? PatternStateStatus.TRIGGER_BEARISH :PatternStateStatus.TRIGGER_BULLISH;
 				triggerTime = secondCandle.getTime();
 			}
 			else {

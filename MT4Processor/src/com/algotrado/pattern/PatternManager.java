@@ -105,6 +105,7 @@ public class PatternManager {
 		{
 			headerString += Setting.getDateTimeHeader("State " + cnt.toString() + " triggerd ") + ",";
 		}
+		headerString += "Direction";
 		return headerString;
 	}
 	
@@ -130,6 +131,7 @@ public class PatternManager {
 			{
 				valString += Setting.getDateTimeFormat(stateFolnd.getTimeList().get(cnt)) + ",";
 			}
+			valString += stateFolnd.getState().getStatus().toString();
 		}
 		return valString;
 	}
