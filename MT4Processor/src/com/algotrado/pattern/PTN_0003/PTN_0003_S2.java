@@ -15,38 +15,27 @@ public class PTN_0003_S2  extends PTN_0003_Main implements IPatternLastState{
 	private PatternStateStatus status;
 	private Date triggerTime;
 	private boolean firstCandleBullish;
-	private boolean firstCandleBearish;
 	
 	public PTN_0003_S2(Object[] parameters,JapaneseCandleBar firstCandle) {
 		super(parameters);
 		status = PatternStateStatus.RUN;
 		this.firstCandle = firstCandle;
 		firstCandleBullish = firstCandle.isBullishBar();
-		firstCandleBearish = firstCandle.isBearishBar();
 	}
 
 	@Override
 	public void setNewData(NewUpdateData[] newData) {	
 		if(status == PatternStateStatus.RUN)
 		{
-			PatternStateStatus tempStatus = PatternStateStatus.KILL_STATE;
 			JapaneseCandleBar secondCandle = (JapaneseCandleBar)newData[0];
-			if(firstCandleBullish)			{
-				if((secondCandle.getHigh() < firstCandle.getClose()) && (secondCandle.getLow() > firstCandle.getOpen()))
-				{
-					status = (firstCandleBullish) ? PatternStateStatus.TRIGGER_BEARISH :PatternStateStatus.TRIGGER_BULLISH;
-				}
-			}
-			else if(firstCandleBearish){
-				if((secondCandle.getHigh() < firstCandle.getOpen()) && (secondCandle.getLow() > firstCandle.getClose()))
-				{
-					status = (firstCandleBullish) ? PatternStateStatus.TRIGGER_BEARISH :PatternStateStatus.TRIGGER_BULLISH;
-				}				
-			}
-			status = tempStatus;
-			if(status != PatternStateStatus.KILL_STATE)
+			if((secondCandle.getHigh() < firstCandle.getBadyMaximum()) && (secondCandle.getLow() > firstCandle.getBadyMinimum()))
 			{
+				status = (firstCandleBullish) ? PatternStateStatus.TRIGGER_BEARISH :PatternStateStatus.TRIGGER_BULLISH;
 				triggerTime = secondCandle.getTime();
+			}
+			else
+			{
+				status = PatternStateStatus.KILL_STATE;
 			}
 			
 		}

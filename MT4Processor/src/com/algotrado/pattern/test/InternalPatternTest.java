@@ -14,9 +14,10 @@ import com.algotrado.extract.data.RegisterDataExtractor;
 import com.algotrado.extract.data.SubjectState;
 import com.algotrado.output.file.FileDataRecorder;
 import com.algotrado.output.file.IGUIController;
+import com.algotrado.pattern.IPatternState;
 import com.algotrado.pattern.PatternManager;
 import com.algotrado.pattern.PatternManagerStatus;
-import com.algotrado.pattern.PTN_0001.PTN_0001_S1;
+import com.algotrado.pattern.PTN_0003.PTN_0003_S1;
 
 public class InternalPatternTest extends IDataExtractorSubject implements IGUIController , IDataExtractorObserver, Runnable {
 
@@ -30,7 +31,7 @@ public class InternalPatternTest extends IDataExtractorSubject implements IGUICo
 	{
 		super(dataSource, AssetType.USOIL,DataEventType.JAPANESE,(List<Double>)(new ArrayList<Double>()));
 		timeMili = System.currentTimeMillis();
-		PTN_0001_S1 state = new PTN_0001_S1(1);
+		IPatternState state = new PTN_0003_S1(1);
 		patternManager = new PatternManager(state);
 		String filePath = "C:\\Algo\\test\\" + state.getCode() + ".csv";
 		parameters.add((double) 5);

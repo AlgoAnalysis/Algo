@@ -7,7 +7,7 @@ import com.algotrado.pattern.PatternParameterList;
 public abstract class PTN_0002_Main implements IPatternState {
 
 	static protected final String name = "Harami";
-	static protected final String code = "PTN-0001";
+	static protected final String code = "PTN-0002";
 	static protected final String description = ""; // TODO
 	static protected final Integer numberOfStates = Integer.valueOf(2);
 	static protected final String[] parameterStringList = {};
