@@ -53,7 +53,7 @@ public class IND_0002 extends IDataExtractorSubject implements
 	private double preValue;
 	private double inputFactor;
 	private double avrFactor;
-	private SimpleUpdateData newUpdateDate;
+	private SimpleUpdateData newUpdateData;
 	private Double japaneseCandleInterval;
 	
 	
@@ -101,7 +101,7 @@ public class IND_0002 extends IDataExtractorSubject implements
 			movingIndex++;
 		}
 		preValue = inputValue;
-		newUpdateDate = new SimpleUpdateData(this.assetType,japaneseCandleBar.getTime(),rsiValue);
+		newUpdateData = new SimpleUpdateData(this.assetType,japaneseCandleBar.getTime(),rsiValue);
 		notifyObservers(this.assetType, this.dataEventType, this.parameters);
 	}
 
@@ -118,7 +118,7 @@ public class IND_0002 extends IDataExtractorSubject implements
 
 	@Override
 	public NewUpdateData getNewData() {
-		return newUpdateDate;
+		return newUpdateData;
 	}
 
 	@Override
@@ -147,7 +147,7 @@ public class IND_0002 extends IDataExtractorSubject implements
 	
 	@Override
 	public String toString() {
-		return newUpdateDate.toString(); 
+		return newUpdateData.toString(); 
 	}
 
 	@Override

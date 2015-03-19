@@ -1,14 +1,20 @@
 package com.algotrado.extract.data;
 
 public enum AssetType {
-	USOIL("USOil"),
-	GOLD("Gold");
+	USOIL("USOil",0.001), 
+	GOLD("Gold",0.001);
 	
 	
 	private String valueString;
+	private double point; // TODO - need to this not fix in the code
 	
-	private AssetType(String valueString){
+	public double getPoint() {
+		return point; // TODO - need to this not fix in the code
+	}
+
+	private AssetType(String valueString,double point){
 		this.valueString = valueString;
+		this.point = point;
 	}
 	
 	public static String[] getAssetsStrings()

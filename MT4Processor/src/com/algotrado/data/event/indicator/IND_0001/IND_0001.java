@@ -53,7 +53,7 @@ public class IND_0001 extends IDataExtractorSubject implements
 	private double sumGain;
 	private double sumLoss;
 	private double preInputValue;
-	private SimpleUpdateData newUpdateDate;
+	private SimpleUpdateData newUpdateData;
 	private Double japaneseCandleInterval;
 
 	
@@ -107,7 +107,7 @@ public class IND_0001 extends IDataExtractorSubject implements
 		{
 			rsiValue = 100*sumGain/(sumGain + sumLoss);
 		}
-		newUpdateDate = new SimpleUpdateData(this.assetType,japaneseCandleBar.getTime(),rsiValue);
+		newUpdateData = new SimpleUpdateData(this.assetType,japaneseCandleBar.getTime(),rsiValue);
 		preInputValue = inputValue;
 		movingIndex = (movingIndex+1)%length;
 		notifyObservers(this.assetType, this.dataEventType, this.parameters);
@@ -127,7 +127,7 @@ public class IND_0001 extends IDataExtractorSubject implements
 
 	@Override
 	public NewUpdateData getNewData() {
-		return newUpdateDate;
+		return newUpdateData;
 	}
 
 	@Override
@@ -143,7 +143,7 @@ public class IND_0001 extends IDataExtractorSubject implements
 	
 	@Override
 	public String toString() {
-		return newUpdateDate.toString(); 
+		return newUpdateData.toString(); 
 	}
 
 	@Override

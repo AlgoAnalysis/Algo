@@ -7,6 +7,7 @@ import com.algotrado.data.event.basic.japanese.JapaneseCandleDataExtractor;
 import com.algotrado.data.event.basic.japanese.JapaneseTimeFrameType;
 import com.algotrado.data.event.indicator.IND_0001.IND_0001;
 import com.algotrado.data.event.indicator.IND_0002.IND_0002;
+import com.algotrado.data.event.indicator.IND_0003.IND_0003;
 import com.algotrado.extract.data.AssetType;
 import com.algotrado.extract.data.DataSource;
 import com.algotrado.extract.data.IDataExtractorSubject;
@@ -193,7 +194,7 @@ public enum DataEventType {
 
 		@Override
 		public String[] getParametersStrings() {
-			String[] ret = {"Interval", "JapaneseCandleBarPropertyType" , "Length", "historyLength","rsi type"};
+			String[] ret = {"Interval", "Japanese Candle Bar Property Type" , "Length", "History Length","rsi type"};
 			return ret;
 		}
 
@@ -244,7 +245,29 @@ public enum DataEventType {
 			return dataSource.getSubjectDataExtractor(assetType, dataEventType, parameters);
 		}
 		
-	};
+	},
+	ZIGZAG("Zigzag") {
+		@Override
+		public String[] getParametersStrings() {
+			String[] ret = {"Interval" , "Depth", "Deviation","Backstep","Max History Length"};
+			return ret;
+		}
+
+		@Override
+		public boolean checkIfTheParametersValid(List<Double> parameters,
+				boolean generteException) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public IDataExtractorSubject getSubjectDataExtractor(
+				DataSource dataSource, AssetType assetType,
+				DataEventType dataEventType, List<Double> parameters) {
+			return new IND_0003(dataSource, assetType, dataEventType, parameters);
+		}
+	}
+	;
 	
 	private String valueString;
 	
