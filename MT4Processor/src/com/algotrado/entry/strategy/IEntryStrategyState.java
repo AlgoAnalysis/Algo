@@ -16,4 +16,6 @@ public interface IEntryStrategyState {
 	
 	public Integer getStateNumber();
 
+	public Integer getNumberOfStates();
+
 }

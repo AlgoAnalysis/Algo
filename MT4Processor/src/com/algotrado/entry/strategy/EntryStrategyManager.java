@@ -6,6 +6,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.algotrado.data.event.NewUpdateData;
+import com.algotrado.pattern.PatternDataObject;
+import com.algotrado.pattern.PatternManager;
+import com.algotrado.pattern.PatternManagerStatus;
+import com.algotrado.util.Setting;
 
 
 public class EntryStrategyManager {
@@ -13,12 +17,19 @@ public class EntryStrategyManager {
 	private IEntryStrategyState firstState;
 	private List<EntryStrategyStateAndTime> stateArr;
 	private EntryStrategyManagerStatus status;
+	private String assetName;
+	/**
+	 * pattern managers is not null, can be empty list.
+	 */
+	private List<PatternManager> patternManagers;
 	
-	public EntryStrategyManager(IEntryStrategyState firstState)
+	public EntryStrategyManager(IEntryStrategyState firstState, List<PatternManager> patternManagers, String assetName)
 	{
 		this.firstState = firstState;
 		stateArr = new ArrayList<EntryStrategyStateAndTime>();
 		stateArr.add(new EntryStrategyStateAndTime(firstState));
+		this.patternManagers = patternManagers;
+		this.assetName = assetName;
 	}
 	
 	public void setNewData(NewUpdateData[] newData)
@@ -27,10 +38,34 @@ public class EntryStrategyManager {
 		boolean recordState;
 		status = EntryStrategyManagerStatus.RUN;
 		IEntryStrategyState prevState;
+		//Prepare New Data:
+		
+		ArrayList<NewUpdateData> newUpdateDatasList  = new ArrayList<NewUpdateData>();
+		
+		for (NewUpdateData newUpdateData : newData) {
+			newUpdateDatasList.add(newUpdateData);
+		}
+		
+		for (PatternManager patternManager : patternManagers) {
+			patternManager.setNewData(newData);
+			if (patternManager.getStatus() == PatternManagerStatus.TRIGGER_BEARISH ||
+					patternManager.getStatus() == PatternManagerStatus.TRIGGER_BULLISH ||
+					patternManager.getStatus() == PatternManagerStatus.TRIGGER_NOT_SPECIFIED) {
+				newUpdateDatasList.add(new PatternDataObject(patternManager, assetName));
+			} else if (patternManager.getStatus() == PatternManagerStatus.ERROR) {
+				status = EntryStrategyManagerStatus.ERROR;
+				throw new RuntimeException	("Error Occoured in Pattern Manager."); // TODO 
+			} else {
+				status = EntryStrategyManagerStatus.RUN;
+			}
+		}
+		
+		NewUpdateData[] newDataGenerated = newUpdateDatasList.toArray(new NewUpdateData [newUpdateDatasList.size()]);
+		
 		for(Iterator<EntryStrategyStateAndTime> iterator = stateArr.iterator(); iterator.hasNext() ;)
 		{
 			EntryStrategyStateAndTime state = iterator.next();
-			state.getState().setNewData(newData);
+			state.getState().setNewData(newDataGenerated);
 			recordState = false;
 			prevState = state.getState();
 			switch(state.getState().getStatus())
@@ -76,6 +111,53 @@ public class EntryStrategyManager {
 	
 	public EntryStrategyManagerStatus getStatus() {
 		return status;
+	}
+	
+	public String getDataHeaders() {
+		Integer numOfStates = firstState.getNumberOfStates();
+		String headerString = Setting.getDateTimeHeader("Start Strategy") + ",";
+		for(Integer cnt = 1;cnt <= numOfStates.intValue();cnt++)
+		{
+			headerString += Setting.getDateTimeHeader("State " + cnt.toString() + " triggered ") + ",";
+		}
+		
+		headerString += "Direction, Entry, Stop Loss";
+		
+		return headerString;
+	}
+	
+	@Override
+	public String toString() {
+		String valString = "";
+		EntryStrategyStateAndTime strategyFinalState = null;
+		Integer numOfStates = firstState.getNumberOfStates();
+		for(EntryStrategyStateAndTime state : stateArr)
+		{
+			if((state.getState().getStatus() == EntryStrategyStateStatus.TRIGGER_BEARISH) ||
+				(state.getState().getStatus() == EntryStrategyStateStatus.TRIGGER_BULLISH))
+			{
+				strategyFinalState = state;
+				break;
+			}
+		}
+		if(strategyFinalState != null)
+		{
+			valString = Setting.getDateTimeFormat(strategyFinalState.getTimeList().get(0)) + ",";
+			for(Integer cnt = 1;cnt <= numOfStates.intValue();cnt++)
+			{
+				valString += Setting.getDateTimeFormat(strategyFinalState.getTimeList().get(cnt)) + ",";
+			}
+			
+			if (strategyFinalState.getState().getStatus() == EntryStrategyStateStatus.TRIGGER_BEARISH) {
+				valString += "Short,";
+			} else {
+				valString += "Long,";
+			}
+			
+			valString += ((IEntryStrategyLastState)strategyFinalState.getState()).getBuyOrderPrice() + ",";
+			valString += ((IEntryStrategyLastState)strategyFinalState.getState()).getStopLossPrice() + ",";
+		}
+		return valString;
 	}
 	
 	private class EntryStrategyStateAndTime
