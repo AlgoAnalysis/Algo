@@ -21,7 +21,8 @@ import com.algotrado.extract.data.SubjectState;
 import com.algotrado.output.file.FileDataRecorder;
 import com.algotrado.output.file.IGUIController;
 import com.algotrado.pattern.PatternManager;
-import com.algotrado.pattern.PTN_0001.PTN_0001_S1;
+import com.algotrado.pattern.PTN_0002.PTN_0002_S1;
+import com.algotrado.pattern.PTN_0003.PTN_0003_S1;
 
 public class InternalEntryStrategyTest  extends IDataExtractorSubject implements IGUIController , IDataExtractorObserver, Runnable {
 
@@ -44,7 +45,9 @@ public class InternalEntryStrategyTest  extends IDataExtractorSubject implements
 	{
 		super(dataSource, AssetType.USOIL,DataEventType.JAPANESE,(List<Double>)(new ArrayList<Double>()));
 		timeMili = System.currentTimeMillis();
-		PTN_0001_S1 state = new PTN_0001_S1(1);
+//		PTN_0001_S1 state = new PTN_0001_S1(1);
+//		PTN_0002_S1 state = new PTN_0002_S1(1);
+		PTN_0003_S1 state = new PTN_0003_S1(1);
 		patternManagers = new ArrayList<PatternManager>();
 		patternManagers.add(new PatternManager(state));
 		String filePath = "C:\\Algo\\test\\" + state.getCode() + "EntryStrategy.csv";

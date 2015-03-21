@@ -59,7 +59,7 @@ public class ENT_0001_S2 extends ENT_0001_MAIN implements IEntryStrategyLastStat
 							status = EntryStrategyStateStatus.TRIGGER_BULLISH;
 							triggerCandlePrice = candleBarBreakOutPriceLong;
 						}
-					} else {
+					} else { // The trigger is bearish.
 						this.status = EntryStrategyStateStatus.KILL_STATE;
 					}
 				} else if (candleBarBreakOutPriceShort < patternLowLimit) {
@@ -72,7 +72,7 @@ public class ENT_0001_S2 extends ENT_0001_MAIN implements IEntryStrategyLastStat
 							status = EntryStrategyStateStatus.TRIGGER_BEARISH;
 							triggerCandlePrice = candleBarBreakOutPriceShort;
 						}
-					} else {
+					} else { // the trigger is bullish.
 						this.status = EntryStrategyStateStatus.KILL_STATE;
 					}
 				}
