@@ -25,8 +25,9 @@ public class ENT_0001_S2 extends ENT_0001_MAIN implements IEntryStrategyLastStat
 	private int countCandlesIndex;
 	private Date triggerDate;
 	private EntryStrategyTriggerType entryStrategyTriggerType;
+	private SimpleUpdateData prevRSI;
 
-	public ENT_0001_S2(Object[] parameters, PatternManagerStatus patternDirection, double patternHighLimit, double patternLowLimit) {
+	public ENT_0001_S2(Object[] parameters, PatternManagerStatus patternDirection, double patternHighLimit, double patternLowLimit, SimpleUpdateData prevRSI) {
 		super(parameters);
 		this.patternDirection = patternDirection;
 		this.patternHighLimit = patternHighLimit;
@@ -34,6 +35,7 @@ public class ENT_0001_S2 extends ENT_0001_MAIN implements IEntryStrategyLastStat
 		this.status = EntryStrategyStateStatus.RUN;
 		this.countCandlesIndex = 1;
 		this.entryStrategyTriggerType = EntryStrategyTriggerType.getEntryStrategyTriggerType(((Double)parameters[2]).intValue());
+		this.prevRSI = prevRSI;
 	}
 
 	/**
@@ -48,7 +50,7 @@ public class ENT_0001_S2 extends ENT_0001_MAIN implements IEntryStrategyLastStat
 				JapaneseCandleBar japaneseCandleBar = (JapaneseCandleBar)newData[0];
 				double candleBarBreakOutPriceLong = this.entryStrategyTriggerType.getTriggerPrice(japaneseCandleBar, true);
 				double candleBarBreakOutPriceShort = this.entryStrategyTriggerType.getTriggerPrice(japaneseCandleBar, false);
-				SimpleUpdateData simpleUpdateData = ((SimpleUpdateData)newData[1]);
+				SimpleUpdateData simpleUpdateData = (this.entryStrategyTriggerType == EntryStrategyTriggerType.BUYING_BREAK_PRICE) ? prevRSI : ((SimpleUpdateData)newData[1]);
 				if (candleBarBreakOutPriceLong > patternHighLimit) {
 					if (patternDirection == PatternManagerStatus.TRIGGER_BULLISH || 
 							patternDirection == PatternManagerStatus.TRIGGER_NOT_SPECIFIED) {
@@ -77,6 +79,7 @@ public class ENT_0001_S2 extends ENT_0001_MAIN implements IEntryStrategyLastStat
 					}
 				}
 				countCandlesIndex++;
+				prevRSI = ((SimpleUpdateData)newData[1]);
 			}
 		} else if (this.status == EntryStrategyStateStatus.TRIGGER_BEARISH || 
 				this.status == EntryStrategyStateStatus.TRIGGER_BULLISH) {

@@ -3,6 +3,7 @@ package com.algotrado.entry.strategy.ENT_0001;
 import java.util.Date;
 
 import com.algotrado.data.event.NewUpdateData;
+import com.algotrado.data.event.SimpleUpdateData;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 import com.algotrado.entry.strategy.EntryStrategyStateStatus;
 import com.algotrado.entry.strategy.IEntryStrategyFirstState;
@@ -21,6 +22,7 @@ public class ENT_0001_S1 extends ENT_0001_MAIN implements IEntryStrategyFirstSta
 	private double minPatternLow = 0;
 	private PatternDataObject patternDataObject;
 	private int patternCandlesCounter = 1;
+	private SimpleUpdateData prevRSI;
 	
 	public ENT_0001_S1(Object[] parameters) {
 		super(parameters);
@@ -50,6 +52,7 @@ public class ENT_0001_S1 extends ENT_0001_MAIN implements IEntryStrategyFirstSta
 							status = EntryStrategyStateStatus.RUN_TO_NEXT_STATE;
 							maxPatternHigh = (((JapaneseCandleBar)newData[0]).getHigh() > prevHigh) ? ((JapaneseCandleBar)newData[0]).getHigh() : prevHigh;
 							minPatternLow = (((JapaneseCandleBar)newData[0]).getLow() < prevLow) ? ((JapaneseCandleBar)newData[0]).getLow() : prevLow;
+							prevRSI = ((SimpleUpdateData)newData[1]);
 						} else if (patternDataObject.getPatternManagerStatus() == PatternManagerStatus.ERROR) {
 							status = EntryStrategyStateStatus.ERROR;
 							throw new RuntimeException	("Error Occoured in Pattern Manager."); // TODO 
@@ -89,7 +92,7 @@ public class ENT_0001_S1 extends ENT_0001_MAIN implements IEntryStrategyFirstSta
 
 	@Override
 	public IEntryStrategyState getNextState() {
-		return new ENT_0001_S2(parameters, patternManagerStatus, maxPatternHigh, minPatternLow);
+		return new ENT_0001_S2(parameters, patternManagerStatus, maxPatternHigh, minPatternLow, prevRSI);
 	}
 
 	@Override
