@@ -10,12 +10,15 @@ public class SimpleUpdateData implements NewUpdateData {
 	Date time;
 	AssetType asset;
 	double value;
-	public SimpleUpdateData(AssetType asset,Date time,double value)
+	double volume;
+	public SimpleUpdateData(AssetType asset,Date time,double value,double volume)
 	{
 		this.asset = asset;
 		this.time = time;
 		this.value = value;
+		this.volume = volume;
 	}
+	
 	@Override
 	public Date getTime() {
 		return time;
@@ -37,5 +40,14 @@ public class SimpleUpdateData implements NewUpdateData {
 	public double getValue() {
 		return value;
 	}
+
+	public AssetType getAsset() {
+		return asset;
+	}
+
+	public double getVolume() {
+		return volume;
+	}
+	
 
 }

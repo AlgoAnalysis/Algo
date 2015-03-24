@@ -24,11 +24,11 @@ public class OriginalZigzagAlgo extends IDataExtractorSubject implements
 		DataSource dataSource = DataSource.FILE;
 		AssetType assetType = AssetType.USOIL;
 		JapaneseTimeFrameType japaneseTimeFrameType = JapaneseTimeFrameType.FIVE_MINUTE;
-		int depth = 12;
+		int depth = 5;
 		double deviation = 5;
 		int backstep = 3;
 		double point = 0.001;
-		String filePath = "C:\\Algo\\test\\zigzag_original.csv";
+		String filePath = "C:\\Algo\\test\\zigzag_original1.csv";
 		////////////////////////////////////////////////////
 		
 		List<Double> parameters =new ArrayList<Double>();
@@ -80,8 +80,7 @@ public class OriginalZigzagAlgo extends IDataExtractorSubject implements
 		
 		List<Double> japaneseParameters = new ArrayList<Double>();
 		japaneseParameters.add(japaneseCandleInterval);
-		japaneseParameters.add((double)0);
-		RegisterDataExtractor.register(dataSource,assetType,DataEventType.JAPANESE,japaneseParameters,this);
+		RegisterDataExtractor.register(dataSource,assetType,DataEventType.JAPANESE,japaneseParameters,0,this);
 		
 		dataRecorder = new FileDataRecorder(filePath, null);
 		registerObserver(dataRecorder);
@@ -185,6 +184,11 @@ public class OriginalZigzagAlgo extends IDataExtractorSubject implements
 	@Override
 	public SubjectState getSubjectState() {
 		return subjectState;
+	}
+	
+	@Override
+	public void unregisterObserver(IDataExtractorObserver observer) {
+
 	}
 	
 	

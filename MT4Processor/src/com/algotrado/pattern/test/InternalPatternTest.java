@@ -17,7 +17,7 @@ import com.algotrado.output.file.IGUIController;
 import com.algotrado.pattern.IPatternState;
 import com.algotrado.pattern.PatternManager;
 import com.algotrado.pattern.PatternManagerStatus;
-import com.algotrado.pattern.PTN_0003.PTN_0003_S1;
+import com.algotrado.pattern.PTN_0002.PTN_0002_S1;
 
 public class InternalPatternTest extends IDataExtractorSubject implements IGUIController , IDataExtractorObserver, Runnable {
 
@@ -31,11 +31,10 @@ public class InternalPatternTest extends IDataExtractorSubject implements IGUICo
 	{
 		super(dataSource, AssetType.USOIL,DataEventType.JAPANESE,(List<Double>)(new ArrayList<Double>()));
 		timeMili = System.currentTimeMillis();
-		IPatternState state = new PTN_0003_S1(1);
+		IPatternState state = new PTN_0002_S1(1);
 		patternManager = new PatternManager(state);
 		String filePath = "C:\\Algo\\test\\" + state.getCode() + ".csv";
 		parameters.add((double) 5);
-		parameters.add((double) 0); // TODO - check if we want history
 		//RegisterDataExtractor.setDataSource(dataSource);
 		dataRecorder = new FileDataRecorder(filePath, this);
 		dataRecorder.setSubject(this);
@@ -59,7 +58,7 @@ public class InternalPatternTest extends IDataExtractorSubject implements IGUICo
 	}
 	@Override
 	public void run() {
-		RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters, this);
+		RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters,0, this);
 
 	}
 	@Override

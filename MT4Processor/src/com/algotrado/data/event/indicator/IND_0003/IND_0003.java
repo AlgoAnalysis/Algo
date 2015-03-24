@@ -26,7 +26,7 @@ IDataExtractorObserver{
 		DataSource dataSource = DataSource.FILE;
 		AssetType assetType = AssetType.USOIL;
 		JapaneseTimeFrameType japaneseTimeFrameType = JapaneseTimeFrameType.FIVE_MINUTE;
-		int depth = 12;
+		int depth = 5;
 		double deviation = 5;
 		int backstep = 3;
 		int maxHstoryLength = 4;
@@ -40,9 +40,8 @@ IDataExtractorObserver{
 		parameters.add((double)depth);
 		parameters.add(deviation);
 		parameters.add((double)backstep);
-		parameters.add((double)maxHstoryLength);
 		dataRecorder = new FileDataRecorder(filePath, null);
-		RegisterDataExtractor.register(dataSource, assetType, DataEventType.ZIGZAG, parameters, dataRecorder);	
+		RegisterDataExtractor.register(dataSource, assetType, DataEventType.ZIGZAG, parameters,maxHstoryLength, dataRecorder);	
 	}
 	
 	
@@ -52,6 +51,7 @@ IDataExtractorObserver{
 	private double point;
 	private int depth;
 	private double deviation;
+	private int backstepAuxiliary;
 	private int backstep;
 	private Date newUpdateDataTime;
 	private SimpleUpdateData newUpdateData;
@@ -77,6 +77,7 @@ IDataExtractorObserver{
 	public IND_0003(DataSource dataSource, AssetType assetType,
 			DataEventType dataEventType, List<Double> parameters) {
 		super(dataSource, assetType, dataEventType, parameters);
+		backstepAuxiliary = backstep+1;
 		point = assetType.getPoint();
 		dataHistory = new SimpleUpdateData[maxHstoryLength];
 		dataHistoryIndex = 0;
@@ -84,18 +85,17 @@ IDataExtractorObserver{
 		candleBarHistory = new JapaneseCandleBar[depth];
 		bufferFull = false;
 		backStepIndex = 0;
-		lowBackStepBuffer = new double[backstep];
-		highBackStepBuffer = new double[backstep];
-		timeBackStepBuffer = new Date[backstep];
-		for(int cnt= 0;cnt<backstep;cnt++)
+		lowBackStepBuffer = new double[backstepAuxiliary];
+		highBackStepBuffer = new double[backstepAuxiliary];
+		timeBackStepBuffer = new Date[backstepAuxiliary];
+		for(int cnt= 0;cnt<backstepAuxiliary;cnt++)
 		{
 			lowBackStepBuffer[cnt] = 0;
 			highBackStepBuffer[cnt] = 0;
 		}
 		List<Double> japaneseParameters = new ArrayList<Double>();
 		japaneseParameters.add(japaneseCandleInterval);
-		japaneseParameters.add((double)(depth));
-		RegisterDataExtractor.register(dataSource,assetType,DataEventType.JAPANESE,japaneseParameters,this);
+		RegisterDataExtractor.register(dataSource,assetType,DataEventType.JAPANESE,japaneseParameters,depth,this);
 	}
 
 	@Override
@@ -125,52 +125,52 @@ IDataExtractorObserver{
 			
 			// start zigzag algorithm 
 			// Low
-			double val = lowestBufferValue;
-			if(val == lastLow){
-				val = 0;
+			double valLow = lowestBufferValue;
+			if(valLow == lastLow){
+				valLow = 0;
 			}
 			else{
-				lastLow = val;
-				if((japaneseCandleBar.getLow() - val) > (deviation * point)){
-					val=0;
+				lastLow = valLow;
+				if((japaneseCandleBar.getLow() - valLow) > (deviation * point)){
+					valLow=0;
 				}
 				else{
-					for(int cnt = 0;cnt<backstep;cnt++)
+					for(int cnt = 0;cnt<backstepAuxiliary;cnt++)
 					{
-						if(lowBackStepBuffer[cnt] > val){
+						if(lowBackStepBuffer[cnt] > valLow){
 							lowBackStepBuffer[cnt] = 0;
 						}
 					}
 				}
 					
 			}
-			lowBackStepBuffer[backStepIndex] = val;
+			lowBackStepBuffer[backStepIndex] = valLow;
 			
 			// High
-			val = highstBufferValue;
-			if(val == lastHigh){
-				val = 0;
+			double valHigh = highstBufferValue;
+			if(valHigh == lastHigh){
+				valHigh = 0;
 			}
 			else{
-				lastHigh = val;
-				if((val - japaneseCandleBar.getHigh() ) > (deviation * point)){
-					val=0;
+				lastHigh = valHigh;
+				if((valHigh - japaneseCandleBar.getHigh() ) > (deviation * point)){
+					valHigh=0;
 				}
 				else{
-					for(int cnt = 0;cnt<backstep;cnt++)
+					for(int cnt = 0;cnt<backstepAuxiliary;cnt++)
 					{
-						if(highBackStepBuffer[cnt] < val){
+						if(highBackStepBuffer[cnt] < valHigh){
 							highBackStepBuffer[cnt] = 0;
 						}
 					}
 				}
 					
 			}
-			highBackStepBuffer[backStepIndex] = val;	
+			highBackStepBuffer[backStepIndex] = valHigh;	
 			// time
 			timeBackStepBuffer[backStepIndex] = japaneseCandleBar.getTime();
 			// cutoff
-			backStepIndex = (backStepIndex+1)%backstep;
+			backStepIndex = (backStepIndex+1)%backstepAuxiliary;
 			if((highBackStepBuffer[backStepIndex] != 0) && (!directionBullish || (highBackStepBuffer[backStepIndex]>highLastData.getValue())))
 			{
 				if(!directionBullish)
@@ -181,7 +181,7 @@ IDataExtractorObserver{
 					addToHistory(lowLastData);
 					notifyObservers(this.assetType, this.dataEventType, this.parameters);
 				}
-				highLastData = new SimpleUpdateData(assetType,timeBackStepBuffer[backStepIndex],highBackStepBuffer[backStepIndex]);
+				highLastData = new SimpleUpdateData(assetType,timeBackStepBuffer[backStepIndex],highBackStepBuffer[backStepIndex],0);
 			}
 			if((lowBackStepBuffer[backStepIndex] != 0) && (directionBullish || (lowBackStepBuffer[backStepIndex]<lowLastData.getValue())))
 			{
@@ -189,12 +189,11 @@ IDataExtractorObserver{
 				{
 					directionBullish = false;
 					newUpdateData = highLastData;
-					addToHistory(highLastData);
 					newUpdateDataTime = japaneseCandleBar.getTime();
-					addToHistory(lowLastData);
+					addToHistory(highLastData);
 					notifyObservers(this.assetType, this.dataEventType, this.parameters);
 				}
-				lowLastData = new SimpleUpdateData(assetType,timeBackStepBuffer[backStepIndex],lowBackStepBuffer[backStepIndex]);
+				lowLastData = new SimpleUpdateData(assetType,timeBackStepBuffer[backStepIndex],lowBackStepBuffer[backStepIndex],0);
 			}			
 		}else
 		{
@@ -215,13 +214,13 @@ IDataExtractorObserver{
 					JapaneseCandleBar candle = candleBarHistory[cnt];
 					if(!needUpdateLow && (lowestBufferValue == candle.getLow()))
 					{
-						lowLastData = new SimpleUpdateData(assetType, candle.getTime(), lowestBufferValue);
+						lowLastData = new SimpleUpdateData(assetType, candle.getTime(), lowestBufferValue,0);
 						needUpdateLow = true;
 						lowLocation = cnt;
 					}
 					if(!needUpdateHigh && (lowestBufferValue == candle.getLow()))
 					{
-						highLastData = new SimpleUpdateData(assetType, candle.getTime(), lowestBufferValue);
+						highLastData = new SimpleUpdateData(assetType, candle.getTime(), lowestBufferValue,0);
 						needUpdateHigh = true;
 						highLocation = cnt;
 					}
@@ -289,18 +288,17 @@ IDataExtractorObserver{
 		depth = parameters.get(1).intValue();
 		deviation = parameters.get(2);
 		backstep = parameters.get(3).intValue();
-		maxHstoryLength = parameters.get(4).intValue();
 	}
 
 	@Override
 	public String getDataHeaders() {
-		SimpleUpdateData temp = new SimpleUpdateData(null,null,0);
+		SimpleUpdateData temp = new SimpleUpdateData(null,null,0,0);
 		return "Asset," + assetType.name() + "\n" +
 				"Interval," + japaneseCandleInterval+ "\n" + 
 				"Data Source," + this.dataSource.toString() + "\n" +
 				"Zigzag\n" +
 				"Depth," + depth + "\n" +
-				"Deviation." + deviation + "\n" +
+				"Deviation," + deviation + "\n" +
 				"backstep," + backstep + "\n" +
 				temp.getDataHeaders() + "," + Setting.getDateTimeHeader("update at ");
 	}

@@ -7,9 +7,6 @@ import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 import com.algotrado.pattern.IPatternFirstState;
 import com.algotrado.pattern.IPatternState;
 import com.algotrado.pattern.PatternStateStatus;
-import com.algotrado.pattern.PTN_0002.PTN_0002_Main;
-import com.algotrado.pattern.PTN_0002.PTN_0002_S1;
-import com.algotrado.pattern.PTN_0002.PTN_0002_S2;
 
 public class PTN_0003_S1 extends PTN_0003_Main implements IPatternFirstState {
 

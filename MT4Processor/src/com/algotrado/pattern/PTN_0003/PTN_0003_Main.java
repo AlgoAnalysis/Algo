@@ -3,7 +3,6 @@ package com.algotrado.pattern.PTN_0003;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 import com.algotrado.pattern.IPatternState;
 import com.algotrado.pattern.PatternParameterList;
-import com.algotrado.pattern.PTN_0001.PTN_0001_Parameters;
 
 public abstract class PTN_0003_Main implements IPatternState {
 

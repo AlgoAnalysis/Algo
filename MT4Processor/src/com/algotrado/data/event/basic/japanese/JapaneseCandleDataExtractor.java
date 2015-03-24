@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.NewUpdateData;
+import com.algotrado.data.event.SimpleUpdateData;
 import com.algotrado.extract.data.AssetType;
 import com.algotrado.extract.data.DataSource;
 import com.algotrado.extract.data.IDataExtractorObserver;
@@ -40,15 +41,15 @@ public class JapaneseCandleDataExtractor extends IDataExtractorSubject implement
 			
 			List<Double> lowerTimeFrameParams = new ArrayList<Double>();
 			lowerTimeFrameParams.add((double)lowerTimeFrame.getValueInMinutes());
-			lowerTimeFrameParams.add((double)historyLength * (timeFrameType.getValueInMinutes()/lowerTimeFrame.getValueInMinutes()));
+			int NexthistoryLength = historyLength * (timeFrameType.getValueInMinutes()/lowerTimeFrame.getValueInMinutes());
 			
 			//tempTime = tempTime.ordinal();
-			RegisterDataExtractor.register(this.dataSource, assetType, dataEventType, lowerTimeFrameParams, this);
+			RegisterDataExtractor.register(this.dataSource, assetType, dataEventType, lowerTimeFrameParams,NexthistoryLength, this);
 		}
 		else
 		{
 			List<Double> minimalTimeFrameParams = new ArrayList<Double>();
-			RegisterDataExtractor.register(this.dataSource, assetType, DataEventType.MINIMAL_TIME_FRAME, minimalTimeFrameParams, this);
+			RegisterDataExtractor.register(this.dataSource, assetType, DataEventType.NEW_QUOTE, minimalTimeFrameParams,0, this);
 		}
 		
 	}
@@ -84,11 +85,12 @@ public class JapaneseCandleDataExtractor extends IDataExtractorSubject implement
 			subjectTimeFrameInterval = parameters.get(0).intValue();
 			subjectCandle = (JapaneseCandleBar)this.dataExtractorSubject.getNewData();
 		}
-		else // dataEventType == DataEventType.MINIMAL_TIME_FRAME 
+		else // dataEventType == DataEventType.NEW_QUOTE 
 		{
 			// TODO - need support in case the minimum time frame is not JapaneseCandleBar (not file)
-			subjectTimeFrameInterval = JapaneseTimeFrameType.ONE_MINUTE.getValueInMinutes();
-			subjectCandle = (JapaneseCandleBar)this.dataExtractorSubject.getNewData();			
+			subjectTimeFrameInterval = 0;
+			SimpleUpdateData simpleUpdateData = (SimpleUpdateData)this.dataExtractorSubject.getNewData();
+			subjectCandle = new JapaneseCandleBar(simpleUpdateData.getValue(), simpleUpdateData.getValue(), simpleUpdateData.getValue(), simpleUpdateData.getValue(), simpleUpdateData.getVolume(), simpleUpdateData.getTime(), simpleUpdateData.getAssetName());
 		}
 		
 		if (DebugUtil.debugDataExtractor && (timeFrameType.getValueInMinutes() < subjectTimeFrameInterval)) {
@@ -106,7 +108,7 @@ public class JapaneseCandleDataExtractor extends IDataExtractorSubject implement
 		}
 	
 		//Take the candle bar from subject and create new candle bar in larger time frame.
-		boolean timeFrameEndTime = timeFrameType.isTimeFrameEndTime(subjectCandle.getTime(), subjectTimeFrameInterval);
+		boolean timeFrameEndTime = (subjectTimeFrameInterval != 0) ? timeFrameType.isTimeFrameEndTime(subjectCandle.getTime(), subjectTimeFrameInterval) : false;
 		close = subjectCandle.getClose();
 		if (open == -1) {
 			open = subjectCandle.getOpen();
@@ -159,6 +161,16 @@ public class JapaneseCandleDataExtractor extends IDataExtractorSubject implement
 	@Override
 	public void setParameters(List<Double> parameters) {
 		timeFrameType = JapaneseTimeFrameType.getTimeFrameFromInterval(parameters.get(0));
-		historyLength = parameters.get(1).intValue();		
+//		historyLength = parameters.get(1).intValue();		
+	}
+	
+	@Override
+	public void unregisterObserver(IDataExtractorObserver observer) {
+		this.observers.remove(observer);
+		observer.removeSubject(this);
+		if (this.observers.isEmpty()) {
+			dataExtractorSubject.unregisterObserver(this);
+			RegisterDataExtractor.removeDataExtractorSubject(dataSource, assetType, dataEventType, parameters);
+		}
 	}
 }

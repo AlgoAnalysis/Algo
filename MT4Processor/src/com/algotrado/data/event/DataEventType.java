@@ -43,24 +43,12 @@ public enum DataEventType {
 					ret =false;
 				}
 			}
-			else if((parameters.get(1).intValue() != parameters.get(1)) || parameters.get(1) < 0)
-			{
-				if(generteException)
-				{
-					throw new RuntimeException	("The Japanse data event get not valid history length.\n"
-												+"The history length was " + parameters.get(1).toString());
-				}
-				else
-				{
-					ret =false;
-				}
-			}
 			return ret;
 		}
 
 		@Override
 		public String[] getParametersStrings() {
-			String[] ret = {"Interval","History lenght"};
+			String[] ret = {"Interval"};
 			return ret;
 		}
 
@@ -70,45 +58,6 @@ public enum DataEventType {
 		}
 		
 	},/*After close of candle, send candle data*/
-	NEW_QUOTE("New quote"){
-		@Override
-		public boolean checkIfTheParametersValid(List<Double> parameters,boolean generteException)
-		{
-			boolean ret = true;
-			String[] parameterStrings = NEW_QUOTE.getParametersStrings();
-			if(parameters.size() != parameterStrings.length)
-			{
-				if(generteException)
-				{
-					throw new RuntimeException	("The New quote data event need " + Integer.toString(parameterStrings.length) + " parameters.\n"
-												+"And not " + new Integer(parameters.size()).toString());
-				}
-				else
-				{
-					ret =false;
-				}
-			}
-			return ret;
-		}
-
-		@Override
-		public String[] getParametersStrings() {
-			String[] ret = {};
-			return ret;
-		}
-
-		@Override
-		public IDataExtractorSubject getSubjectDataExtractor(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Double> parameters) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-		
-		/*@Override
-		public String getDataHeaders() {
-			return "Current Price";
-		}*/
-		
-	},/*Get price quote update when new quote arrives*/
 	RSI("RSI")
 	{
 
@@ -165,19 +114,7 @@ public enum DataEventType {
 					ret =false;
 				}
 			}
-			else if((parameters.get(3).intValue() != parameters.get(3)) || parameters.get(3) < 0) // historyLength
-			{
-				if(generteException)
-				{
-					throw new RuntimeException	("The RSI data event get not valid history length.\n"
-												+"The length was " + parameters.get(3).toString());
-				}
-				else
-				{
-					ret =false;
-				}
-			}
-			else if((parameters.get(4).intValue() != parameters.get(4)) || parameters.get(4) <= 0 || parameters.get(4) > 2) // rsi type
+			else if((parameters.get(3).intValue() != parameters.get(3)) || parameters.get(3) <= 0 || parameters.get(3) > 2) // rsi type
 			{
 				if(generteException)
 				{
@@ -194,13 +131,13 @@ public enum DataEventType {
 
 		@Override
 		public String[] getParametersStrings() {
-			String[] ret = {"Interval", "Japanese Candle Bar Property Type" , "Length", "History Length","rsi type"};
+			String[] ret = {"Interval", "Japanese Candle Bar Property Type" , "Length","rsi type"};
 			return ret;
 		}
 
 		@Override
 		public IDataExtractorSubject getSubjectDataExtractor(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Double> parameters) {
-			switch(parameters.get(4).intValue())
+			switch(parameters.get(3).intValue())
 			{
 			case 1:	
 				return new IND_0001(dataSource, assetType,dataEventType,parameters);
@@ -212,13 +149,13 @@ public enum DataEventType {
 		}
 		
 	},
-	MINIMAL_TIME_FRAME("Minimal time frame"){
+	NEW_QUOTE("New quote"){
 
 		@Override
 		public boolean checkIfTheParametersValid(List<Double> parameters,boolean generteException)
 		{
 			boolean ret = true;
-			String[] parameterStrings = MINIMAL_TIME_FRAME.getParametersStrings();
+			String[] parameterStrings = NEW_QUOTE.getParametersStrings();
 			if(parameters.size() != parameterStrings.length)
 			{
 				if(generteException)
@@ -245,11 +182,11 @@ public enum DataEventType {
 			return dataSource.getSubjectDataExtractor(assetType, dataEventType, parameters);
 		}
 		
-	},
+	},/*Get price quote update when new quote arrives*/
 	ZIGZAG("Zigzag") {
 		@Override
 		public String[] getParametersStrings() {
-			String[] ret = {"Interval" , "Depth", "Deviation","Backstep","Max History Length"};
+			String[] ret = {"Interval" , "Depth", "Deviation","Backstep"};
 			return ret;
 		}
 

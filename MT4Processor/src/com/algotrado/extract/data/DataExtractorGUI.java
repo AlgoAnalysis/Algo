@@ -202,7 +202,6 @@ public class DataExtractorGUI implements IGUIController,Runnable {
 		if(dataEventType == DataEventType.JAPANESE)
 		{
 			parameters.add((double) JapaneseTimeFrameType.getTimeFrameTypeFromString(cbxIntervalTime.getSelectedItem().toString()).getValueInMinutes());
-			parameters.add((double)0); // TODO - check if we want history
 		}
 		
 //		RegisterDataExtractor.setDataSource(dataSource);
@@ -224,7 +223,7 @@ public class DataExtractorGUI implements IGUIController,Runnable {
 	@Override
 	public void run()
 	{
-		RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters, dataRecorder);
+		RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters,0, dataRecorder);
 	}
 	
 	

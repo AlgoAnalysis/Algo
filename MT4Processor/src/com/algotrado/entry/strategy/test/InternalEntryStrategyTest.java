@@ -53,7 +53,6 @@ public class InternalEntryStrategyTest  extends IDataExtractorSubject implements
 		String filePath = "C:\\Algo\\test\\" + state.getCode() + "EntryStrategy.csv";
 		parameters = new ArrayList<Double>();
 		parameters.add((double) 5);
-		parameters.add((double) 0); // TODO - check if we want history
 		
 		JapaneseTimeFrameType japaneseTimeFrameType = JapaneseTimeFrameType.FIVE_MINUTE;
 		JapaneseCandleBarPropertyType japaneseCandleBarPropertyType = JapaneseCandleBarPropertyType.CLOSE;
@@ -66,7 +65,6 @@ public class InternalEntryStrategyTest  extends IDataExtractorSubject implements
 		rsiParameters.add((double)japaneseTimeFrameType.getValueInMinutes());
 		rsiParameters.add((double)japaneseCandleBarPropertyType.ordinal());
 		rsiParameters.add((double)rsiLength);
-		rsiParameters.add((double)rsiHistoryLength);
 		rsiParameters.add((double)1); // RSI type
 		entryStrategyManager = new EntryStrategyManager(new ENT_0001_S1(entryStrategyParameters.toArray()), patternManagers, AssetType.USOIL.name());
 		
@@ -82,11 +80,11 @@ public class InternalEntryStrategyTest  extends IDataExtractorSubject implements
 		/**
 		 * Register to RSI.
 		 */
-		RegisterDataExtractor.register(dataSource, assetType, DataEventType.RSI, rsiParameters, this);	
+		RegisterDataExtractor.register(dataSource, assetType, DataEventType.RSI, rsiParameters,rsiHistoryLength, this);	
 		/**
 		 * Register to japanese candles.
 		 */
-		RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters, this);
+		RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters,0, this);
 	}
 
 	@Override

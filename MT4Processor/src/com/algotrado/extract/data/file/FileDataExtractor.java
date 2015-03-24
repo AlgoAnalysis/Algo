@@ -13,6 +13,7 @@ import java.util.StringTokenizer;
 
 import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.NewUpdateData;
+import com.algotrado.data.event.SimpleUpdateData;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleDataExtractor;
 import com.algotrado.data.event.basic.japanese.JapaneseTimeFrameType;
@@ -25,7 +26,7 @@ import com.algotrado.extract.data.SubjectState;
 import com.algotrado.util.Setting;
 
 public class FileDataExtractor extends IDataExtractorSubject implements MinimalTimeFrame{
-	public final DataEventType dataEventType = DataEventType.MINIMAL_TIME_FRAME;
+	public final DataEventType dataEventType = DataEventType.NEW_QUOTE;
 	public final DataSource dataSource = DataSource.FILE;
 	public static final int NUM_OF_MILLIS_IN_MINUTES = 1000 * 60;
 	public static final int NUM_OF_MILLIS_IN_DAY = 1000 * 60 * 60 * 24;
@@ -35,7 +36,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 	private List<JapaneseCandleBar> dataList;
 	private SubjectState subjectState;
 	private JapaneseCandleBar prevCandle = null;
-	private JapaneseCandleBar newCandle;
+	private SimpleUpdateData newSimple;
 	private int intervalTime = 1;
 	
 	private List<JapaneseCandleBar> recordDataList;
@@ -158,36 +159,6 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 
 
 					if (prevCandle != null) {
-						//check for time gaps and add padding. Note: This solution only supports 1 minute timeframe input file. => we should check in the future if this is good.
-//						Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
-//						calendar.setTime(formattedDate);
-//						Calendar prevCalendar = GregorianCalendar.getInstance(); // creates a new calendar instance
-//						prevCalendar.setTime(prevCandle.getTime());
-//						Calendar originalPrevCalendar = GregorianCalendar.getInstance(); // creates a new calendar instance
-//						originalPrevCalendar.setTime(prevCandle.getTime());
-//						// If gap is more than 24 hour do not fill the gap
-//						if ((formattedDate.getTime() - prevCandle.getTime().getTime()) < NUM_OF_MILLIS_IN_DAY &&
-//								formattedDate.after(prevCandle.getTime())) { // add padding
-//							for (int dayIndex = prevCalendar.get(Calendar.DAY_OF_YEAR); dayIndex <= calendar.get(Calendar.DAY_OF_YEAR); dayIndex++) {
-//								prevCalendar.set(Calendar.DAY_OF_YEAR, dayIndex);
-//								int maxHour = (dayIndex == calendar.get(Calendar.DAY_OF_YEAR)) ? calendar.get(Calendar.HOUR_OF_DAY) : 23;
-//								//	    				int maxMinute = calendar.get(Calendar.MINUTE) - 1;
-//								for (int hourIndex = prevCalendar.get(Calendar.HOUR_OF_DAY); hourIndex <= maxHour; hourIndex++) {
-//									prevCalendar.set(Calendar.HOUR_OF_DAY, hourIndex);
-//									int maxMinute = (dayIndex == calendar.get(Calendar.DAY_OF_YEAR) && hourIndex == calendar.get(Calendar.HOUR_OF_DAY)) ? (calendar.get(Calendar.MINUTE) - 1) : 59;
-//									int startMinute = (dayIndex == prevCalendar.get(Calendar.DAY_OF_YEAR) && hourIndex == originalPrevCalendar.get(Calendar.HOUR_OF_DAY))? 
-//											prevCalendar.get(Calendar.MINUTE) + 1 : 0;
-//									for(int minuteIndex = startMinute; minuteIndex <= maxMinute; minuteIndex++) {
-//										prevCalendar.set(Calendar.MINUTE, minuteIndex);
-//										JapaneseCandleBar paddingCandle = new JapaneseCandleBar(prevCandle.getClose(), prevCandle.getClose(), prevCandle.getClose(), prevCandle.getClose(), 0, prevCalendar.getTime(), assetType.name());
-//										dataList.add(paddingCandle);
-//									}
-//									prevCalendar.set(Calendar.MINUTE, 0);
-//								}
-//								prevCalendar.set(Calendar.HOUR_OF_DAY, 0);
-//							}
-//						}
-
 						if(prevCandle.getTime().after(formattedDate))
 						{
 							throw new RuntimeException("File error, the time are not in orders");
@@ -233,23 +204,36 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 		int cnt;
 		for(cnt = 0;cnt <recordDataList.size() - 1;cnt++)
 		{
-			this.newCandle = recordDataList.get(cnt);
-			notifyObservers(assetType, dataEventType, parameters);
+			candleToSimpleData(recordDataList.get(cnt),false);
+
 		}
-		this.subjectState = SubjectState.END_OF_LIFE;
-		this.newCandle = recordDataList.get(cnt);
+		
+		candleToSimpleData(recordDataList.get(cnt),true);
+	}
+
+	private void candleToSimpleData(JapaneseCandleBar newCandle,boolean lastCandle) {
+		double volume = newCandle.getVolume()/4;
+		this.newSimple = new SimpleUpdateData(assetType,newCandle.getTime(),newCandle.getOpen(),volume);
+		notifyObservers(assetType, dataEventType, parameters);
+		this.newSimple = new SimpleUpdateData(assetType,newCandle.getTime(),newCandle.getHigh(),volume);
+		notifyObservers(assetType, dataEventType, parameters);
+		this.newSimple = new SimpleUpdateData(assetType,newCandle.getTime(),newCandle.getLow(),volume);
+		notifyObservers(assetType, dataEventType, parameters);
+		this.newSimple = new SimpleUpdateData(assetType,newCandle.getTime(),newCandle.getClose(),volume);
+		if(lastCandle){
+			this.subjectState = SubjectState.END_OF_LIFE;
+		}
 		notifyObservers(assetType, dataEventType, parameters);
 	}
 
-
 	@Override
 	public NewUpdateData getNewData() {
-		return newCandle;
+		return newSimple;
 	}
 
 	@Override
 	public String getDataHeaders() {
-		JapaneseCandleBar temp = new JapaneseCandleBar(0,0,0,0,0,null,null);
+		SimpleUpdateData temp = new SimpleUpdateData(null,null,0,0);
 		return "Asset," + assetType.name() + "\n" +
 				"Interval," + JapaneseTimeFrameType.getTimeFrameFromInterval(parameters.get(0)).getValueString() + "\n" + 
 				"Data Source," + DataSource.FILE.toString() + "\n" + 
@@ -258,7 +242,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 
 	@Override
 	public String toString() {
-		return newCandle.toString(); 
+		return newSimple.toString(); 
 	}
 
 	@Override

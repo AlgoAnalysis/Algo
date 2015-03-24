@@ -36,10 +36,9 @@ public class IND_0002 extends IDataExtractorSubject implements
 		parameters.add((double)japaneseTimeFrameType.getValueInMinutes());
 		parameters.add((double)japaneseCandleBarPropertyType.ordinal());
 		parameters.add((double)rsiLength);
-		parameters.add((double)rsiHistoryLength);
 		parameters.add((double)2); // RSI type
 		dataRecorder = new FileDataRecorder(filePath, null);
-		RegisterDataExtractor.register(dataSource, assetType, DataEventType.RSI, parameters, dataRecorder);	
+		RegisterDataExtractor.register(dataSource, assetType, DataEventType.RSI, parameters,rsiHistoryLength, dataRecorder);	
 	}
 	
 	private final DataEventType dataEventType = DataEventType.RSI;
@@ -68,8 +67,7 @@ public class IND_0002 extends IDataExtractorSubject implements
 		avrFactor = 1 - inputFactor;
 		List<Double> japaneseParameters = new ArrayList<Double>();
 		japaneseParameters.add(japaneseCandleInterval);
-		japaneseParameters.add((double)(historyLength + length));
-		RegisterDataExtractor.register(dataSource,assetType,DataEventType.JAPANESE,japaneseParameters,this);
+		RegisterDataExtractor.register(dataSource,assetType,DataEventType.JAPANESE,japaneseParameters,historyLength + length,this);
 	}
 	
 	@Override
@@ -101,7 +99,7 @@ public class IND_0002 extends IDataExtractorSubject implements
 			movingIndex++;
 		}
 		preValue = inputValue;
-		newUpdateData = new SimpleUpdateData(this.assetType,japaneseCandleBar.getTime(),rsiValue);
+		newUpdateData = new SimpleUpdateData(this.assetType,japaneseCandleBar.getTime(),rsiValue,0);
 		notifyObservers(this.assetType, this.dataEventType, this.parameters);
 	}
 
@@ -136,7 +134,7 @@ public class IND_0002 extends IDataExtractorSubject implements
 
 	@Override
 	public String getDataHeaders() {
-		SimpleUpdateData temp = new SimpleUpdateData(null,null,0);
+		SimpleUpdateData temp = new SimpleUpdateData(null,null,0,0);
 		return "Asset," + assetType.name() + "\n" +
 				"Interval," + japaneseCandleInterval+ "\n" + 
 				"Data Source," + this.dataSource.toString() + "\n" +

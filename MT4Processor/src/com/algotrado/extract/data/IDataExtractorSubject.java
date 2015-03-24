@@ -54,7 +54,7 @@ public abstract class IDataExtractorSubject implements Comparable<IDataExtractor
 	 * 
 	 * @param observer
 	 */
-	public IDataExtractorSubject registerObserver(IDataExtractorObserver observer ) {
+	public IDataExtractorSubject registerObserver(IDataExtractorObserver observer) {
 		boolean runNewTask = false;
 		if (this.observers.isEmpty()) {
 			runNewTask = true;
@@ -63,7 +63,7 @@ public abstract class IDataExtractorSubject implements Comparable<IDataExtractor
 			this.observers.add(observer);
 			observer.setSubject(this);
 		}
-		if (runNewTask && dataEventType == DataEventType.MINIMAL_TIME_FRAME) {
+		if (runNewTask && dataEventType == DataEventType.NEW_QUOTE) {
 			SwingUtilities.invokeLater((MinimalTimeFrame)this);
 //			new Thread(this).run();
 		}
@@ -97,7 +97,7 @@ public abstract class IDataExtractorSubject implements Comparable<IDataExtractor
 			return false;
 		if(!dataEventType.checkIfTheParametersValid(parameters, DebugUtil.debugDataExtractor))
 			return false;
-		if(dataEventType == DataEventType.MINIMAL_TIME_FRAME)
+		if(dataEventType == DataEventType.NEW_QUOTE)
 		{
 			if(((MinimalTimeFrame)this).getDataSource() != dataSource)
 				return false;
