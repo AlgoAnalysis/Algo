@@ -34,7 +34,7 @@ public class ENT_0001_S2 extends ENT_0001_MAIN implements IEntryStrategyLastStat
 		this.patternLowLimit = patternLowLimit;
 		this.status = EntryStrategyStateStatus.RUN;
 		this.countCandlesIndex = 1;
-		this.entryStrategyTriggerType = EntryStrategyTriggerType.getEntryStrategyTriggerType(((Double)parameters[2]).intValue());
+		this.entryStrategyTriggerType = EntryStrategyTriggerType.getEntryStrategyTriggerType(((Double)parameters[1]).intValue());
 		this.prevRSI = prevRSI;
 	}
 

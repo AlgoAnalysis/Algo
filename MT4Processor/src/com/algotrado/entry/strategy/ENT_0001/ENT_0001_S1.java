@@ -38,32 +38,29 @@ public class ENT_0001_S1 extends ENT_0001_MAIN implements IEntryStrategyFirstSta
 //			}
 			
 			status = EntryStrategyStateStatus.RUN;
-			if (prevHigh > 0) {
-				for (int newDataPatternCnt = 2; newDataPatternCnt < newData.length; /*newDataPatternCnt++*/) {
-					if (newData[newDataPatternCnt] instanceof PatternDataObject) {
-						patternDataObject = (PatternDataObject)newData[newDataPatternCnt];
+			if (prevHigh > 0 && newData.length > 2) {
+				if (newData[2] instanceof PatternDataObject) {
+					patternDataObject = (PatternDataObject)newData[2];
 
-						patternManagerStatus = null;
-						if((patternDataObject.getPatternManagerStatus() == PatternManagerStatus.TRIGGER_BEARISH) || 
-								(patternDataObject.getPatternManagerStatus() == PatternManagerStatus.TRIGGER_BULLISH) ||
-								(patternDataObject.getPatternManagerStatus() == PatternManagerStatus.TRIGGER_NOT_SPECIFIED))
-						{
-							patternManagerStatus = patternDataObject.getPatternManagerStatus();
-							status = EntryStrategyStateStatus.RUN_TO_NEXT_STATE;
-							maxPatternHigh = (((JapaneseCandleBar)newData[0]).getHigh() > prevHigh) ? ((JapaneseCandleBar)newData[0]).getHigh() : prevHigh;
-							minPatternLow = (((JapaneseCandleBar)newData[0]).getLow() < prevLow) ? ((JapaneseCandleBar)newData[0]).getLow() : prevLow;
-							prevRSI = ((SimpleUpdateData)newData[1]);
-						} else if (patternDataObject.getPatternManagerStatus() == PatternManagerStatus.ERROR) {
-							status = EntryStrategyStateStatus.ERROR;
-							throw new RuntimeException	("Error Occoured in Pattern Manager."); // TODO 
-						} else {
-							status = EntryStrategyStateStatus.RUN;
-						}
-
-						break;
+					patternManagerStatus = null;
+					if((patternDataObject.getPatternManagerStatus() == PatternManagerStatus.TRIGGER_BEARISH) || 
+							(patternDataObject.getPatternManagerStatus() == PatternManagerStatus.TRIGGER_BULLISH) ||
+							(patternDataObject.getPatternManagerStatus() == PatternManagerStatus.TRIGGER_NOT_SPECIFIED))
+					{
+						patternManagerStatus = patternDataObject.getPatternManagerStatus();
+						status = EntryStrategyStateStatus.RUN_TO_NEXT_STATE;
+						maxPatternHigh = (((JapaneseCandleBar)newData[0]).getHigh() > prevHigh) ? ((JapaneseCandleBar)newData[0]).getHigh() : prevHigh;
+						minPatternLow = (((JapaneseCandleBar)newData[0]).getLow() < prevLow) ? ((JapaneseCandleBar)newData[0]).getLow() : prevLow;
+						prevRSI = ((SimpleUpdateData)newData[1]);
+					} else if (patternDataObject.getPatternManagerStatus() == PatternManagerStatus.ERROR) {
+						status = EntryStrategyStateStatus.ERROR;
+						throw new RuntimeException	("Error Occoured in Pattern Manager."); // TODO 
 					} else {
-						throw new RuntimeException("newData Should get patternDataObjects to check ENT_0001_S1. Got only : " + newData[newDataPatternCnt]);
+						status = EntryStrategyStateStatus.RUN;
 					}
+
+				} else {
+					throw new RuntimeException("newData Should get patternDataObjects to check ENT_0001_S1. Got only : " + newData[2]);
 				}
 			}
 			prevHigh = ((JapaneseCandleBar)newData[0]).getHigh();

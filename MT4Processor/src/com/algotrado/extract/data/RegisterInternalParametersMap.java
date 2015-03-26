@@ -8,6 +8,7 @@ public class RegisterInternalParametersMap
 {
 	Map<Double,RegisterInternalParametersMap> map;
 	IDataExtractorSubject subject;
+	int size;
 	public RegisterInternalParametersMap()
 	{
 		map = new HashMap<Double,RegisterInternalParametersMap>();
@@ -31,6 +32,10 @@ public class RegisterInternalParametersMap
 	
 	List<Double> put(List<Double> parameters,IDataExtractorSubject subject)
 	{
+		if(get(parameters) == null)
+		{
+			size++;
+		}
 		if(parameters.size() == 0)
 		{
 			this.subject = subject;
@@ -53,6 +58,11 @@ public class RegisterInternalParametersMap
 	
 	List<Double> remove(List<Double> parameters)
 	{
+		if(get(parameters) == null)
+		{
+			return parameters;
+		}
+		size--;
 		if(parameters.size() != 0)
 		{
 			List<Double> newParameters = parameters.subList(1,parameters.size());
@@ -70,8 +80,18 @@ public class RegisterInternalParametersMap
 		return parameters;
 	}
 	
-	Boolean isEmpty()
+	boolean isEmpty()
 	{
 		return map.isEmpty();
+	}
+	
+	boolean containsKey(List<Double> parameters)
+	{
+		return (get(parameters) == null) ? false : true;
+	}
+	
+	int size()
+	{
+		return size;
 	}
 }

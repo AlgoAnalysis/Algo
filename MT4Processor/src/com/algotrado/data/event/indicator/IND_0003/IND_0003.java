@@ -101,7 +101,6 @@ IDataExtractorObserver{
 	@Override
 	public void notifyObserver(DataEventType dataEventType,
 			List<Double> parameters) {
-		// TODO Auto-generated method stub
 		JapaneseCandleBar japaneseCandleBar = (JapaneseCandleBar) dataExtractorSubject.getNewData();
 		if(bufferFull)
 		{
