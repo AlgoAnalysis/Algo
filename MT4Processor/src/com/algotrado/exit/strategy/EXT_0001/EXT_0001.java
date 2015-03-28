@@ -59,11 +59,11 @@ public class EXT_0001 implements IExitStrategy {
 		if (this.exitStrategyStatus != ExitStrategyStatus.ERROR) {
 			JapaneseCandleBar japaneseCandleBar = (JapaneseCandleBar)newData[0];
 			if (isLongDirection) {
-				if (japaneseCandleBar.getHigh() > (exitStrategyEntryPoint + Math.abs(exitStrategyEntryPoint - currStopLoss))) {
+				if (japaneseCandleBar.getHigh() > ((2 * exitStrategyEntryPoint) - currStopLoss)) {
 					this.exitStrategyStatus = ExitStrategyStatus.TRIGGER_AND_MOVE_STOP_LOSS;
 				}
 			} else if (isShortDirection) {
-				if (japaneseCandleBar.getLow() < (exitStrategyEntryPoint - Math.abs(exitStrategyEntryPoint - currStopLoss))) {
+				if (japaneseCandleBar.getLow() < ((2 * exitStrategyEntryPoint) - currStopLoss)) {
 					this.exitStrategyStatus = ExitStrategyStatus.TRIGGER_AND_MOVE_STOP_LOSS;
 				}
 			}
