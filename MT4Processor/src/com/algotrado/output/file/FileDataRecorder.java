@@ -61,15 +61,16 @@ public class FileDataRecorder implements IDataExtractorObserver, Comparable<File
 				return;
 			}
 			bufferString = "";
+			try {
+				destinationFile.flush();
+			} catch (IOException e) {
+				if(guiController != null)
+					this.guiController.setErrorMessage("File: " + saveFilePath + " could not be closed for some reason. " + e.getMessage(), false);
+				return;
+			}
 		}
 		
-		try {
-			destinationFile.flush();
-		} catch (IOException e) {
-			if(guiController != null)
-				this.guiController.setErrorMessage("File: " + saveFilePath + " could not be closed for some reason. " + e.getMessage(), false);
-			return;
-		}
+
 		
 		if (this.dataExtractorSubject.getSubjectState() == SubjectState.END_OF_LIFE) {
 			try {
