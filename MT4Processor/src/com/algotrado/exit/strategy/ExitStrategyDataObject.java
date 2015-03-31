@@ -19,4 +19,8 @@ public class ExitStrategyDataObject {
 	public double getFractionToCloseOnTrigger() {
 		return fractionToCloseOnTrigger;
 	}
+	
+	public Double getStatistics() {
+		return null;
+	}
 }
