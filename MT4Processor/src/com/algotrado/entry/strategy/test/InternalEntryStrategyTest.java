@@ -21,8 +21,9 @@ import com.algotrado.extract.data.RegisterDataExtractor;
 import com.algotrado.extract.data.SubjectState;
 import com.algotrado.output.file.FileDataRecorder;
 import com.algotrado.output.file.IGUIController;
+import com.algotrado.pattern.IPatternState;
 import com.algotrado.pattern.PatternManager;
-import com.algotrado.pattern.PTN_0001.PTN_0001_S1;
+import com.algotrado.pattern.PTN_0003.PTN_0003_S1;
 
 public class InternalEntryStrategyTest  extends IDataExtractorSubject implements IGUIController , IDataExtractorObserver, Runnable {
 
@@ -34,8 +35,8 @@ public class InternalEntryStrategyTest  extends IDataExtractorSubject implements
 	private SubjectState subjectState;
 	private static DataSource dataSource = DataSource.FILE;
 	private List<Double> rsiParameters = new ArrayList<Double>();
-	private int rsiLength = 7;
-	private int rsiHistoryLength = 0;
+	private int rsiLength;
+	private int rsiHistoryLength;
 	private EntryStrategyManager entryStrategyManager;
 	private JapaneseCandleBar japaneseCandle = null;
 	private SimpleUpdateData rsi = null;
@@ -45,27 +46,33 @@ public class InternalEntryStrategyTest  extends IDataExtractorSubject implements
 	{
 		super(dataSource, AssetType.USOIL,DataEventType.JAPANESE,(List<Double>)(new ArrayList<Double>()));
 		timeMili = System.currentTimeMillis();
-		PTN_0001_S1 state = new PTN_0001_S1(1);
-//		PTN_0002_S1 state = new PTN_0002_S1(1);
-//		PTN_0003_S1 state = new PTN_0003_S1(1);
+		
+		////////change hare ///////////////////
+		IPatternState state = new PTN_0003_S1(1); // Pattern code, after changing press Ctrl+shift+o
+		EntryStrategyTriggerType entryStrategyTriggerType = EntryStrategyTriggerType.BUYING_CLOSE_PRICE;
+		// parameters 
+		JapaneseTimeFrameType japaneseTimeFrameType = JapaneseTimeFrameType.FIVE_MINUTE;
+		// RSI parameters
+		JapaneseCandleBarPropertyType japaneseCandleBarPropertyType = JapaneseCandleBarPropertyType.CLOSE;
+		rsiLength = 7;
+		rsiHistoryLength = 0;
+		int rsiType = 1; // 1 (SMA) or 2 (EMA)
+		String filePath = "C:\\Algo\\test\\" + state.getCode() +"_"+ entryStrategyTriggerType.toString()+"_EntryStrategy.csv";
+		//////////////////////////////////////////////////////
+		
 		patternManagers = new ArrayList<PatternManager>();
 		patternManagers.add(new PatternManager(state));
-		String filePath = "C:\\Algo\\test\\" + state.getCode() + "EntryStrategy.csv";
 		parameters = new ArrayList<Double>();
-		parameters.add((double) 5);
-		
-		JapaneseTimeFrameType japaneseTimeFrameType = JapaneseTimeFrameType.FIVE_MINUTE;
-		JapaneseCandleBarPropertyType japaneseCandleBarPropertyType = JapaneseCandleBarPropertyType.CLOSE;
+		parameters.add((double) japaneseTimeFrameType.getValueInMinutes());  
 		
 		List<Double> entryStrategyParameters = new ArrayList<Double>(); 
 		entryStrategyParameters.addAll(parameters);
-//		entryStrategyParameters.add((double) EntryStrategyTriggerType.BUYING_CLOSE_PRICE.ordinal());//Buy trigger by close price.
-		entryStrategyParameters.add((double) EntryStrategyTriggerType.BUYING_BREAK_PRICE.ordinal());//Buy trigger by breakout price.
+		entryStrategyParameters.add((double) entryStrategyTriggerType.ordinal());
 		
 		rsiParameters.add((double)japaneseTimeFrameType.getValueInMinutes());
 		rsiParameters.add((double)japaneseCandleBarPropertyType.ordinal());
 		rsiParameters.add((double)rsiLength);
-		rsiParameters.add((double)1); // RSI type
+		rsiParameters.add((double)rsiType); // RSI type
 		entryStrategyManager = new EntryStrategyManager(new ENT_0001_S1(entryStrategyParameters.toArray()), patternManagers, AssetType.USOIL.name());
 		
 		dataRecorder = new FileDataRecorder(filePath, this);
