@@ -171,14 +171,14 @@ public class TRD_0001 extends TradeManager {
 		
 	}
 
-	public void updateExitStrategiesWithNewData(NewUpdateData[] newData, boolean beforeOpenPosition) {
+	private void updateExitStrategiesWithNewData(NewUpdateData[] newData, boolean beforeOpenPosition) {
 		if (this.exitStrategiesList[EXIT_0001].getExit() != null) {
 			this.exitStrategiesList[EXIT_0001].getExit().setNewData(newData);
 		} else if (this.exitStrategiesList[EXIT_0007].getExit() != null) {
 			this.exitStrategiesList[EXIT_0007].getExit().setNewData(newData);
 		}
 	}
-	public void setExitStrategiesPositionAccordingToData() {
+	private void setExitStrategiesPositionAccordingToData() {
 		// Check for stop loss first.
 		PositionStatus positionStatus = broker.getPositionStatus(positionId);
 		double currentLivePosition = positionStatus.getCurrentPosition();
@@ -196,7 +196,7 @@ public class TRD_0001 extends TradeManager {
 		
 	}
 
-	public boolean executeExit0007() {
+	private boolean executeExit0007() {
 		boolean executed = false;
 		if (this.exitStrategiesList[EXIT_0007].getExit() != null) {
 			// if there was an exit trigger call broker and exit. if there was error, update money manager.
@@ -211,7 +211,7 @@ public class TRD_0001 extends TradeManager {
 		return executed;
 	}
 	
-	public void moveExit0001StopLoss() {
+	private void moveExit0001StopLoss() {
 		if (this.exitStrategiesList[EXIT_0001].getExit() != null) {
 			// if there was an exit trigger call broker and exit. if there was error, update money manager.
 			// If exited successfully update money manager.
@@ -229,7 +229,7 @@ public class TRD_0001 extends TradeManager {
 		}
 	}
 
-	public void executeExit0001() {
+	private void executeExit0001() {
 		if (this.exitStrategiesList[EXIT_0001].getExit() != null) {
 			// if there was an exit trigger call broker and exit. if there was error, update money manager.
 			// If exited successfully update money manager.
@@ -250,7 +250,7 @@ public class TRD_0001 extends TradeManager {
 		}
 	}
 
-	public void closePartialPosition(int index) {
+	private void closePartialPosition(int index) {
 		double quantityToClose = this.exitStrategiesList[index].getFractionToCloseOnTrigger() * quantity;
 		if (quantityToClose > 0) { // Maybe quantityToClose should be rounded up/down to a sum that broker can close?
 			boolean success = broker.closePosition(positionId, quantityToClose);
