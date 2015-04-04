@@ -9,9 +9,16 @@ public abstract class TradeManager implements IDataExtractorObserver {
 	// 1 moneyManagement
 	// money manager => 1 method to ask permission from moneyManagement to open/close position (ExitStrategyDataObject [] array). the Return value will include (quantity, percent to close from position on each exit)
 	// The trade will hold statistics on each exit and entry. if returns null MoneyManager will return default values.
-	// 1 method to force exit on all positions from money management.
-	// trade manager => get status of position (for money manager).
+	/**
+	 *  1 method to force exit on all positions from money management.
+	 * @return if the method execution was successful.
+	 */
+	public abstract boolean forceExitAllPositions();
 	
+	/**
+	 * @return get status of position (for money manager)
+	 */
+	public abstract PositionStatus getStatus();
 	
 	// money manager => 1 method to update money manager that trade was closed.
 	

@@ -4,12 +4,14 @@ public class ExitStrategyDataObject {
 
 	private IExitStrategy exit;
 	private double fractionToCloseOnTrigger;
+	private Double statistics;
 	
 	public ExitStrategyDataObject(IExitStrategy exit,
-			double percentToCloseOnTrigger) {
+			double percentToCloseOnTrigger, Double statistics) {
 		super();
 		this.exit = exit;
 		this.fractionToCloseOnTrigger = percentToCloseOnTrigger;
+		this.statistics = statistics;
 	}
 
 	public IExitStrategy getExit() {
@@ -21,6 +23,6 @@ public class ExitStrategyDataObject {
 	}
 	
 	public Double getStatistics() {
-		return null;
+		return statistics;
 	}
 }

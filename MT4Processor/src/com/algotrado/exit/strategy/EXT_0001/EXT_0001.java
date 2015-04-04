@@ -1,7 +1,5 @@
 package com.algotrado.exit.strategy.EXT_0001;
 
-import java.util.List;
-
 import com.algotrado.data.event.NewUpdateData;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 import com.algotrado.entry.strategy.EntryStrategyManager;
@@ -12,7 +10,7 @@ import com.algotrado.exit.strategy.IExitStrategy;
 public class EXT_0001 implements IExitStrategy {
 	private EntryStrategyManager entryStrategyManager;
 	private double currStopLoss;
-	private List<Double> parameters;
+//	private List<Double> parameters;
 	private ExitStrategyStatus exitStrategyStatus;
 	private boolean isLongDirection;
 	private boolean isShortDirection;
@@ -26,11 +24,11 @@ public class EXT_0001 implements IExitStrategy {
 	
 
 	public EXT_0001(EntryStrategyManager entryStrategyManager,
-			double firstStopLoss, List<Double> parameters) {
+			double firstStopLoss/*, List<Double> parameters*/) {
 		super();
 		this.entryStrategyManager = entryStrategyManager;
 		this.currStopLoss = firstStopLoss;
-		this.parameters = parameters;
+//		this.parameters = parameters;
 		this.exitStrategyStatus = ExitStrategyStatus.RUN;
 		this.isLongDirection = false;
 		this.isShortDirection = false;
@@ -111,6 +109,13 @@ public class EXT_0001 implements IExitStrategy {
 	@Override
 	public void setNewStopLoss(double stopLoss) {
 		this.currStopLoss = stopLoss;
+	}
+
+	@Override
+	public String getDataHeaders() {
+		return "\n Top part margin = " + topSpread + ", Bottom part margin = " + bottomSpread /*+ ", entry strategy S.L. = " 
+			+ entryStopLoss + ", Entry Strategy Entry point = " + entryStrategyEntryPoint + 
+			", exit Strategy entry point = " + exitStrategyEntryPoint*/;
 	}
 
 }

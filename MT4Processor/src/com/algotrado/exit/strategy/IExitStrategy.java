@@ -19,4 +19,6 @@ public interface IExitStrategy {
 	public void setLongSpread(double longSpread);
 
 	public void setCurrBrokerSpread(double currBrokerSpread);
+	
+	public String getDataHeaders();
 }

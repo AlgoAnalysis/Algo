@@ -12,7 +12,7 @@ import com.algotrado.exit.strategy.IExitStrategy;
 public class EXT_0007 implements IExitStrategy{
 	private EntryStrategyManager entryStrategyManager;
 	private double currStopLoss;
-	private List<Double> parameters;
+//	private List<Double> parameters;
 	private ExitStrategyStatus exitStrategyStatus;
 	private boolean isLongDirection;
 	private boolean isShortDirection;
@@ -25,11 +25,11 @@ public class EXT_0007 implements IExitStrategy{
 	private double xFactor;
 	
 	public EXT_0007(EntryStrategyManager entryStrategyManager,
-			double firstStopLoss, List<Double> parameters, double xFactor) {
+			double firstStopLoss, /*List<Double> parameters,*/ double xFactor) {
 		super();
 		this.entryStrategyManager = entryStrategyManager;
 		this.currStopLoss = firstStopLoss;
-		this.parameters = parameters;
+//		this.parameters = parameters;
 		this.exitStrategyStatus = ExitStrategyStatus.RUN;
 		this.isLongDirection = false;
 		this.isShortDirection = false;
@@ -105,6 +105,13 @@ public class EXT_0007 implements IExitStrategy{
 	@Override
 	public void setNewStopLoss(double stopLoss) {
 		this.currStopLoss = stopLoss;
+	}
+	
+	@Override
+	public String getDataHeaders() {
+		return "\n Top part margin = " + topSpread + ", Bottom part margin = " + bottomSpread /*+ ", entry strategy S.L. = " 
+			+ entryStopLoss + ", Entry Strategy Entry point = " + entryStrategyEntryPoint + 
+			", exit Strategy entry point = " + exitStrategyEntryPoint*/;
 	}
 
 }
