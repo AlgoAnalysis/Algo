@@ -223,7 +223,12 @@ public class TRD_0001 extends TradeManager {
 				throw new RuntimeException("Broker did not modify position, Please handle with this issue.");
 			}
 			
-			moneyManager.updatePositionStatus(broker.getPositionStatus(positionId));
+			PositionStatus positionStatus = broker.getPositionStatus(positionId);
+			
+			tradeStateTimeList.get(tradeStateTimeList.size() - 1).getExits().get(EXIT_0001).setTriggerOrEliminate(TRIGGER);
+			tradeStateTimeList.get(tradeStateTimeList.size() - 1).getExits().get(EXIT_0001).setEndTime(positionStatus.getDate());
+			
+			moneyManager.updatePositionStatus(positionStatus);
 			
 			this.exitStrategiesList[EXIT_0001].setExit(null);
 		}
