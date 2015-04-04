@@ -20,11 +20,12 @@ public class EXT_0001 implements IExitStrategy {
 	private double entryStopLoss;
 	private double entryStrategyEntryPoint;
 	private double exitStrategyEntryPoint;
+	private double fractionOfOriginalStopLoss;
 	
 	
 
 	public EXT_0001(EntryStrategyManager entryStrategyManager,
-			double firstStopLoss/*, List<Double> parameters*/) {
+			double firstStopLoss, double fractionOfOriginalStopLoss/*, List<Double> parameters*/) {
 		super();
 		this.entryStrategyManager = entryStrategyManager;
 		this.currStopLoss = firstStopLoss;
@@ -32,6 +33,7 @@ public class EXT_0001 implements IExitStrategy {
 		this.exitStrategyStatus = ExitStrategyStatus.RUN;
 		this.isLongDirection = false;
 		this.isShortDirection = false;
+		this.fractionOfOriginalStopLoss = fractionOfOriginalStopLoss;
 	}
 
 	@Override
@@ -84,9 +86,9 @@ public class EXT_0001 implements IExitStrategy {
 	@Override
 	public void forceTrigger() {
 		if (isLongDirection) {
-			this.currStopLoss = this.exitStrategyEntryPoint - (Math.abs(this.exitStrategyEntryPoint - this.currStopLoss) / 10); 
+			this.currStopLoss = this.exitStrategyEntryPoint - (Math.abs(this.exitStrategyEntryPoint - this.currStopLoss) * fractionOfOriginalStopLoss); 
 		} else if (isShortDirection) {
-			this.currStopLoss = this.exitStrategyEntryPoint + (Math.abs(this.exitStrategyEntryPoint - this.currStopLoss) / 10); 
+			this.currStopLoss = this.exitStrategyEntryPoint + (Math.abs(this.exitStrategyEntryPoint - this.currStopLoss) * fractionOfOriginalStopLoss); 
 		} else {
 			this.exitStrategyStatus = ExitStrategyStatus.ERROR;
 			return;

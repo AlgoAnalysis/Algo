@@ -160,6 +160,10 @@ public class EntryStrategyManager {
 		return valString;
 	}
 	
+	public List<Date> getLastEntryDates() {
+		return stateArr.get(stateArr.size() - 1).getTimeList();
+	}
+
 	private class EntryStrategyStateAndTime
 	{
 		private IEntryStrategyState state;

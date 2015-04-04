@@ -1,18 +1,22 @@
 package com.algotrado.trade;
 
+import java.util.Date;
+
 public class PositionStatus {
 	
 	private PositionDirectionType positionDirectionType;
 	private double entryPoint;
 	private double currentPosition;
 	private PositionOrderStatusType positionOrderStatusType;
+	private Date date;
 	public PositionStatus(PositionDirectionType positionDirectionType,
-			double entryPoint, double currentPosition, PositionOrderStatusType positionOrderStatusType) {
+			double entryPoint, double currentPosition, PositionOrderStatusType positionOrderStatusType, Date date) {
 		super();
 		this.positionDirectionType = positionDirectionType;
 		this.entryPoint = entryPoint;
 		this.currentPosition = currentPosition;
 		this.positionOrderStatusType = positionOrderStatusType;
+		this.date = date;
 	}
 	public PositionDirectionType getPositionDirectionType() {
 		return positionDirectionType;
@@ -28,6 +32,9 @@ public class PositionStatus {
 		return positionOrderStatusType;
 	}
 	
+	public Date getDate() {
+		return date;
+	}
 	/**
 	 * Positive means a gain in money, negative means loss.
 	 * @return
