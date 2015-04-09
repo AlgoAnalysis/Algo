@@ -19,67 +19,63 @@ public class RegisterDataExtractor {
 	{
 	}
 
-	public static void register(DataSource dataSource,AssetType assetType,DataEventType dataEventType,List<Double> parameters,int historyLength,IDataExtractorObserver observer)
+	public synchronized static void register(DataSource dataSource,AssetType assetType,DataEventType dataEventType,List<Double> parameters,int historyLength,IDataExtractorObserver observer)
 	{
-		synchronized(extractorSubjectList){
-			if(DebugUtil.debugRegisterDataExtractor)
+		if(DebugUtil.debugRegisterDataExtractor)
+		{
+			if((dataSource == null) || (assetType == null) || (dataEventType == null) || (parameters == null) || (observer == null))
 			{
-				if((dataSource == null) || (assetType == null) || (dataEventType == null) || (parameters == null) || (observer == null))
-				{
-					throw new RuntimeException("The RegisterDataExtractor.register contractor canot get null");
-				}
-				dataEventType.checkIfTheParametersValid(parameters, true);
+				throw new RuntimeException("The RegisterDataExtractor.register contractor canot get null");
 			}
-
-			IDataExtractorSubject dataExtractorSubject;
-			Map<AssetType,Map<DataEventType,RegisterInternalParametersMap>> dataSourceMap = extractorSubjectList.get(dataSource);
-			if(dataSourceMap == null)
-			{
-				// Create data source.
-				dataExtractorSubject = createDataSourceList(dataSource, assetType, dataEventType, parameters);
-			}
-			else
-			{
-				Map<DataEventType, RegisterInternalParametersMap> assetData =  dataSourceMap.get(assetType);
-				if(assetData == null) // new Asset
-				{
-					dataExtractorSubject = createAssetList(dataSource,assetType,dataEventType,parameters,dataSourceMap);
-				}
-				else // the Asset exist
-				{
-					RegisterInternalParametersMap dataEventData = assetData.get(dataEventType);
-					if(dataEventData == null)
-					{
-						dataExtractorSubject = createDataEventData(dataSource,assetType,dataEventType,parameters,assetData);
-					}
-					else
-					{
-						dataExtractorSubject = dataEventData.get(parameters); 
-						if(dataExtractorSubject == null)
-						{
-							dataExtractorSubject = createParametersData(dataSource,assetType,dataEventType,parameters,dataEventData);
-						}
-					}
-				}
-			}
-			dataExtractorSubject.registerObserver(observer);
-			// TODO - history!!!
+			dataEventType.checkIfTheParametersValid(parameters, true);
 		}
+
+		IDataExtractorSubject dataExtractorSubject;
+		Map<AssetType,Map<DataEventType,RegisterInternalParametersMap>> dataSourceMap = extractorSubjectList.get(dataSource);
+		if(dataSourceMap == null)
+		{
+			// Create data source.
+			dataExtractorSubject = createDataSourceList(dataSource, assetType, dataEventType, parameters);
+		}
+		else
+		{
+			Map<DataEventType, RegisterInternalParametersMap> assetData =  dataSourceMap.get(assetType);
+			if(assetData == null) // new Asset
+			{
+				dataExtractorSubject = createAssetList(dataSource,assetType,dataEventType,parameters,dataSourceMap);
+			}
+			else // the Asset exist
+			{
+				RegisterInternalParametersMap dataEventData = assetData.get(dataEventType);
+				if(dataEventData == null)
+				{
+					dataExtractorSubject = createDataEventData(dataSource,assetType,dataEventType,parameters,assetData);
+				}
+				else
+				{
+					dataExtractorSubject = dataEventData.get(parameters); 
+					if(dataExtractorSubject == null)
+					{
+						dataExtractorSubject = createParametersData(dataSource,assetType,dataEventType,parameters,dataEventData);
+					}
+				}
+			}
+		}
+		dataExtractorSubject.registerObserver(observer);
+		// TODO - history!!!
 	}
 
-	public static void removeDataExtractorSubject(DataSource dataSource ,AssetType assetType,DataEventType dataEventType,List<Double> parameters)
+	public synchronized static void removeDataExtractorSubject(DataSource dataSource ,AssetType assetType,DataEventType dataEventType,List<Double> parameters)
 	{
-		synchronized(extractorSubjectList){
-			extractorSubjectList.get(dataSource).get(assetType).get(dataEventType).remove(parameters);
-			if(extractorSubjectList.get(dataSource).get(assetType).get(dataEventType).isEmpty())
+		extractorSubjectList.get(dataSource).get(assetType).get(dataEventType).remove(parameters);
+		if(extractorSubjectList.get(dataSource).get(assetType).get(dataEventType).isEmpty())
+		{
+			extractorSubjectList.get(dataSource).get(assetType).remove(dataEventType);
+			if(extractorSubjectList.get(dataSource).get(assetType).isEmpty())
 			{
-				extractorSubjectList.get(dataSource).get(assetType).remove(dataEventType);
-				if(extractorSubjectList.get(dataSource).get(assetType).isEmpty())
-				{
-					extractorSubjectList.get(dataSource).remove(assetType);
-					if (extractorSubjectList.get(dataSource).isEmpty()) {
-						extractorSubjectList.remove(dataSource);
-					}
+				extractorSubjectList.get(dataSource).remove(assetType);
+				if (extractorSubjectList.get(dataSource).isEmpty()) {
+					extractorSubjectList.remove(dataSource);
 				}
 			}
 		}

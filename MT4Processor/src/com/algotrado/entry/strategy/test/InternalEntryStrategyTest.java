@@ -11,6 +11,7 @@ import com.algotrado.data.event.basic.japanese.JapaneseCandleBarPropertyType;
 import com.algotrado.data.event.basic.japanese.JapaneseTimeFrameType;
 import com.algotrado.entry.strategy.EntryStrategyManager;
 import com.algotrado.entry.strategy.EntryStrategyManagerStatus;
+import com.algotrado.entry.strategy.EntryStrategyTriggerType;
 import com.algotrado.entry.strategy.ENT_0001.ENT_0001_S1;
 import com.algotrado.extract.data.AssetType;
 import com.algotrado.extract.data.DataSource;
@@ -20,6 +21,7 @@ import com.algotrado.extract.data.RegisterDataExtractor;
 import com.algotrado.extract.data.SubjectState;
 import com.algotrado.output.file.FileDataRecorder;
 import com.algotrado.output.file.IGUIController;
+import com.algotrado.pattern.IPatternState;
 import com.algotrado.pattern.PatternManager;
 import com.algotrado.pattern.PTN_0003.PTN_0003_S1;
 
@@ -33,38 +35,44 @@ public class InternalEntryStrategyTest  extends IDataExtractorSubject implements
 	private SubjectState subjectState;
 	private static DataSource dataSource = DataSource.FILE;
 	private List<Double> rsiParameters = new ArrayList<Double>();
-	private int rsiLength = 7;
-	private int rsiHistoryLength = 0;
+	private int rsiLength;
+	private int rsiHistoryLength;
 	private EntryStrategyManager entryStrategyManager;
-	private List<JapaneseCandleBar> japaneseCandleList = new ArrayList<JapaneseCandleBar>();
-	private List<SimpleUpdateData> rsiList = new ArrayList<SimpleUpdateData>();
+	private JapaneseCandleBar japaneseCandle = null;
+	private SimpleUpdateData rsi = null;
 	private NewUpdateData[] newUpdateData;
 	
 	public InternalEntryStrategyTest()
 	{
 		super(dataSource, AssetType.USOIL,DataEventType.JAPANESE,(List<Double>)(new ArrayList<Double>()));
 		timeMili = System.currentTimeMillis();
-//		PTN_0001_S1 state = new PTN_0001_S1(1);
-//		PTN_0002_S1 state = new PTN_0002_S1(1);
-		PTN_0003_S1 state = new PTN_0003_S1(1);
+		
+		////////change hare ///////////////////
+		IPatternState state = new PTN_0003_S1(1); // Pattern code, after changing press Ctrl+shift+o
+		EntryStrategyTriggerType entryStrategyTriggerType = EntryStrategyTriggerType.BUYING_CLOSE_PRICE;
+		// parameters 
+		JapaneseTimeFrameType japaneseTimeFrameType = JapaneseTimeFrameType.FIVE_MINUTE;
+		// RSI parameters
+		JapaneseCandleBarPropertyType japaneseCandleBarPropertyType = JapaneseCandleBarPropertyType.CLOSE;
+		rsiLength = 7;
+		rsiHistoryLength = 0;
+		int rsiType = 1; // 1 (SMA) or 2 (EMA)
+		String filePath = "C:\\Algo\\test\\" + state.getCode() +"_"+ entryStrategyTriggerType.toString()+"_EntryStrategy.csv";
+		//////////////////////////////////////////////////////
+		
 		patternManagers = new ArrayList<PatternManager>();
 		patternManagers.add(new PatternManager(state));
-		String filePath = "C:\\Algo\\test\\" + state.getCode() + "EntryStrategy.csv";
 		parameters = new ArrayList<Double>();
-		parameters.add((double) 5);
-		
-		JapaneseTimeFrameType japaneseTimeFrameType = JapaneseTimeFrameType.FIVE_MINUTE;
-		JapaneseCandleBarPropertyType japaneseCandleBarPropertyType = JapaneseCandleBarPropertyType.CLOSE;
+		parameters.add((double) japaneseTimeFrameType.getValueInMinutes());  
 		
 		List<Double> entryStrategyParameters = new ArrayList<Double>(); 
 		entryStrategyParameters.addAll(parameters);
-		entryStrategyParameters.add((double) 0);//Buy trigger by close price.
-//		entryStrategyParameters.add((double) 1);//Buy trigger by breakout price.
+		entryStrategyParameters.add((double) entryStrategyTriggerType.ordinal());
 		
 		rsiParameters.add((double)japaneseTimeFrameType.getValueInMinutes());
 		rsiParameters.add((double)japaneseCandleBarPropertyType.ordinal());
 		rsiParameters.add((double)rsiLength);
-		rsiParameters.add((double)1); // RSI type
+		rsiParameters.add((double)rsiType); // RSI type
 		entryStrategyManager = new EntryStrategyManager(new ENT_0001_S1(entryStrategyParameters.toArray()), patternManagers, AssetType.USOIL.name());
 		
 		dataRecorder = new FileDataRecorder(filePath, this);
@@ -92,27 +100,23 @@ public class InternalEntryStrategyTest  extends IDataExtractorSubject implements
 		newUpdateData = null;
 		
 		if (dataEventType == DataEventType.JAPANESE) {
-			japaneseCandleList.add((JapaneseCandleBar)this.dataExtractorSubject.getNewData());
-//			if (rsiList.size() < japaneseCandleList.size() && japaneseCandleList.getTime().after(rsiList.getTime())) {
-//				rsiList = null;
-//			}
+			japaneseCandle = ((JapaneseCandleBar)this.dataExtractorSubject.getNewData());
 		} else if (dataEventType == DataEventType.RSI) {
-			rsiList.add((SimpleUpdateData)this.rsiDataExtractorSubject.getNewData());
-//			if (japaneseCandleList != null && rsiList.getTime().after(japaneseCandleList.getTime())) {
-//				japaneseCandleList = null;
-//			}
+			rsi = (SimpleUpdateData)this.rsiDataExtractorSubject.getNewData();
 		}
 		
-		if (japaneseCandleList.size() > 0  && rsiList.size() > 0) {
+		if (japaneseCandle != null  && rsi != null) {
 			newUpdateData = new NewUpdateData[2];
-			newUpdateData[0] = (rsiList.size() < japaneseCandleList.size()) ? japaneseCandleList.get(rsiList.size() - 1) : japaneseCandleList.get(japaneseCandleList.size() - 1);
-			newUpdateData[1] = (rsiList.size() < japaneseCandleList.size()) ? rsiList.get(rsiList.size() - 1) : rsiList.get(japaneseCandleList.size() - 1);;
+			newUpdateData[0] = japaneseCandle;
+			newUpdateData[1] = rsi;
 			entryStrategyManager.setNewData(newUpdateData);
 			
 			if (entryStrategyManager.getStatus() == EntryStrategyManagerStatus.TRIGGER_BEARISH || 
 					entryStrategyManager.getStatus() == EntryStrategyManagerStatus.TRIGGER_BULLISH) {
 				notifyObservers(assetType, dataEventType, parameters);
 			}
+			rsi = null;
+			japaneseCandle = null;
 		}
 	}
 

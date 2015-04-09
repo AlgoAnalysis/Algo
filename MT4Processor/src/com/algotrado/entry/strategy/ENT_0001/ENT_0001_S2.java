@@ -51,32 +51,18 @@ public class ENT_0001_S2 extends ENT_0001_MAIN implements IEntryStrategyLastStat
 				double candleBarBreakOutPriceLong = this.entryStrategyTriggerType.getTriggerPrice(japaneseCandleBar, true);
 				double candleBarBreakOutPriceShort = this.entryStrategyTriggerType.getTriggerPrice(japaneseCandleBar, false);
 				SimpleUpdateData simpleUpdateData = (this.entryStrategyTriggerType == EntryStrategyTriggerType.BUYING_BREAK_PRICE) ? prevRSI : ((SimpleUpdateData)newData[1]);
-				if (candleBarBreakOutPriceLong > patternHighLimit) {
-					if (patternDirection == PatternManagerStatus.TRIGGER_BULLISH || 
-							patternDirection == PatternManagerStatus.TRIGGER_NOT_SPECIFIED) {
-						if (simpleUpdateData.getValue() > MAX_RSI_LONG_VALUE) {
-							this.status = EntryStrategyStateStatus.KILL_STATE;
-						} else {
-							triggerDate = japaneseCandleBar.getTime();
-							status = EntryStrategyStateStatus.TRIGGER_BULLISH;
-							triggerCandlePrice = candleBarBreakOutPriceLong;
-						}
-					} else { // The trigger is bearish.
-						this.status = EntryStrategyStateStatus.KILL_STATE;
-					}
-				} else if (candleBarBreakOutPriceShort < patternLowLimit) {
-					if (patternDirection == PatternManagerStatus.TRIGGER_BEARISH || 
-							patternDirection == PatternManagerStatus.TRIGGER_NOT_SPECIFIED) {
-						if (simpleUpdateData.getValue() < MIN_RSI_SHORT_VALUE) {
-							this.status = EntryStrategyStateStatus.KILL_STATE;
-						} else {
-							triggerDate = japaneseCandleBar.getTime();
-							status = EntryStrategyStateStatus.TRIGGER_BEARISH;
-							triggerCandlePrice = candleBarBreakOutPriceShort;
-						}
-					} else { // the trigger is bullish.
-						this.status = EntryStrategyStateStatus.KILL_STATE;
-					}
+				if ((candleBarBreakOutPriceLong > patternHighLimit) && 
+						(patternDirection == PatternManagerStatus.TRIGGER_BULLISH || patternDirection == PatternManagerStatus.TRIGGER_NOT_SPECIFIED) && 
+						(simpleUpdateData.getValue() < MAX_RSI_LONG_VALUE)) {
+					triggerDate = japaneseCandleBar.getTime();
+					status = EntryStrategyStateStatus.TRIGGER_BULLISH;
+					triggerCandlePrice = candleBarBreakOutPriceLong;
+				} else if ((candleBarBreakOutPriceShort < patternLowLimit) &&
+						(patternDirection == PatternManagerStatus.TRIGGER_BEARISH || patternDirection == PatternManagerStatus.TRIGGER_NOT_SPECIFIED) &&
+						(simpleUpdateData.getValue() > MIN_RSI_SHORT_VALUE)) {
+					triggerDate = japaneseCandleBar.getTime();
+					status = EntryStrategyStateStatus.TRIGGER_BEARISH;
+					triggerCandlePrice = candleBarBreakOutPriceShort;
 				}
 				countCandlesIndex++;
 				prevRSI = ((SimpleUpdateData)newData[1]);
@@ -104,7 +90,7 @@ public class ENT_0001_S2 extends ENT_0001_MAIN implements IEntryStrategyLastStat
 	public Date getTriggerTime() {
 		return triggerDate;
 	}
-	
+
 	@Override
 	public Integer getStateNumber() {
 		return stateNumber;

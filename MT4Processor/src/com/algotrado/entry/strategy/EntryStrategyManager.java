@@ -5,19 +5,32 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.NewUpdateData;
+import com.algotrado.data.event.SimpleUpdateData;
+import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
+import com.algotrado.extract.data.AssetType;
+import com.algotrado.extract.data.IDataExtractorObserver;
+import com.algotrado.extract.data.IDataExtractorSubject;
 import com.algotrado.pattern.PatternDataObject;
 import com.algotrado.pattern.PatternManager;
 import com.algotrado.pattern.PatternManagerStatus;
 import com.algotrado.util.Setting;
 
 
-public class EntryStrategyManager {
+public class EntryStrategyManager implements IDataExtractorObserver {
 
 	private IEntryStrategyState firstState;
 	private List<EntryStrategyStateAndTime> stateArr;
 	private EntryStrategyManagerStatus status;
 	private String assetName;
+	
+	private IDataExtractorSubject dataExtractorSubject;
+	private IDataExtractorSubject rsiDataExtractorSubject;
+	private NewUpdateData[] newUpdateData;
+	private JapaneseCandleBar japaneseCandle = null;
+	private SimpleUpdateData rsi = null;
+	
 	/**
 	 * pattern managers is not null, can be empty list.
 	 */
@@ -191,5 +204,50 @@ public class EntryStrategyManager {
 		public void setState(IEntryStrategyState state) {
 			this.state = state;
 		}
+	}
+
+	@Override
+	public void notifyObserver(DataEventType dataEventType, List<Double> parameters) {
+		//Build new Data contains {JapaneseCandleBar, RSI}
+		newUpdateData = null;
+		
+		if (dataEventType == DataEventType.JAPANESE) {
+			japaneseCandle = ((JapaneseCandleBar)this.dataExtractorSubject.getNewData());
+		} else if (dataEventType == DataEventType.RSI) {
+			rsi = (SimpleUpdateData)this.rsiDataExtractorSubject.getNewData();
+		}
+		
+		if (japaneseCandle != null  && rsi != null) {
+			newUpdateData = new NewUpdateData[2];
+			newUpdateData[0] = japaneseCandle;
+			newUpdateData[1] = rsi;
+			this.setNewData(newUpdateData);
+			
+			if (this.getStatus() == EntryStrategyManagerStatus.TRIGGER_BEARISH || 
+					this.getStatus() == EntryStrategyManagerStatus.TRIGGER_BULLISH) {
+				//notifyObservers(AssetType.valueOf(assetName), dataEventType, parameters);
+				// notify Money Manager. 
+			}
+			rsi = null;
+			japaneseCandle = null;
+		}
+	}
+
+	@Override
+	public void setSubject(IDataExtractorSubject dataExtractorSubject) {
+		if (dataExtractorSubject == null) {
+			this.dataExtractorSubject = null;
+			this.rsiDataExtractorSubject = null;
+			return;
+		}
+		if (dataExtractorSubject.getDataEventType() == DataEventType.RSI) {
+			this.rsiDataExtractorSubject = dataExtractorSubject;
+		} else {
+			this.dataExtractorSubject = dataExtractorSubject;
+		}
+	}
+	@Override
+	public void removeSubject(IDataExtractorSubject dataExtractorSubject) {
+		setSubject(null);
 	}
 }

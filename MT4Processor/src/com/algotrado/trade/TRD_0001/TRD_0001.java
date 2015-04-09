@@ -153,9 +153,6 @@ public class TRD_0001 extends TradeManager {
 					newData[0] = quote;
 				}
 				
-				
-//				
-				
 				updateExitStrategiesWithNewData(newData, false);
 				
 				setExitStrategiesPositionAccordingToData();
@@ -223,6 +220,8 @@ public class TRD_0001 extends TradeManager {
 				throw new RuntimeException("Broker did not modify position, Please handle with this issue.");
 			}
 			
+			currStopLoss = this.exitStrategiesList[EXIT_0001].getExit().getNewStopLoss();
+			
 			PositionStatus positionStatus = broker.getPositionStatus(positionId);
 			
 			tradeStateTimeList.get(tradeStateTimeList.size() - 1).getExits().get(EXIT_0001).setTriggerOrEliminate(TRIGGER);
@@ -247,6 +246,8 @@ public class TRD_0001 extends TradeManager {
 					// Here we should think what to do if position is not closed.
 					throw new RuntimeException("Broker did not modify position, Please handle with this issue.");
 				}
+				
+				currStopLoss = this.exitStrategiesList[EXIT_0001].getExit().getNewStopLoss();
 				
 				moneyManager.updatePositionStatus(broker.getPositionStatus(positionId));
 				
