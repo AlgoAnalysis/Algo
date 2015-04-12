@@ -10,6 +10,8 @@ public interface IExitStrategy {
 	
 	public double getNewStopLoss();
 	
+	public double getNewEntryPoint();
+	
 	public void setNewStopLoss(double stopLoss);
 	
 	public void forceTrigger();

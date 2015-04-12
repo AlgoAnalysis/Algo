@@ -1,22 +1,38 @@
 package com.algotrado.entry.strategy;
 
+import java.util.Date;
+import java.util.List;
+
 
 public class EntryStrategyDataObject {
 
-	private EntryStrategyManager entry;
 	private Double statistics;
+	private List<Date> entryDates;
+	private EntryStrategyManagerStatus entryStrategyManagerStatus;
+	private String entryDataHeaders;
 	
-	public EntryStrategyDataObject(EntryStrategyManager entry, Double statistics) {
+	public EntryStrategyDataObject(List<Date> entryDates, Double statistics, EntryStrategyManagerStatus entryStrategyManagerStatus,
+			String entryDataHeaders) {
 		super();
-		this.entry = entry;
+		this.entryDates = entryDates;
 		this.statistics = statistics;
+		this.entryStrategyManagerStatus = entryStrategyManagerStatus;
+		this.entryDataHeaders = entryDataHeaders;
 	}
 
-	public EntryStrategyManager getEntry() {
-		return entry;
+	public List<Date> getEntryDates() {
+		return entryDates;
 	}
 
 	public Double getStatistics() {
 		return statistics;
+	}
+	
+	public EntryStrategyManagerStatus getStatus() {
+		return entryStrategyManagerStatus;
+	}
+	
+	public String getDataHeaders() {
+		return this.entryDataHeaders;
 	}
 }

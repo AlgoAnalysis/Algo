@@ -1,6 +1,9 @@
 package com.algotrado.money.manager;
 
+import java.util.List;
+
 import com.algotrado.entry.strategy.EntryStrategyDataObject;
+import com.algotrado.entry.strategy.EntryStrategyManager.EntryStrategyStateAndTime;
 import com.algotrado.exit.strategy.ExitStrategyDataObject;
 import com.algotrado.trade.PositionStatus;
 
@@ -13,5 +16,7 @@ public interface IMoneyManager {
 	 */
 	public void updatePositionStatus(PositionStatus positionStatus);
 	
-	public Double requestPermissionToOpenTrade(ExitStrategyDataObject [] exitStrategiesList, EntryStrategyDataObject entryStrategyDataObj);
+//	public Double requestPermissionToOpenTrade(ExitStrategyDataObject [] exitStrategiesList, EntryStrategyDataObject entryStrategyDataObj);
+	
+	public void updateOnEntry(List<EntryStrategyStateAndTime> stateArr);
 }

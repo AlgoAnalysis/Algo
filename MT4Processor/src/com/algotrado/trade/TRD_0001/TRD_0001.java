@@ -50,6 +50,8 @@ public class TRD_0001 extends TradeManager {
 	private List<TradeStateAndTime> tradeStateTimeList; 
 	
 	private double currStopLoss;
+	private double lastTradeClosePosition;
+	private double tradeEntryPoint;
 	
 	/**
 	 * Open position will be > 0
@@ -63,19 +65,43 @@ public class TRD_0001 extends TradeManager {
 	private Double originalQuantity;
 	private PositionDirectionType positionDirectionType = null;
 	
-	public TRD_0001(EntryStrategyDataObject entryStrategyDataObj,
-			IMoneyManager moneyManager, double stopLoss, double xFactor, AssetType assetType, double fractionOfOriginalSLExit0001) {
+	public TRD_0001(EntryStrategyDataObject entryStrategyDataObj,ExitStrategyDataObject [] exitStrategiesList,
+			IMoneyManager moneyManager, double xFactor, AssetType assetType, 
+			double fractionOfOriginalSLExit0001, double quantity) {
 		super();
 		this.entryStrategyDataObj = entryStrategyDataObj;
-		this.exitStrategiesList = new ExitStrategyDataObject[2];
-		EXT_0001 ext0001 = new EXT_0001(this.entryStrategyDataObj.getEntry(), stopLoss, fractionOfOriginalSLExit0001);
-		this.exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0001, 0, null);
-		EXT_0007 ext0007 = new EXT_0007(this.entryStrategyDataObj.getEntry(), stopLoss, xFactor);
-		this.exitStrategiesList[EXIT_0007] = new ExitStrategyDataObject(ext0007, 0, null);
+		this.exitStrategiesList = exitStrategiesList;
+//		EXT_0001 ext0001 = new EXT_0001(this.entryStrategyDataObj.getEntry(), stopLoss, fractionOfOriginalSLExit0001);
+//		this.exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0001, 0, null);
+//		EXT_0007 ext0007 = new EXT_0007(this.entryStrategyDataObj.getEntry(), stopLoss, xFactor);
+//		this.exitStrategiesList[EXIT_0007] = new ExitStrategyDataObject(ext0007, 0, null);
 		this.moneyManager = moneyManager;
-		this.quantity = null;
+		this.quantity = quantity;
 		this.assetType = assetType;
 		tradeStateTimeList = new ArrayList<TRD_0001.TradeStateAndTime>();
+	}
+	
+	public void startTrade() {
+		if (quantity > 0) { // there is no open position. check for entry point.
+			PositionDirectionType direction = 
+					(this.entryStrategyDataObj.getStatus() == 
+					EntryStrategyManagerStatus.TRIGGER_BEARISH) ? PositionDirectionType.SHORT : PositionDirectionType.LONG;
+
+			currStopLoss = this.exitStrategiesList[EXIT_0001].getExit().getNewStopLoss();
+			
+			tradeEntryPoint = this.exitStrategiesList[EXIT_0001].getExit().getNewEntryPoint();
+
+			positionId = broker.openPosition(assetType, quantity, direction, currStopLoss);
+
+			originalQuantity = quantity;
+
+			// we should discuss what is the range of prices to open position.
+			// and what should happen when we miss that range.
+			tradeStateTimeList.add(new TradeStateAndTime(this, new ArrayList<ExitState>(exitStrategiesList.length)));
+			List<Date> entryDates = this.entryStrategyDataObj.getEntryDates();
+			tradeStateTimeList.get(tradeStateTimeList.size() - 1).addTime(entryDates.get(0));
+			tradeStateTimeList.get(tradeStateTimeList.size() - 1).addTime(entryDates.get(entryDates.size() - 1));
+		}
 	}
 
 	@Override
@@ -95,9 +121,9 @@ public class TRD_0001 extends TradeManager {
 		
 		if (quote != null) {
 			NewUpdateData [] newData = new NewUpdateData[2];
-			newData[0] = japaneseCandleBar;
-			newData[1] = rsi;
-			if (quantity == 0 && japaneseCandleBar != null && rsi != null) { // there is no open position. check for entry point.
+//			newData[0] = japaneseCandleBar;
+//			newData[1] = rsi;
+			/*if (quantity == 0 && japaneseCandleBar != null && rsi != null) { // there is no open position. check for entry point.
 				newData = new NewUpdateData[2];
 				newData[0] = japaneseCandleBar;
 				newData[1] = rsi;
@@ -141,7 +167,7 @@ public class TRD_0001 extends TradeManager {
 				}
 				japaneseCandleBar = null;
 				rsi = null;
-			} else {
+			} else {*/
 				// if there is an active trade. than we should set new Data to exit strategies to see if any exit trigger has happened.
 				if (japaneseCandleBar != null && rsi != null) {
 					newData = new NewUpdateData[3];
@@ -161,7 +187,7 @@ public class TRD_0001 extends TradeManager {
 					japaneseCandleBar = null;
 					rsi = null;
 				}
-			}
+//			}
 			
 			quote = null;
 		}
@@ -169,9 +195,12 @@ public class TRD_0001 extends TradeManager {
 	}
 
 	private void updateExitStrategiesWithNewData(NewUpdateData[] newData, boolean beforeOpenPosition) {
+		double currBrokerSpread = broker.getLiveSpread(assetType);
 		if (this.exitStrategiesList[EXIT_0001].getExit() != null) {
+			this.exitStrategiesList[EXIT_0001].getExit().setCurrBrokerSpread(currBrokerSpread);
 			this.exitStrategiesList[EXIT_0001].getExit().setNewData(newData);
 		} else if (this.exitStrategiesList[EXIT_0007].getExit() != null) {
+			this.exitStrategiesList[EXIT_0007].getExit().setCurrBrokerSpread(currBrokerSpread);
 			this.exitStrategiesList[EXIT_0007].getExit().setNewData(newData);
 		}
 	}
@@ -183,6 +212,7 @@ public class TRD_0001 extends TradeManager {
 		boolean reachedStopLoss = (positionStatus.getPositionDirectionType() == PositionDirectionType.LONG) ? 
 										(currentLivePosition < currStopLoss) : (currentLivePosition > currStopLoss);
 		if (reachedStopLoss) {
+			
 			forceExitAllPositions();
 		} else {
 			boolean executed = executeExit0007();
@@ -274,7 +304,7 @@ public class TRD_0001 extends TradeManager {
 				tradeStateTimeList.get(tradeStateTimeList.size() - 1).getExits().get(index).setEndTime(positionStatus.getDate());
 			}
 			
-			moneyManager.updatePositionStatus(broker.getPositionStatus(positionId));
+//			moneyManager.updatePositionStatus(broker.getPositionStatus(positionId));
 			
 		}
 	}
@@ -318,21 +348,18 @@ public class TRD_0001 extends TradeManager {
 	// toString => trade entry start, entry end, exit# trigger or eliminate, exit# end time, 
 	//... all exits ... , amount purchased, Gain/Loss amount  
 	public String getDataHeaders() {
-		String headerString = entryStrategyDataObj.getEntry().getDataHeaders();
+		String headerString = entryStrategyDataObj.getDataHeaders();
 		headerString += exitStrategiesList[EXIT_0001].getExit().getDataHeaders();
-//		for(Integer cnt = EXIT_0001;cnt < exitStrategiesList.length;cnt++)
-//		{
-//			headerString += Setting.getDateTimeHeader("Exit " + cnt.toString() + " triggered ") + ",";
-//		}
-		
 		headerString += Setting.getDateTimeHeader("Trade Entry Start") + ",";
 		headerString += Setting.getDateTimeHeader("Trade Entry End") + ",";
 		for(Integer cnt = EXIT_0001;cnt < exitStrategiesList.length;cnt++)
 		{
-			headerString += Setting.getDateTimeHeader("Exit " + cnt.toString() + " triggered ") + ",";
+			headerString += Setting.getDateTimeHeader("Exit " + cnt.toString() + " trigger or eliminate ") + ",";
+			headerString += Setting.getDateTimeHeader("Exit " + cnt.toString() + " end time ") + ",";
+			headerString += Setting.getDateTimeHeader("Exit " + cnt.toString() + " gain/loss ") + ",";
 		}
 		
-		headerString += "Direction, Quantity puchased, Gain/Loss";
+		headerString += "Direction, Quantity purchased, Gain/Loss";
 		
 		return headerString;
 	}
@@ -341,10 +368,37 @@ public class TRD_0001 extends TradeManager {
 	public String toString() {
 		String rowStr = "";	
 		
-//		this.entryStrategyDataObj.getEntry().
+		rowStr += this.entryStrategyDataObj.getEntryDates().get(0) + ", ";
+		rowStr += this.entryStrategyDataObj.getEntryDates().get(this.entryStrategyDataObj.getEntryDates().size() - 1) + ", ";
 		
+		double remainingQuantity = originalQuantity;
+		int cnt = 0;
+		double totalGain = 0;
+		Boolean isLong = null;
+		for (ExitStrategyDataObject exitStrategyDataObject : this.exitStrategiesList) {
+			rowStr += tradeStateTimeList.get(tradeStateTimeList.size() - 1).getExits().get(cnt).getTriggerOrEliminate() + ", ";
+			rowStr += tradeStateTimeList.get(tradeStateTimeList.size() - 1).getExits().get(cnt).getEndTime() + ", ";
+			double gain = exitStrategyDataObject.getGain(remainingQuantity);
+			totalGain += gain;
+			rowStr += gain + ", ";
+			remainingQuantity = remainingQuantity - (remainingQuantity * exitStrategyDataObject.getFractionToCloseOnTrigger());
+			isLong = exitStrategyDataObject.isLong();
+			cnt++;
+		}
 		
-		return "must implement this";
+		if (remainingQuantity > 0) { //the rest has been caught by SL.
+			totalGain += remainingQuantity * (isLong ? 1 : (-1)) * (lastTradeClosePosition - tradeEntryPoint);
+		}
+		
+		rowStr += ((isLong) ? PositionDirectionType.LONG.name() : PositionDirectionType.SHORT.name()) + ", ";
+		rowStr += originalQuantity + ", ";
+		rowStr += totalGain + ", ";
+		
+		if (remainingQuantity < 0) {
+			throw new RuntimeException("Quantity Closed was larger than opened position. Error.");
+		}
+		
+		return rowStr;
 	}
 
 	@Override
@@ -362,13 +416,14 @@ public class TRD_0001 extends TradeManager {
 		
 		// store closing price.
 		PositionStatus positionStatus = broker.getPositionStatus(positionId);
+		lastTradeClosePosition = positionStatus.getCurrentPosition();
 		
 		for (int cnt = 0; cnt < exitStrategiesList.length; cnt++) {
 			if (exitStrategiesList[cnt].getExit() != null) {
 				tradeStateTimeList.get(tradeStateTimeList.size() - 1).getExits().get(cnt).setTriggerOrEliminate(ELIMINATE);
 				tradeStateTimeList.get(tradeStateTimeList.size() - 1).getExits().get(cnt).setEndTime(positionStatus.getDate());
-				exitStrategiesList[cnt].setExit(null);
 				exitStrategiesList[cnt].setClosingPrice(positionStatus.getCurrentPosition());
+				exitStrategiesList[cnt].setExit(null);
 			}
 		}
 		
@@ -427,6 +482,14 @@ public class TRD_0001 extends TradeManager {
 		public List<ExitState> getExits() {
 			return exits;
 		}
+	}
+
+	public ExitStrategyDataObject[] getExitStrategiesList() {
+		return exitStrategiesList;
+	}
+
+	public void setBroker(IBroker broker) {
+		this.broker = broker;
 	}
 
 }

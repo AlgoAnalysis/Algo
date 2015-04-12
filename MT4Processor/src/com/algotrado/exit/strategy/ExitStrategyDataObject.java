@@ -6,6 +6,8 @@ public class ExitStrategyDataObject {
 	private double fractionToCloseOnTrigger;
 	private Double statistics;
 	private Double closingPrice;
+	private Double exitStrategyEntryPoint;
+	private boolean isLong;
 	
 	public ExitStrategyDataObject(IExitStrategy exit,
 			double percentToCloseOnTrigger, Double statistics) {
@@ -14,6 +16,14 @@ public class ExitStrategyDataObject {
 		this.fractionToCloseOnTrigger = percentToCloseOnTrigger;
 		this.statistics = statistics;
 		this.closingPrice = null;
+		initExitStrategyObj();
+	}
+
+	public void initExitStrategyObj() {
+		if (this.exit != null) {
+			exitStrategyEntryPoint = this.exit.getNewEntryPoint();
+			isLong = this.exit.getNewEntryPoint() > this.exit.getNewStopLoss();
+		}
 	}
 
 	public IExitStrategy getExit() {
@@ -22,6 +32,7 @@ public class ExitStrategyDataObject {
 
 	public void setExit(IExitStrategy exit) {
 		this.exit = exit;
+		initExitStrategyObj();
 	}
 
 	public double getFractionToCloseOnTrigger() {
@@ -38,5 +49,13 @@ public class ExitStrategyDataObject {
 
 	public void setClosingPrice(Double closingPrice) {
 		this.closingPrice = closingPrice;
+	}
+	
+	public double getGain(double quantity) {
+		return (quantity * fractionToCloseOnTrigger) * (isLong ? (closingPrice - exitStrategyEntryPoint) : (exitStrategyEntryPoint - closingPrice));
+	}
+
+	public boolean isLong() {
+		return isLong;
 	}
 }

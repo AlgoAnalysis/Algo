@@ -34,4 +34,6 @@ public interface IBroker {
 	public boolean modifyPosition(int positionId, double newStopLoss);
 	
 	public double getLiveSpread(AssetType asset);
+	
+	public double getCurrentAskPrice(AssetType asset);
 }

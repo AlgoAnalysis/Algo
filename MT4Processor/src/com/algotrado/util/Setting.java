@@ -9,6 +9,11 @@ public class Setting {
 	private static String dateTimeFormat = "dd/MM/yyyy,HH:mm:ss";
 	private static TimeZone fileTimeZone = TimeZone.getTimeZone("UTC");
 	
+	private static double usOilBrokerSpread = 0.05;
+	private static double usOilTopSpread = 0.01;
+	private static double usOilBottomSpread = 0.01;
+	
+	
 	public static String getDateTimeFormat(Date date) {
 		SimpleDateFormat dateformatter = new SimpleDateFormat(dateTimeFormat);
 		dateformatter.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -25,6 +30,18 @@ public class Setting {
 
 	public static TimeZone getFileTimeZone() {
 		return fileTimeZone;
+	}
+
+	public static double getUsOilBrokerSpread() {
+		return usOilBrokerSpread;
+	}
+
+	public static double getUsOilTopSpread() {
+		return usOilTopSpread;
+	}
+
+	public static double getUsOilBottomSpread() {
+		return usOilBottomSpread;
 	}
 	
 }

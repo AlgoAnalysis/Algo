@@ -20,6 +20,10 @@ public abstract class TradeManager implements IDataExtractorObserver {
 	 */
 	public abstract PositionStatus getStatus();
 	
+	public String getDataHeaders() {
+		return "Requires implementation " + this.getClass() + " line 24";
+	}
+	
 	// money manager => 1 method to update money manager that trade was closed.
 	
 	// Reports trade + exit

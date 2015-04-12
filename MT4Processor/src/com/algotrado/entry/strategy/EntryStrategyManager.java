@@ -12,6 +12,7 @@ import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 import com.algotrado.extract.data.AssetType;
 import com.algotrado.extract.data.IDataExtractorObserver;
 import com.algotrado.extract.data.IDataExtractorSubject;
+import com.algotrado.money.manager.IMoneyManager;
 import com.algotrado.pattern.PatternDataObject;
 import com.algotrado.pattern.PatternManager;
 import com.algotrado.pattern.PatternManagerStatus;
@@ -30,6 +31,7 @@ public class EntryStrategyManager implements IDataExtractorObserver {
 	private NewUpdateData[] newUpdateData;
 	private JapaneseCandleBar japaneseCandle = null;
 	private SimpleUpdateData rsi = null;
+	private IMoneyManager moneyManager = null;
 	
 	/**
 	 * pattern managers is not null, can be empty list.
@@ -177,7 +179,7 @@ public class EntryStrategyManager implements IDataExtractorObserver {
 		return stateArr.get(stateArr.size() - 1).getTimeList();
 	}
 
-	private class EntryStrategyStateAndTime
+	public class EntryStrategyStateAndTime
 	{
 		private IEntryStrategyState state;
 		private List<Date> timeList; 
@@ -227,6 +229,7 @@ public class EntryStrategyManager implements IDataExtractorObserver {
 					this.getStatus() == EntryStrategyManagerStatus.TRIGGER_BULLISH) {
 				//notifyObservers(AssetType.valueOf(assetName), dataEventType, parameters);
 				// notify Money Manager. 
+				moneyManager.updateOnEntry(stateArr);
 			}
 			rsi = null;
 			japaneseCandle = null;
@@ -249,5 +252,9 @@ public class EntryStrategyManager implements IDataExtractorObserver {
 	@Override
 	public void removeSubject(IDataExtractorSubject dataExtractorSubject) {
 		setSubject(null);
+	}
+
+	public void setMoneyManager(IMoneyManager moneyManager) {
+		this.moneyManager = moneyManager;
 	}
 }
