@@ -11,12 +11,8 @@ import com.algotrado.data.event.SimpleUpdateData;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 import com.algotrado.entry.strategy.EntryStrategyDataObject;
 import com.algotrado.entry.strategy.EntryStrategyManagerStatus;
-import com.algotrado.entry.strategy.IEntryStrategyFirstState;
-import com.algotrado.entry.strategy.IEntryStrategyState;
 import com.algotrado.exit.strategy.ExitStrategyDataObject;
 import com.algotrado.exit.strategy.ExitStrategyStatus;
-import com.algotrado.exit.strategy.EXT_0001.EXT_0001;
-import com.algotrado.exit.strategy.EXT_0007.EXT_0007;
 import com.algotrado.extract.data.AssetType;
 import com.algotrado.extract.data.IDataExtractorSubject;
 import com.algotrado.money.manager.IMoneyManager;
@@ -91,7 +87,7 @@ public class TRD_0001 extends TradeManager {
 			
 			tradeEntryPoint = this.exitStrategiesList[EXIT_0001].getExit().getNewEntryPoint();
 
-			positionId = broker.openPosition(assetType, quantity, direction, currStopLoss);
+			positionId = broker.openPosition(assetType, quantity, direction, currStopLoss,0);
 
 			originalQuantity = quantity;
 
@@ -148,7 +144,7 @@ public class TRD_0001 extends TradeManager {
 						
 						currStopLoss = this.exitStrategiesList[EXIT_0001].getExit().getNewStopLoss();
 						
-						positionId = broker.openPosition(assetType, approvedQuantity, direction, currStopLoss);
+						positionId = broker.openPosition(assetType, approvedQuantity, direction, currStopLoss,0);
 						
 						originalQuantity = approvedQuantity;
 						quantity = approvedQuantity;
@@ -243,7 +239,7 @@ public class TRD_0001 extends TradeManager {
 			// if there was an exit trigger call broker and exit. if there was error, update money manager.
 			// If exited successfully update money manager.
 			this.exitStrategiesList[EXIT_0001].getExit().forceTrigger();
-			boolean success = broker.modifyPosition(positionId, this.exitStrategiesList[EXIT_0001].getExit().getNewStopLoss());
+			boolean success = broker.modifyPosition(positionId, this.exitStrategiesList[EXIT_0001].getExit().getNewStopLoss(),0);
 			
 			if (!success) {
 				// Here we should think what to do if position is not closed.
@@ -270,7 +266,7 @@ public class TRD_0001 extends TradeManager {
 			if (this.exitStrategiesList[EXIT_0001].getExit().getStatus() == ExitStrategyStatus.TRIGGER_AND_MOVE_STOP_LOSS) {
 				closePartialPosition(EXIT_0001);
 				this.exitStrategiesList[EXIT_0001].getExit().forceTrigger();
-				boolean success = broker.modifyPosition(positionId, this.exitStrategiesList[EXIT_0001].getExit().getNewStopLoss());
+				boolean success = broker.modifyPosition(positionId, this.exitStrategiesList[EXIT_0001].getExit().getNewStopLoss(),0);
 				
 				if (!success) {
 					// Here we should think what to do if position is not closed.

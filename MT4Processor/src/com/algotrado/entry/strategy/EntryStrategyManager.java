@@ -9,7 +9,6 @@ import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.NewUpdateData;
 import com.algotrado.data.event.SimpleUpdateData;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
-import com.algotrado.extract.data.AssetType;
 import com.algotrado.extract.data.IDataExtractorObserver;
 import com.algotrado.extract.data.IDataExtractorSubject;
 import com.algotrado.money.manager.IMoneyManager;
