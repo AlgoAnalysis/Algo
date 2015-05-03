@@ -16,12 +16,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import com.algotrado.mt4.impl.BarOnAverageStrategy;
+import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 import com.algotrado.mt4.impl.CandleDaySuccessStatistics;
 import com.algotrado.mt4.impl.CandleHourSuccessStatistics;
 import com.algotrado.mt4.impl.FileNameTimeFrame;
 import com.algotrado.mt4.impl.GeneralBarStrategy;
-import com.algotrado.mt4.impl.JapaneseCandleBar;
 
 public class RunBarOnAverageStartegyCheck {
 
@@ -94,7 +93,7 @@ public class RunBarOnAverageStartegyCheck {
 				}
 		        
 
-		        JapaneseCandleBar temp = new JapaneseCandleBar(open, close, high, low, formattedDate, comodityName, ma);
+		        JapaneseCandleBar temp = new JapaneseCandleBar(open, close, high, low, volume, formattedDate, comodityName);
 		        System.out.println(temp);
 		        datalist.add(temp);
 		        
@@ -169,7 +168,7 @@ public class RunBarOnAverageStartegyCheck {
 		    	    currentBarWriter.append("Did 3:1?");
 		      	    currentBarWriter.append('\n');
 			      
-		      	  GeneralBarStrategy barStrategy = new BarOnAverageStrategy();
+		      	  GeneralBarStrategy barStrategy = null;//new BarOnAverageStrategy();
 			      double pinbarIndex = 0, successfullPinbarsDidOneToOne = 0, successfullPinbarsDidTwoToOne = 0, successfullPinbarsDidThreeToOne = 0;
 			      for (JapaneseCandleBar temp : datalist) {
 			    	  if (barStrategy.isStrategyPattern(temp, candleBars, index, (fileName.contains("JPY")) ? 0.01 : 0.0001)) {

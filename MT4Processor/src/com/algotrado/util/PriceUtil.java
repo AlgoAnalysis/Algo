@@ -2,7 +2,7 @@ package com.algotrado.util;
 
 import java.util.List;
 
-import com.algotrado.mt4.impl.JapaneseCandleBar;
+import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 
 public class PriceUtil {
 

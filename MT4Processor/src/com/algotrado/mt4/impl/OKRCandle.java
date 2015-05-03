@@ -1,5 +1,7 @@
 package com.algotrado.mt4.impl;
 
+import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
+
 public class OKRCandle extends Candle {
 	public static boolean isBullishBar(JapaneseCandleBar japaneseCandleBar, JapaneseCandleBar prevJapaneseCandleBar, double pipsValue) {
 		return (japaneseCandleBar.getHigh() > prevJapaneseCandleBar.getHigh() + pipsValue && japaneseCandleBar.getLow() < prevJapaneseCandleBar.getLow() - pipsValue &&

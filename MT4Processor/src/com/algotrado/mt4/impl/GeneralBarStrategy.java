@@ -1,5 +1,7 @@
 package com.algotrado.mt4.impl;
 
+import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
+
 public abstract class GeneralBarStrategy {
 	
 	public abstract boolean isStrategyPattern(JapaneseCandleBar japaneseCandleBar, JapaneseCandleBar[] previousCandles, int index, double pipsValue);
@@ -28,7 +30,7 @@ public abstract class GeneralBarStrategy {
 				break; //we reached stop loss.
 			}
 		}
-		double multiplierOfPips = japaneseCandleBar.getCommodityName().contains("JPY")? (double)100: (double)10000;
+		double multiplierOfPips = japaneseCandleBar.getAssetName().contains("JPY")? (double)100: (double)10000;
 		return Math.abs(highestPrice - japaneseCandleBar.getHigh()) * (double)multiplierOfPips;
 	}
 
@@ -42,7 +44,7 @@ public abstract class GeneralBarStrategy {
 				break; //we reached stop loss.
 			}
 		}
-		double multiplierOfPips = japaneseCandleBar.getCommodityName().contains("JPY")? (double)100: (double)10000;
+		double multiplierOfPips = japaneseCandleBar.getAssetName().contains("JPY")? (double)100: (double)10000;
 		return Math.abs(lowestPrice - japaneseCandleBar.getLow()) * (double)multiplierOfPips;
 	}
 	
@@ -56,7 +58,7 @@ public abstract class GeneralBarStrategy {
 	
 	public boolean didBullishPinbarGetActivated(JapaneseCandleBar[] previousCandles, int index, int numOfCandlesToActivate) {
 		int i = 1;
-		double pips = previousCandles[0].getCommodityName().contains("JPY") ? 0.01 : 0.0001;
+		double pips = previousCandles[0].getAssetName().contains("JPY") ? 0.01 : 0.0001;
 		while (i + index < previousCandles.length) {
 			if ((previousCandles[index].getHigh() + pips) < previousCandles[i + index].getHigh() && (numOfCandlesToActivate < 0 || i <= numOfCandlesToActivate)) {
 				return true;
@@ -70,7 +72,7 @@ public abstract class GeneralBarStrategy {
 	
 	public boolean didBearishPinbarGetActivated(JapaneseCandleBar[] previousCandles, int index, int numOfCandlesToActivate) {
 		int i = 1;
-		double pips = previousCandles[0].getCommodityName().contains("JPY") ? 0.01 : 0.0001;
+		double pips = previousCandles[0].getAssetName().contains("JPY") ? 0.01 : 0.0001;
 		while (i + index < previousCandles.length) {
 			if ((previousCandles[index].getLow() - pips) > previousCandles[i + index].getLow() && (numOfCandlesToActivate < 0 || i <= numOfCandlesToActivate)) {
 				return true;
@@ -141,7 +143,7 @@ public abstract class GeneralBarStrategy {
 			}
 			
 		}
-		double multiplierOfPips = japaneseCandleBar.getCommodityName().contains("JPY")? (double)100: (double)10000;
+		double multiplierOfPips = japaneseCandleBar.getAssetName().contains("JPY")? (double)100: (double)10000;
 		if (indexOfHighest >= indexOfNewLowest) return (japaneseCandleBar.getHigh() - newLowestCorrection)* (double)multiplierOfPips;
 		
 		return (japaneseCandleBar.getHigh() - lowestCorrection) * (double)multiplierOfPips;
@@ -176,7 +178,7 @@ public abstract class GeneralBarStrategy {
 			}
 			
 		}
-		double multiplierOfPips = japaneseCandleBar.getCommodityName().contains("JPY")? (double)100: (double)10000;		
+		double multiplierOfPips = japaneseCandleBar.getAssetName().contains("JPY")? (double)100: (double)10000;		
 		if (indexOfLowest >= indexOfNewHighest) return (newHighestCorrection - japaneseCandleBar.getLow())* (double)multiplierOfPips;
 		return (highestCorrection - japaneseCandleBar.getLow()) * (double)multiplierOfPips;
 	}

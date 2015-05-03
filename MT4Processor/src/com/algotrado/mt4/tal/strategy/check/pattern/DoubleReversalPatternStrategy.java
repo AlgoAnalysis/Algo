@@ -14,7 +14,6 @@ import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 
 import com.algotrado.mt4.impl.Pattern;
-import com.algotrado.mt4.tal.patterns.range.RangePattern;
 import com.algotrado.mt4.tal.strategy.Strategy;
 
 public class DoubleReversalPatternStrategy extends Strategy {

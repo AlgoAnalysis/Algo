@@ -3,9 +3,11 @@ package com.algotrado.mt4.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
+
 public class StandartTimeframe {
 
-	public static String getTimeFrame(AbstractCandleBar[] candles) {
+	public static String getTimeFrame(JapaneseCandleBar[] candles) {
 		long fiveMinutes = 60 * 5 * 1000;
 		long fifteenMinutes = 3 * fiveMinutes;
 		long oneHour = 4 * fifteenMinutes;
