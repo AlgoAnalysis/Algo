@@ -129,33 +129,36 @@ public class EntryStrategyManager {
 	@Override
 	public String toString() {
 		String valString = "";
-		EntryStrategyStateAndTime strategyFinalState = null;
 		Integer numOfStates = firstState.getNumberOfStates();
+		boolean firstLine = true;
 		for(EntryStrategyStateAndTime state : stateArr)
 		{
 			if((state.getState().getStatus() == EntryStrategyStateStatus.TRIGGER_BEARISH) ||
 				(state.getState().getStatus() == EntryStrategyStateStatus.TRIGGER_BULLISH))
 			{
-				strategyFinalState = state;
-				break;
-			}
-		}
-		if(strategyFinalState != null)
-		{
-			valString = Setting.getDateTimeFormat(strategyFinalState.getTimeList().get(0)) + ",";
-			for(Integer cnt = 1;cnt <= numOfStates.intValue();cnt++)
-			{
-				valString += Setting.getDateTimeFormat(strategyFinalState.getTimeList().get(cnt)) + ",";
+				if(!firstLine)
+				{
+					valString += "\n";
+				}
+				else
+				{
+					firstLine = false;
+				}
+				for(Integer cnt = 0;cnt <= numOfStates.intValue();cnt++)
+				{
+					valString += Setting.getDateTimeFormat(state.getTimeList().get(cnt)) + ",";
+				}
+				
+				if (state.getState().getStatus() == EntryStrategyStateStatus.TRIGGER_BEARISH) {
+					valString += "Short,";
+				} else {
+					valString += "Long,";
+				}
+				
+				valString += ((IEntryStrategyLastState)state.getState()).getBuyOrderPrice() + ",";
+				valString += ((IEntryStrategyLastState)state.getState()).getStopLossPrice() + ",";
 			}
 			
-			if (strategyFinalState.getState().getStatus() == EntryStrategyStateStatus.TRIGGER_BEARISH) {
-				valString += "Short,";
-			} else {
-				valString += "Long,";
-			}
-			
-			valString += ((IEntryStrategyLastState)strategyFinalState.getState()).getBuyOrderPrice() + ",";
-			valString += ((IEntryStrategyLastState)strategyFinalState.getState()).getStopLossPrice() + ",";
 		}
 		return valString;
 	}

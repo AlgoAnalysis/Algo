@@ -23,7 +23,7 @@ import com.algotrado.output.file.FileDataRecorder;
 import com.algotrado.output.file.IGUIController;
 import com.algotrado.pattern.IPatternState;
 import com.algotrado.pattern.PatternManager;
-import com.algotrado.pattern.PTN_0003.PTN_0003_S1;
+import com.algotrado.pattern.PTN_0001.PTN_0001_S1;
 
 public class InternalEntryStrategyTest  extends IDataExtractorSubject implements IGUIController , IDataExtractorObserver, Runnable {
 
@@ -48,7 +48,7 @@ public class InternalEntryStrategyTest  extends IDataExtractorSubject implements
 		timeMili = System.currentTimeMillis();
 		
 		////////change hare ///////////////////
-		IPatternState state = new PTN_0003_S1(1); // Pattern code, after changing press Ctrl+shift+o
+		IPatternState state = new PTN_0001_S1(1); // Pattern code, after changing press Ctrl+shift+o
 		EntryStrategyTriggerType entryStrategyTriggerType = EntryStrategyTriggerType.BUYING_CLOSE_PRICE;
 		// parameters 
 		JapaneseTimeFrameType japaneseTimeFrameType = JapaneseTimeFrameType.FIVE_MINUTE;
@@ -101,11 +101,13 @@ public class InternalEntryStrategyTest  extends IDataExtractorSubject implements
 		
 		if (dataEventType == DataEventType.JAPANESE) {
 			japaneseCandle = ((JapaneseCandleBar)this.dataExtractorSubject.getNewData());
+			subjectState = dataExtractorSubject.getSubjectState();
 		} else if (dataEventType == DataEventType.RSI) {
 			rsi = (SimpleUpdateData)this.rsiDataExtractorSubject.getNewData();
 		}
 		
 		if (japaneseCandle != null  && rsi != null) {
+			
 			newUpdateData = new NewUpdateData[2];
 			newUpdateData[0] = japaneseCandle;
 			newUpdateData[1] = rsi;
@@ -117,7 +119,12 @@ public class InternalEntryStrategyTest  extends IDataExtractorSubject implements
 			}
 			rsi = null;
 			japaneseCandle = null;
+			if( subjectState == SubjectState.END_OF_LIFE)
+			{
+				notifyObservers(assetType, dataEventType, parameters);
+			}
 		}
+
 	}
 
 	@Override
