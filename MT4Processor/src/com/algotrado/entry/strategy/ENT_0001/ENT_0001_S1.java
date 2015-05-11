@@ -52,6 +52,9 @@ public class ENT_0001_S1 extends ENT_0001_MAIN implements IEntryStrategyFirstSta
 						maxPatternHigh = (((JapaneseCandleBar)newData[0]).getHigh() > prevHigh) ? ((JapaneseCandleBar)newData[0]).getHigh() : prevHigh;
 						minPatternLow = (((JapaneseCandleBar)newData[0]).getLow() < prevLow) ? ((JapaneseCandleBar)newData[0]).getLow() : prevLow;
 						prevRSI = ((SimpleUpdateData)newData[1]);
+						if (maxPatternHigh == minPatternLow) { // pattern size is 0. this is not a real pattern.
+							status = EntryStrategyStateStatus.RUN;
+						}
 					} else if (patternDataObject.getPatternManagerStatus() == PatternManagerStatus.ERROR) {
 						status = EntryStrategyStateStatus.ERROR;
 						throw new RuntimeException	("Error Occoured in Pattern Manager."); // TODO 

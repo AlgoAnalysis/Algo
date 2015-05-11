@@ -1,5 +1,7 @@
 package com.algotrado.exit.strategy;
 
+import com.algotrado.trade.PositionDirectionType;
+
 public class ExitStrategyDataObject {
 
 	private IExitStrategy exit;
@@ -8,21 +10,23 @@ public class ExitStrategyDataObject {
 	private Double closingPrice;
 	private Double exitStrategyEntryPoint;
 	private boolean isLong;
+	private double contractAmount;
 	
 	public ExitStrategyDataObject(IExitStrategy exit,
-			double percentToCloseOnTrigger, Double statistics) {
+			double percentToCloseOnTrigger, Double statistics, double contractAmount) {
 		super();
 		this.exit = exit;
 		this.fractionToCloseOnTrigger = percentToCloseOnTrigger;
 		this.statistics = statistics;
 		this.closingPrice = null;
+		this.contractAmount = contractAmount;
 		initExitStrategyObj();
 	}
 
 	public void initExitStrategyObj() {
 		if (this.exit != null) {
 			exitStrategyEntryPoint = this.exit.getNewEntryPoint();
-			isLong = this.exit.getNewEntryPoint() > this.exit.getNewStopLoss();
+			isLong = this.exit.getExitDirection() == PositionDirectionType.LONG;
 		}
 	}
 
@@ -52,10 +56,14 @@ public class ExitStrategyDataObject {
 	}
 	
 	public double getGain(double quantity) {
-		return (quantity * fractionToCloseOnTrigger) * (isLong ? (closingPrice - exitStrategyEntryPoint) : (exitStrategyEntryPoint - closingPrice));
+		return contractAmount * (quantity * fractionToCloseOnTrigger) * (isLong ? (closingPrice - exitStrategyEntryPoint) : (exitStrategyEntryPoint - closingPrice));
 	}
 
 	public boolean isLong() {
 		return isLong;
+	}
+
+	public double getContractAmount() {
+		return contractAmount;
 	}
 }

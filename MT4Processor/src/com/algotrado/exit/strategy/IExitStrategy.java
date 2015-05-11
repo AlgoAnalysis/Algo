@@ -1,6 +1,7 @@
 package com.algotrado.exit.strategy;
 
 import com.algotrado.data.event.NewUpdateData;
+import com.algotrado.trade.PositionDirectionType;
 
 public interface IExitStrategy {
 
@@ -23,4 +24,9 @@ public interface IExitStrategy {
 	public void setCurrBrokerSpread(double currBrokerSpread);
 	
 	public String getDataHeaders();
+	
+	
+	public double getCurrStopLoss();
+	
+	public PositionDirectionType getExitDirection();
 }

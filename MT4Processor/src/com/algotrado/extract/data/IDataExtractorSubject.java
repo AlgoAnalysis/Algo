@@ -3,7 +3,7 @@ package com.algotrado.extract.data;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.swing.SwingUtilities;
 
@@ -42,7 +42,7 @@ public abstract class IDataExtractorSubject implements Comparable<IDataExtractor
 				throw new RuntimeException("DataExtractorSubject data input not valid");
 			}
 		}
-		this.observers = new ConcurrentSkipListSet<IDataExtractorObserver>();
+		this.observers = new ConcurrentLinkedQueue<IDataExtractorObserver>();
 		this.assetType = assetType;
 		this.dataEventType = dataEventType;
 		this.parameters = parameters;
@@ -59,7 +59,7 @@ public abstract class IDataExtractorSubject implements Comparable<IDataExtractor
 		if (this.observers.isEmpty()) {
 			runNewTask = true;
 		}
-		if (!this.observers.contains(observer)) {
+		if (!findElementInCollection(this.observers,observer)) {
 			this.observers.add(observer);
 			observer.setSubject(this);
 		}
@@ -68,6 +68,17 @@ public abstract class IDataExtractorSubject implements Comparable<IDataExtractor
 //			new Thread(this).run();
 		}
 		return this;
+	}
+	
+	public boolean findElementInCollection(Collection<IDataExtractorObserver> collection, IDataExtractorObserver observer) {
+
+	    for (IDataExtractorObserver singleObserver : this.observers) {
+	    	if (observer.equals(singleObserver)) {
+	    		return true;
+	    	}
+	    }
+	            
+	    return false;
 	}
 	
 	/**

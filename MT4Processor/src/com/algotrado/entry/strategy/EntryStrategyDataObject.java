@@ -8,10 +8,10 @@ public class EntryStrategyDataObject {
 
 	private Double statistics;
 	private List<Date> entryDates;
-	private EntryStrategyManagerStatus entryStrategyManagerStatus;
+	private EntryStrategyStateStatus entryStrategyManagerStatus;
 	private String entryDataHeaders;
 	
-	public EntryStrategyDataObject(List<Date> entryDates, Double statistics, EntryStrategyManagerStatus entryStrategyManagerStatus,
+	public EntryStrategyDataObject(List<Date> entryDates, Double statistics, EntryStrategyStateStatus entryStrategyManagerStatus,
 			String entryDataHeaders) {
 		super();
 		this.entryDates = entryDates;
@@ -28,7 +28,7 @@ public class EntryStrategyDataObject {
 		return statistics;
 	}
 	
-	public EntryStrategyManagerStatus getStatus() {
+	public EntryStrategyStateStatus getStatus() {
 		return entryStrategyManagerStatus;
 	}
 	

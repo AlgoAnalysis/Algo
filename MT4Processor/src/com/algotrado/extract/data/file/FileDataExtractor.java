@@ -53,7 +53,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 	private int recordDataIndex;
 	private double minimumContractAmountMultiply = 1; // TODO
 	private double contractAmount = 500; //TODO  
-	private double spread = 0.05; // TODO
+	private double spread = 0; // TODO : This fix was made to fit tal excel results.
 	private List<FileTrade> assetTradeList;
 	
 	
@@ -127,7 +127,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 	
 	public static void resetAccount()
 	{
-		fileAccount = new FileAccount(1E6,100,100,30);
+		fileAccount = new FileAccount(1E9,100,100,30);
 		nextPositionId = 1;
 		tradeList = new HashMap<Integer,FileTrade>();
 		for(FileDataExtractor fileDataExtractor :fileDataExtractorList.values())
@@ -180,7 +180,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 		fileDataExtractor.assetTradeList.add(fileTrade);
 		tradeList.put(nextPositionId, fileTrade);
 		nextPositionId++;
-		return -1;
+		return nextPositionId - 1;
 	}
 	
 	public static double getLiveSpread(AssetType asset) {

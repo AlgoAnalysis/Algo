@@ -1,6 +1,7 @@
 package com.algotrado.trade;
 
 import com.algotrado.extract.data.IDataExtractorObserver;
+import com.algotrado.extract.data.SubjectState;
 
 public abstract class TradeManager implements IDataExtractorObserver {
 
@@ -24,6 +25,10 @@ public abstract class TradeManager implements IDataExtractorObserver {
 		return "Requires implementation " + this.getClass() + " line 24";
 	}
 	
+	public abstract SubjectState getSubjectState();
+	
+	public abstract boolean isClosedTrade();
+	
 	// money manager => 1 method to update money manager that trade was closed.
 	
 	// Reports trade + exit
@@ -38,5 +43,14 @@ public abstract class TradeManager implements IDataExtractorObserver {
 	// file broker => closePosition(positionId, amountToClose)
 	// file broker => getPositionStatus(positionId) => identify cases in which broker has closed order position in SL.
 	// file broker => modifyPosition(positionId, newStopLoss)
+	
+	public int compareTo(IDataExtractorObserver o) {
+		if (o == null) {
+			return 1;
+		} else if (o == this) {
+			return 0;
+		}
+		return -1;
+	}
 	
 }

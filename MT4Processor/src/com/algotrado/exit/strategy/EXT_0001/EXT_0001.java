@@ -7,6 +7,7 @@ import com.algotrado.entry.strategy.IEntryStrategyLastState;
 import com.algotrado.entry.strategy.IEntryStrategyState;
 import com.algotrado.exit.strategy.ExitStrategyStatus;
 import com.algotrado.exit.strategy.IExitStrategy;
+import com.algotrado.trade.PositionDirectionType;
 
 public class EXT_0001 implements IExitStrategy {
 	private IEntryStrategyLastState entryLastState;
@@ -22,13 +23,16 @@ public class EXT_0001 implements IExitStrategy {
 	private double exitStrategyEntryPoint;
 	private double fractionOfOriginalStopLoss;
 	
-	
+	public EXT_0001(double bottomSpread, double topSpread) {
+		this.bottomSpread = bottomSpread;
+		this.topSpread = topSpread;
+	}
 
 	public EXT_0001(IEntryStrategyLastState entryLastState, double fractionOfOriginalStopLoss, 
 			double bottomSpread, double topSpread, double currBrokerSpread, double currPrice) {
 		super();
 		this.entryLastState = entryLastState;
-		this.currStopLoss = entryLastState.getStopLossPrice();
+		this.entryStopLoss = entryLastState.getStopLossPrice();
 		this.exitStrategyStatus = ExitStrategyStatus.RUN;
 //		this.isLongDirection = false;
 //		this.isShortDirection = false;
@@ -125,10 +129,14 @@ public class EXT_0001 implements IExitStrategy {
 	public void setNewStopLoss(double stopLoss) {
 		this.currStopLoss = stopLoss;
 	}
+	
+	public double getCurrStopLoss() {
+		return currStopLoss;
+	}
 
 	@Override
 	public String getDataHeaders() {
-		return "\n Top part margin = " + topSpread + ", Bottom part margin = " + bottomSpread /*+ ", entry strategy S.L. = " 
+		return "\n Top part margin = " + topSpread + ", Bottom part margin = " + bottomSpread + "\n"/*+ ", entry strategy S.L. = " 
 			+ entryStopLoss + ", Entry Strategy Entry point = " + entryStrategyEntryPoint + 
 			", exit Strategy entry point = " + exitStrategyEntryPoint*/;
 	}
@@ -136,6 +144,11 @@ public class EXT_0001 implements IExitStrategy {
 	@Override
 	public double getNewEntryPoint() {
 		return exitStrategyEntryPoint;
+	}
+	
+	@Override
+	public PositionDirectionType getExitDirection() {
+		return isLongDirection ? PositionDirectionType.LONG : PositionDirectionType.SHORT;
 	}
 
 }

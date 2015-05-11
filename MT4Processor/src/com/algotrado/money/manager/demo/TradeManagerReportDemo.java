@@ -1,6 +1,7 @@
 package com.algotrado.money.manager.demo;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.SwingUtilities;
@@ -31,7 +32,7 @@ import com.algotrado.output.file.FileDataRecorder;
 import com.algotrado.output.file.IGUIController;
 import com.algotrado.pattern.IPatternState;
 import com.algotrado.pattern.PatternManager;
-import com.algotrado.pattern.PTN_0003.PTN_0003_S1;
+import com.algotrado.pattern.PTN_0001.PTN_0001_S1;
 import com.algotrado.trade.PositionOrderStatusType;
 import com.algotrado.trade.PositionStatus;
 import com.algotrado.trade.TradeManager;
@@ -52,6 +53,15 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 	private SubjectState subjectState;
 	private long timeMili;
 	
+	private double xFactor;
+	private double fractionOfOriginalStopLoss;
+	double topSpread;
+	double bottomSpread;
+	double exit0001CloseOnTrigger;
+	double exit0007CloseOnTrigger;
+	
+	private static int numOfTrades = 0;
+	
 	private IBroker broker;
 	
 	private List<TradeManager> tradeManagers;
@@ -63,8 +73,8 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 		timeMili = System.currentTimeMillis();
 		
 		////////change here ///////////////////
-		IPatternState state = new PTN_0003_S1(1); // Pattern code, after changing press Ctrl+shift+o
-		EntryStrategyTriggerType entryStrategyTriggerType = EntryStrategyTriggerType.BUYING_CLOSE_PRICE;
+		IPatternState state = new PTN_0001_S1(1); // Pattern code, after changing press Ctrl+shift+o
+		EntryStrategyTriggerType entryStrategyTriggerType = EntryStrategyTriggerType.BUYING_BREAK_PRICE;
 		// parameters 
 		JapaneseTimeFrameType japaneseTimeFrameType = JapaneseTimeFrameType.FIVE_MINUTE;
 		// RSI parameters
@@ -72,7 +82,19 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 		rsiLength = 7;
 		rsiHistoryLength = 0;
 		int rsiType = 1; // 1 (SMA) or 2 (EMA)
-		String filePath = "C:\\Algo\\test\\" + state.getCode() +"_"+ entryStrategyTriggerType.toString()+"_EntryStrategy.csv";
+		String filePath = "C:\\Algo\\test\\" + state.getCode() + "_" + entryStrategyTriggerType.toString() +"_Trade.csv";
+		
+//		AssetType assetType = AssetType.USOIL;
+		this.xFactor = 2;//for the 1:x exit strategy.
+		this.fractionOfOriginalStopLoss = 0.1;// for the 1:1 exit strategy.
+		this.topSpread = Setting.getUsOilTopSpread();
+		this.bottomSpread = Setting.getUsOilBottomSpread();
+		this.exit0001CloseOnTrigger = 0.5;
+		this.exit0007CloseOnTrigger = 1;
+		// end of change values
+		
+		this.broker = dataSource;
+		
 		//////////////////////////////////////////////////////
 
 		patternManagers = new ArrayList<PatternManager>();
@@ -94,7 +116,7 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 		
 		dataRecorder = new FileDataRecorder(filePath, this);
 //		dataRecorder.setSubject(this);
-		this.registerObserver(dataRecorder);
+		
 		
 		subjectState = SubjectState.RUNNING;
 		// and link the to report builder.
@@ -111,7 +133,20 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 	@Override
 	public void updatePositionStatus(PositionStatus positionStatus) {
 		// notify data recorder of closed positions.
-		if (positionStatus.getPositionStatus() == PositionOrderStatusType.CLOSED) {
+		boolean isEndOfLife = false;
+		if (positionStatus.getPositionStatus() != PositionOrderStatusType.CLOSED) {
+			for (TradeManager tradeManager : tradeManagers) {
+				if (tradeManager.getSubjectState() == SubjectState.END_OF_LIFE) {
+					isEndOfLife = true;
+					break;
+				}
+			}
+		}
+		
+		if (positionStatus.getPositionStatus() == PositionOrderStatusType.CLOSED || isEndOfLife) {
+			if (isEndOfLife) {
+				subjectState = SubjectState.END_OF_LIFE;
+			}
 			notifyObservers(assetType, dataEventType, rsiParameters);
 		}
 	}
@@ -124,41 +159,50 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 				// create new trade for each entry, for reports only.
 				IEntryStrategyLastState lastState = (IEntryStrategyLastState)entryStrategyStateAndTime.getState();
 				
-				// Change values here.
-				AssetType assetType = AssetType.USOIL;
-				int currTradeQuantity = 2;
-				double xFactor = 2;//for the 1:x exit strategy.
-				double fractionOfOriginalStopLoss = 0.1;// for the 1:1 exit strategy.
-				double topSpread = Setting.getUsOilTopSpread();
-				double bottomSpread = Setting.getUsOilBottomSpread();
-				double exit0001CloseOnTrigger = 0.5;
-				double exit0007CloseOnTrigger = 0.5;
-				// end of change values
 				
+				
+				double contractAmount = broker.getContractAmount(assetType);
 				// give each trade the data needed for the trade.
 				ExitStrategyDataObject [] exitStrategiesList = new ExitStrategyDataObject[2];
 				EXT_0001 ext0001 = new EXT_0001(lastState, fractionOfOriginalStopLoss, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType));
-				exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0001, exit0001CloseOnTrigger, null);
+				exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0001, exit0001CloseOnTrigger, null, contractAmount);
 				EXT_0007 ext0007 = new EXT_0007(lastState, xFactor, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType));
-				exitStrategiesList[EXIT_0007] = new ExitStrategyDataObject(ext0007, exit0007CloseOnTrigger, null);
+				exitStrategiesList[EXIT_0007] = new ExitStrategyDataObject(ext0007, exit0007CloseOnTrigger, null, contractAmount);
+				// contract amount = 500
+				// account = 1000000
+				// min move 1 cent = 5$
+				// 1% of account = 10000 = [num of cents = (entry - stop)] * [contract amount] * [num of contracts]
+				int currTradeQuantity = (int)( ( (broker.getAccountStatus().getBalance()/100) / 
+											((Math.abs(ext0001.getNewEntryPoint() - ext0001.getCurrStopLoss()) * contractAmount) *
+													broker.getMinimumContractAmountMultiply(assetType) ) ) / 1000);
 				
-				EntryStrategyDataObject entryStrategyDataObject = new EntryStrategyDataObject(entryStrategyStateAndTime.getTimeList(), null, entryStrategyManager.getStatus(), entryStrategyManager.getDataHeaders());
+				
+				
+				EntryStrategyDataObject entryStrategyDataObject = new EntryStrategyDataObject(entryStrategyStateAndTime.getTimeList(), null, entryStrategyStateAndTime.getState().getStatus(), entryStrategyManager.getDataHeaders());
 				TRD_0001 currTrade = new TRD_0001(entryStrategyDataObject, exitStrategiesList, this , xFactor , assetType, fractionOfOriginalStopLoss, currTradeQuantity);
 				this.tradeManagers.add(currTrade);
 				
 				currTrade.setBroker(broker);
-				currTrade.startTrade();
+				boolean openedTrade = currTrade.startTrade();
 				
-				/**
-				 * Register to RSI.
-				 */
-				RegisterDataExtractor.register(dataSource, assetType, DataEventType.RSI, rsiParameters,rsiHistoryLength, currTrade);	
-				/**
-				 * Register to Japanese candles.
-				 */
-				RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters,0, currTrade);
+				if (openedTrade) {
+					/**
+					 * Register to RSI.
+					 */
+					RegisterDataExtractor.register(dataSource, assetType, DataEventType.RSI, rsiParameters,rsiHistoryLength, currTrade);	
+					/**
+					 * Register to Japanese candles.
+					 */
+					RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters,0, currTrade);
+					
+					RegisterDataExtractor.register(dataSource, assetType, DataEventType.NEW_QUOTE, new ArrayList<Double>(),rsiHistoryLength, currTrade);
 				
-				RegisterDataExtractor.register(dataSource, assetType, DataEventType.NEW_QUOTE, rsiParameters,rsiHistoryLength, currTrade);
+				} else {
+					this.tradeManagers.remove(currTrade);
+				}
+			} else if (entryStrategyManager.getSubjectState() == SubjectState.END_OF_LIFE) {
+				subjectState = SubjectState.END_OF_LIFE;
+				notifyObservers(assetType, dataEventType, parameters);
 			}
 		}
 
@@ -175,6 +219,8 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 		 * Register to Japanese candles.
 		 */
 		RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters,0, entryStrategyManager);
+		
+		this.registerObserver(dataRecorder);
 		
 	}
 
@@ -226,15 +272,33 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 			cnt++;
 		}
 		String headerString = newEntryStrategyDataHeaders;
-		headerString += tradeManagers.get(0).getDataHeaders();
+		double contractAmount = broker.getContractAmount(assetType);
+		ExitStrategyDataObject [] exitStrategiesList = new ExitStrategyDataObject[2];
+		EXT_0001 ext0001 = new EXT_0001(bottomSpread, topSpread);
+		exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0001, exit0001CloseOnTrigger, null, contractAmount);
+		EXT_0007 ext0007 = new EXT_0007(bottomSpread, topSpread);
+		exitStrategiesList[EXIT_0007] = new ExitStrategyDataObject(ext0007, exit0007CloseOnTrigger, null, contractAmount);
+		
+		TRD_0001 currTrade = new TRD_0001(entryStrategyManager.getDataHeaders(), this.xFactor, this.fractionOfOriginalStopLoss, exitStrategiesList);
+		headerString += currTrade.getDataHeaders();
 		
 		return headerString;
 	}
 	
 	public String toString() {
 		String toString = "";
-		for (TradeManager tradeManager : tradeManagers) {
-			toString += tradeManager.toString();
+		
+		for (Iterator<TradeManager> iterator = tradeManagers.iterator(); iterator.hasNext();) {
+			TradeManager tradeManager =  iterator.next();
+			if (tradeManager.isClosedTrade() || tradeManager.getSubjectState() == SubjectState.END_OF_LIFE) {
+				
+				toString += ((TRD_0001)tradeManager).getPositionId() + "," + tradeManager.toString() + "\n";
+//				tradeManager.unregisterObserver(dataSource, dataEventType, parameters, rsiParameters);
+				iterator.remove();
+			}
+		}
+		if (toString.endsWith("\n")) {
+			toString = toString.substring(0, toString.lastIndexOf('\n'));
 		}
 		return toString;
 	}

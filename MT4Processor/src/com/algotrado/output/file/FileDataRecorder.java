@@ -13,7 +13,7 @@ import com.algotrado.extract.data.IDataExtractorObserver;
 import com.algotrado.extract.data.IDataExtractorSubject;
 import com.algotrado.extract.data.SubjectState;
 
-public class FileDataRecorder implements IDataExtractorObserver, Comparable<FileDataRecorder> {
+public class FileDataRecorder implements IDataExtractorObserver {
 	private final int chuckSizeToWrite = 1<<9;
 	private String saveFilePath;
 	private IDataExtractorSubject dataExtractorSubject;
@@ -113,36 +113,12 @@ public class FileDataRecorder implements IDataExtractorObserver, Comparable<File
 	}
 
 //	@Override
-//	public void run() {
-//		RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters, this);
-//	}
-
-	@Override
-	public int compareTo(FileDataRecorder o) {
+	public int compareTo(IDataExtractorObserver o) {
 		if (o == null) {
 			return 1;
 		} else if (o == this) {
 			return 0;
-		} /*else {
-			if (o.saveFilePath.equals(this.saveFilePath) && o.assetType == this.assetType && o.dataEventType == this.dataEventType) {
-				if (o.parameters != null && this.parameters != null) {
-					if (o.parameters.size() != this.parameters.size()) {
-						return this.parameters.size() - o.parameters.size();
-					}
-					Iterator<Double> fileDataRecorderIterator = this.parameters.iterator();
-					for (Iterator<Double> oIterator = o.parameters.iterator(); oIterator.hasNext() && fileDataRecorderIterator.hasNext();) {
-						Double oParam = oIterator.next();
-						Double fileDataRecorderParam = fileDataRecorderIterator.next();
-						if (oParam != fileDataRecorderParam) {
-							return new Double(fileDataRecorderParam - oParam).intValue();
-						}
-						
-					}
-				} else if (o.parameters == null) {
-					return 1;
-				}
-			}
-		}*/
+		}
 		return -1;
 	}
 
