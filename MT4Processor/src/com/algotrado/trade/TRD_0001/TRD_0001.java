@@ -13,6 +13,9 @@ import com.algotrado.entry.strategy.EntryStrategyDataObject;
 import com.algotrado.entry.strategy.EntryStrategyStateStatus;
 import com.algotrado.exit.strategy.ExitStrategyDataObject;
 import com.algotrado.exit.strategy.ExitStrategyStatus;
+import com.algotrado.exit.strategy.IExitStrategy;
+import com.algotrado.exit.strategy.EXT_0003.EXT_0003;
+import com.algotrado.exit.strategy.EXT_0007.EXT_0007;
 import com.algotrado.extract.data.AssetType;
 import com.algotrado.extract.data.IDataExtractorSubject;
 import com.algotrado.extract.data.SubjectState;
@@ -27,8 +30,6 @@ public class TRD_0001 extends TradeManager {
 	private static final String ELIMINATE = "Eliminate";
 	private static final String TRIGGER = "Trigger";
 	// Exit strategy locations.
-	private final int EXIT_0001 = 0;
-	private final int EXIT_0007 = 1;
 	
 	private static int numOfTrades = 0;
 	
@@ -36,6 +37,7 @@ public class TRD_0001 extends TradeManager {
 	private EntryStrategyDataObject entryStrategyDataObj;
 	private ExitStrategyDataObject [] exitStrategiesList;
 	private int [] exitStrategiesNumbersList = {1,7};
+	private ExitStrategyStatus [] [] exitStrategiesBehavior;
 	private IMoneyManager moneyManager;
 	private IBroker broker;
 	private AssetType assetType;
@@ -77,7 +79,7 @@ public class TRD_0001 extends TradeManager {
 	
 	public TRD_0001(EntryStrategyDataObject entryStrategyDataObj,ExitStrategyDataObject [] exitStrategiesList,
 			IMoneyManager moneyManager, double xFactor, AssetType assetType, 
-			double fractionOfOriginalSLExit0001, double quantity) {
+			double fractionOfOriginalSLExit0001, double quantity, ExitStrategyStatus [] [] exitStrategiesBehavior) {
 		super();
 		this.entryStrategyDataObj = entryStrategyDataObj;
 		this.exitStrategiesList = exitStrategiesList;
@@ -90,6 +92,7 @@ public class TRD_0001 extends TradeManager {
 		this.assetType = assetType;
 		tradeStateTimeList = new ArrayList<TRD_0001.TradeStateAndTime>();
 		this.subjectState = SubjectState.RUNNING;
+		this.exitStrategiesBehavior = exitStrategiesBehavior;
 	}
 	
 	public TRD_0001(String entryStrategyManagerDataHeaders, double xFactor, double fractionOfOriginalSLExit0001, ExitStrategyDataObject [] exitStrategiesList) {
@@ -209,13 +212,11 @@ public class TRD_0001 extends TradeManager {
 
 	private void updateExitStrategiesWithNewData(NewUpdateData[] newData, boolean beforeOpenPosition) {
 		double currBrokerSpread = broker.getLiveSpread(assetType);
-		if (this.exitStrategiesList[EXIT_0001].getExit() != null) {
-			this.exitStrategiesList[EXIT_0001].getExit().setCurrBrokerSpread(currBrokerSpread);
-			this.exitStrategiesList[EXIT_0001].getExit().setNewData(newData);
-		} 
-		if (this.exitStrategiesList[EXIT_0007].getExit() != null) {
-			this.exitStrategiesList[EXIT_0007].getExit().setCurrBrokerSpread(currBrokerSpread);
-			this.exitStrategiesList[EXIT_0007].getExit().setNewData(newData);
+		for (int i = 0; i < this.exitStrategiesList.length; i++) {
+			if (this.exitStrategiesList[i].getExit() != null) {
+				this.exitStrategiesList[i].getExit().setCurrBrokerSpread(currBrokerSpread);
+				this.exitStrategiesList[i].getExit().setNewData(newData);
+			} 
 		}
 	}
 	private void setExitStrategiesPositionAccordingToData() {
@@ -229,91 +230,74 @@ public class TRD_0001 extends TradeManager {
 			
 			forceExitAllPositions();
 		} else {
-			boolean executed = executeExit0007();
-			if (!executed) {
-				executeExit0001();
+			for (int i = EXIT_0001; i < this.exitStrategiesList.length; i++) {
+				if (this.exitStrategiesList[i].getExit() != null) {
+					this.exitStrategiesList[i].getExit().getStatus().triggerExitState(this.exitStrategiesList[i].getExit(), this);
+				}
 			}
 		}
 		
 	}
 
-	private boolean executeExit0007() {
+	public boolean executeExit(IExitStrategy exit, int indexindexOfStrategy) {
 		boolean executed = false;
-		if (this.exitStrategiesList[EXIT_0007].getExit() != null) {
-			// if there was an exit trigger call broker and exit. if there was error, update money manager.
-			// If exited successfully update money manager.
-			if (this.exitStrategiesList[EXIT_0007].getExit().getStatus() == ExitStrategyStatus.TRIGGER_AND_MOVE_STOP_LOSS || 
-					this.exitStrategiesList[EXIT_0007].getExit().getStatus() == ExitStrategyStatus.TRIGGER) {
-				closePartialPosition(EXIT_0007);
-				executed = true;
-				if (this.exitStrategiesList[EXIT_0001].getExit() == null) {
-					PositionStatus positionStatus = broker.getPositionStatus(positionId);
-					moneyManager.updatePositionStatus(positionStatus);
-				} else {
-					moveExit0001StopLoss();
-				}
-				this.exitStrategiesList[EXIT_0007].setExit(null);
+		
+		boolean updateSL = true;
+		/*
+		 * Activate all triggered exits.
+		 */
+		closePartialPosition(indexindexOfStrategy);
+		this.exitStrategiesList[indexindexOfStrategy].setExit(null);
+		for(int i = 0; i < exitStrategiesBehavior[indexindexOfStrategy].length; i++) {
+			if (this.exitStrategiesList[i].getExit() != null) {
+				this.exitStrategiesList[i].getExit().setStatus(exitStrategiesBehavior[indexindexOfStrategy][i]);
+				this.exitStrategiesList[i].getExit().getStatus().triggerExitState(this.exitStrategiesList[i].getExit(), this);
+				updateSL = false;
 			}
 		}
+		executed = true;
+
+		if (updateSL) {
+			PositionStatus positionStatus = broker.getPositionStatus(positionId);
+			moneyManager.updatePositionStatus(positionStatus);
+		}
+				
 		return executed;
 	}
 	
-	private void moveExit0001StopLoss() {
-		if (this.exitStrategiesList[EXIT_0001].getExit() != null) {
-			// if there was an exit trigger call broker and exit. if there was error, update money manager.
-			// If exited successfully update money manager.
-			this.exitStrategiesList[EXIT_0001].getExit().forceTrigger();
-			PositionStatus positionStatus = broker.getPositionStatus(positionId);
-			this.exitStrategiesList[EXIT_0001].setClosingPrice(positionStatus.getCurrentPosition());
-			boolean success = broker.modifyPosition(positionId, this.exitStrategiesList[EXIT_0001].getExit().getNewStopLoss(),0);
-			
-			if (!success) {
-				// Here we should think what to do if position is not closed.
-				throw new RuntimeException("Broker did not modify position, Please handle with this issue.");
-			}
-			
-			currStopLoss = this.exitStrategiesList[EXIT_0001].getExit().getCurrStopLoss();
-			
-			
-			tradeStateTimeList.get(tradeStateTimeList.size() - 1).getExits().get(EXIT_0001).setTriggerOrEliminate(TRIGGER);
-			tradeStateTimeList.get(tradeStateTimeList.size() - 1).getExits().get(EXIT_0001).setEndTime(positionStatus.getDate());
-			
-			moneyManager.updatePositionStatus(positionStatus);
-			
-			setClosedTrade();
-			
-			this.exitStrategiesList[EXIT_0001].setExit(null);
-		}
-	}
+	public boolean executeExitAndMoveSL(IExitStrategy exit, int index) {
+		// if there was an exit trigger call broker and exit. if there was error, update money manager.
+		// If exited successfully update money manager.
+		exit.forceTrigger();
+		PositionStatus positionStatus = broker.getPositionStatus(positionId);
+		this.exitStrategiesList[index].setClosingPrice(positionStatus.getCurrentPosition());
+		boolean success = broker.modifyPosition(positionId, exit.getCurrStopLoss(),0);
 
+		if (!success) {
+			// Here we should think what to do if position is not closed.
+			throw new RuntimeException("Broker did not modify position, Please handle with this issue.");
+		}
+
+		currStopLoss = exit.getCurrStopLoss();
+
+
+		tradeStateTimeList.get(tradeStateTimeList.size() - 1).getExits().get(index).setTriggerOrEliminate(TRIGGER);
+		tradeStateTimeList.get(tradeStateTimeList.size() - 1).getExits().get(index).setEndTime(positionStatus.getDate());
+
+		moneyManager.updatePositionStatus(positionStatus);
+
+		setClosedTrade();
+
+		this.exitStrategiesList[index].setExit(null);
+		
+		return true;
+	}
+	
 	public void setClosedTrade() {
 		if (quantity == 0) {
 			isClosedTrade = true;
 		} else if (quantity < 0) {
 			throw new RuntimeException("Quantity was not calculated correctly.");
-		}
-	}
-
-	private void executeExit0001() {
-		if (this.exitStrategiesList[EXIT_0001].getExit() != null) {
-			// if there was an exit trigger call broker and exit. if there was error, update money manager.
-			// If exited successfully update money manager.
-			if (this.exitStrategiesList[EXIT_0001].getExit().getStatus() == ExitStrategyStatus.TRIGGER_AND_MOVE_STOP_LOSS) {
-				closePartialPosition(EXIT_0001);
-				this.exitStrategiesList[EXIT_0001].getExit().forceTrigger();
-				boolean success = broker.modifyPosition(positionId, this.exitStrategiesList[EXIT_0001].getExit().getNewStopLoss(),0);
-				
-				if (!success) {
-					// Here we should think what to do if position is not closed.
-					throw new RuntimeException("Broker did not modify position, Please handle with this issue.");
-				}
-				
-				currStopLoss = this.exitStrategiesList[EXIT_0001].getExit().getCurrStopLoss();
-				
-				moneyManager.updatePositionStatus(broker.getPositionStatus(positionId));
-				
-				this.exitStrategiesList[EXIT_0001].setExit(null);
-			}
 		}
 	}
 

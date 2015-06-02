@@ -1,7 +1,7 @@
-package com.algotrado.exit.strategy.EXT_0007;
+package com.algotrado.exit.strategy.EXT_0003;
 
 import com.algotrado.data.event.NewUpdateData;
-import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
+import com.algotrado.data.event.SimpleUpdateData;
 import com.algotrado.entry.strategy.EntryStrategyStateStatus;
 import com.algotrado.entry.strategy.IEntryStrategyLastState;
 import com.algotrado.entry.strategy.IEntryStrategyState;
@@ -9,24 +9,31 @@ import com.algotrado.exit.strategy.ExitStrategyStatus;
 import com.algotrado.exit.strategy.IExitStrategy;
 import com.algotrado.trade.TradeManager;
 
-public class EXT_0007 extends IExitStrategy{
-	private double xFactor;
+public class EXT_0003 extends IExitStrategy {
 	
-	public EXT_0007(double bottomSpread, double topSpread) {
+	private static final int RSI_INDEX = 2;
+	private double longRsiValueForExit;
+	private double shortRsiValueForExit;
+	
+	public EXT_0003(double bottomSpread, double topSpread) {
+		super();
 		this.bottomSpread = bottomSpread;
 		this.topSpread = topSpread;
 	}
 	
-	public EXT_0007(IEntryStrategyLastState entryLastState, double xFactor, double bottomSpread, double topSpread, double currBrokerSpread, double currPrice) {
+	public EXT_0003(IEntryStrategyLastState entryLastState, double bottomSpread, 
+			double topSpread, double currBrokerSpread, double currPrice, double currRsiValue,
+			double longRsiValueForExit, double shortRsiValueForExit) {
 		super();
 		this.entryLastState = entryLastState;
 		this.entryStopLoss = entryLastState.getStopLossPrice();
 		this.exitStrategyStatus = ExitStrategyStatus.RUN;
-		this.xFactor = xFactor;
 		this.bottomSpread = bottomSpread;
 		this.topSpread = topSpread;
 		this.entryStrategyEntryPoint = entryLastState.getBuyOrderPrice();
 		this.currBrokerSpread = currBrokerSpread;
+		this.longRsiValueForExit = longRsiValueForExit;
+		this.shortRsiValueForExit = shortRsiValueForExit;
 		
 		if (((IEntryStrategyState)this.entryLastState).getStatus() == EntryStrategyStateStatus.TRIGGER_BEARISH) {
 			this.isShortDirection = true;
@@ -46,27 +53,27 @@ public class EXT_0007 extends IExitStrategy{
 		
 		if (this.exitStrategyStatus != ExitStrategyStatus.ERROR) {
 			if (isLongDirection) {
-				if (currPrice > ( ((1 + xFactor) * exitStrategyEntryPoint) - (xFactor * currStopLoss) )) {
+				if (currRsiValue >= longRsiValueForExit) {
 					this.exitStrategyStatus = ExitStrategyStatus.TRIGGER;
 				}
 			} else if (isShortDirection) {
-				if (currPrice < ( ((1 + xFactor) * exitStrategyEntryPoint) - (xFactor * currStopLoss) )) {
+				if (currRsiValue <= shortRsiValueForExit) {
 					this.exitStrategyStatus = ExitStrategyStatus.TRIGGER;
 				}
 			}
 		}
 	}
-	
+
 	@Override
 	public void setNewData(NewUpdateData[] newData) {
-		if (this.exitStrategyStatus != ExitStrategyStatus.ERROR) {
-			JapaneseCandleBar japaneseCandleBar = (JapaneseCandleBar)newData[0];
+		if (this.exitStrategyStatus != ExitStrategyStatus.ERROR && newData.length >= RSI_INDEX + 1) {
+			SimpleUpdateData simpleUpdateData = (SimpleUpdateData)newData[2];
 			if (isLongDirection) {
-				if (japaneseCandleBar.getHigh() > ( ((1 + xFactor) * exitStrategyEntryPoint) - (xFactor * currStopLoss) )) {
+				if (simpleUpdateData.getValue() >= longRsiValueForExit) {
 					this.exitStrategyStatus = ExitStrategyStatus.TRIGGER;
 				}
 			} else if (isShortDirection) {
-				if (japaneseCandleBar.getLow() < ( ((1 + xFactor) * exitStrategyEntryPoint) - (xFactor * currStopLoss) ) ) {
+				if (simpleUpdateData.getValue() <= shortRsiValueForExit) {
 					this.exitStrategyStatus = ExitStrategyStatus.TRIGGER;
 				}
 			}
@@ -77,9 +84,9 @@ public class EXT_0007 extends IExitStrategy{
 	public void forceTrigger() {
 		this.exitStrategyStatus = ExitStrategyStatus.TRIGGER;
 	}
-
+	
 	@Override
 	public int getStrategyIndex() {
-		return TradeManager.EXIT_0007;
+		return TradeManager.EXIT_0003;
 	}
 }

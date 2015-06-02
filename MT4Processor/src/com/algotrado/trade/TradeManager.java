@@ -1,9 +1,16 @@
 package com.algotrado.trade;
 
+import com.algotrado.exit.strategy.IExitStrategy;
+import com.algotrado.exit.strategy.EXT_0003.EXT_0003;
+import com.algotrado.exit.strategy.EXT_0007.EXT_0007;
 import com.algotrado.extract.data.IDataExtractorObserver;
 import com.algotrado.extract.data.SubjectState;
 
 public abstract class TradeManager implements IDataExtractorObserver {
+	
+	public final static int EXIT_0001 = 0;
+	public final static int EXIT_0003 = 0;
+	public final static int EXIT_0007 = 0;
 
 	// 1 entry manager
 	// list of exits in array
@@ -28,6 +35,13 @@ public abstract class TradeManager implements IDataExtractorObserver {
 	public abstract SubjectState getSubjectState();
 	
 	public abstract boolean isClosedTrade();
+	
+	public abstract boolean executeExit(IExitStrategy exit, int index);
+	
+	public abstract boolean executeExitAndMoveSL(IExitStrategy exit, int index);
+	
+//	public abstract boolean executeExitAndMoveSL(EXT_0003 exit);
+//	public abstract boolean executeExitAndMoveSL(EXT_0007 exit);
 	
 	// money manager => 1 method to update money manager that trade was closed.
 	

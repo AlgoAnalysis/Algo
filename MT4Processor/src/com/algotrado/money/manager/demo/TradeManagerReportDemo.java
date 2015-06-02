@@ -9,6 +9,7 @@ import javax.swing.SwingUtilities;
 import com.algotrado.broker.IBroker;
 import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.NewUpdateData;
+import com.algotrado.data.event.SimpleUpdateData;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBarPropertyType;
 import com.algotrado.data.event.basic.japanese.JapaneseTimeFrameType;
 import com.algotrado.entry.strategy.EntryStrategyDataObject;
@@ -19,7 +20,10 @@ import com.algotrado.entry.strategy.EntryStrategyTriggerType;
 import com.algotrado.entry.strategy.IEntryStrategyLastState;
 import com.algotrado.entry.strategy.ENT_0001.ENT_0001_S1;
 import com.algotrado.exit.strategy.ExitStrategyDataObject;
+import com.algotrado.exit.strategy.ExitStrategyStatus;
+import com.algotrado.exit.strategy.IExitStrategy;
 import com.algotrado.exit.strategy.EXT_0001.EXT_0001;
+import com.algotrado.exit.strategy.EXT_0003.EXT_0003;
 import com.algotrado.exit.strategy.EXT_0007.EXT_0007;
 import com.algotrado.extract.data.AssetType;
 import com.algotrado.extract.data.DataSource;
@@ -52,6 +56,8 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 	private IDataExtractorObserver dataRecorder;
 	private SubjectState subjectState;
 	private long timeMili;
+	private double rsiLongExitValue;
+	private double rsiShortExitValue;
 	
 	private double xFactor;
 	private double fractionOfOriginalStopLoss;
@@ -59,6 +65,8 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 	double bottomSpread;
 	double exit0001CloseOnTrigger;
 	double exit0007CloseOnTrigger;
+	
+	private ExitStrategyStatus [][] exitStrategiesBehavior;
 	
 	private static int numOfTrades = 0;
 	
@@ -82,18 +90,31 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 		rsiLength = 7;
 		rsiHistoryLength = 0;
 		int rsiType = 1; // 1 (SMA) or 2 (EMA)
-		String filePath = "C:\\Algo\\test\\" + state.getCode() + "_" + entryStrategyTriggerType.toString() +"_Trade.csv";
+		String filePath = "C:\\Algo\\test\\" + state.getCode() + "_" + entryStrategyTriggerType.toString() +"_Trade_Ext0003.csv";
 		
 //		AssetType assetType = AssetType.USOIL;
-		this.xFactor = 2;//for the 1:x exit strategy.
+		this.xFactor = 1.5;//for the 1:x exit strategy.
 		this.fractionOfOriginalStopLoss = 0.1;// for the 1:1 exit strategy.
 		this.topSpread = Setting.getUsOilTopSpread();
 		this.bottomSpread = Setting.getUsOilBottomSpread();
 		this.exit0001CloseOnTrigger = 0.5;
 		this.exit0007CloseOnTrigger = 1;
+		
+		this.rsiLongExitValue = 80;
+		this.rsiShortExitValue = 20;
+		
 		// end of change values
 		
 		this.broker = dataSource;
+		
+		/*this.exitStrategiesBehavior = new ExitStrategyStatus [2][2];
+		this.exitStrategiesBehavior[0][0] = ExitStrategyStatus.TRIGGER;
+		this.exitStrategiesBehavior[0][1] = ExitStrategyStatus.RUN;
+		this.exitStrategiesBehavior[1][0] = ExitStrategyStatus.TRIGGER_AND_MOVE_STOP_LOSS;
+		this.exitStrategiesBehavior[1][1] = ExitStrategyStatus.TRIGGER;*/
+		
+		this.exitStrategiesBehavior = new ExitStrategyStatus [1][1];
+		this.exitStrategiesBehavior[0][0] = ExitStrategyStatus.TRIGGER;
 		
 		//////////////////////////////////////////////////////
 
@@ -159,27 +180,33 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 				// create new trade for each entry, for reports only.
 				IEntryStrategyLastState lastState = (IEntryStrategyLastState)entryStrategyStateAndTime.getState();
 				
-				
+				double currRsiValue = -100;
+				if (entryStrategyManager.getNewUpdateData() != null && 
+						entryStrategyManager.getNewUpdateData().length > 1 && 
+						entryStrategyManager.getNewUpdateData()[1] instanceof SimpleUpdateData) {
+					currRsiValue = ((SimpleUpdateData)(entryStrategyManager.getNewUpdateData()[1])).getValue();
+				}
 				
 				double contractAmount = broker.getContractAmount(assetType);
 				// give each trade the data needed for the trade.
-				ExitStrategyDataObject [] exitStrategiesList = new ExitStrategyDataObject[2];
-				EXT_0001 ext0001 = new EXT_0001(lastState, fractionOfOriginalStopLoss, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType));
-				exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0001, exit0001CloseOnTrigger, null, contractAmount);
-				EXT_0007 ext0007 = new EXT_0007(lastState, xFactor, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType));
-				exitStrategiesList[EXIT_0007] = new ExitStrategyDataObject(ext0007, exit0007CloseOnTrigger, null, contractAmount);
+				ExitStrategyDataObject [] exitStrategiesList = new ExitStrategyDataObject[1];//new ExitStrategyDataObject[2];
+//				EXT_0001 ext0001 = new EXT_0001(lastState, fractionOfOriginalStopLoss, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType));
+//				exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0001, exit0001CloseOnTrigger, null, contractAmount);
+//				IExitStrategy ext0007 = new EXT_0007(lastState, xFactor, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType));
+				IExitStrategy ext0003 = new EXT_0003(lastState, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType), currRsiValue, rsiLongExitValue, rsiShortExitValue);
+				exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0003, exit0007CloseOnTrigger, null, contractAmount);
 				// contract amount = 500
 				// account = 1000000
 				// min move 1 cent = 5$
 				// 1% of account = 10000 = [num of cents = (entry - stop)] * [contract amount] * [num of contracts]
 				int currTradeQuantity = (int)( ( (broker.getAccountStatus().getBalance()/100) / 
-											((Math.abs(ext0001.getNewEntryPoint() - ext0001.getCurrStopLoss()) * contractAmount) *
+											((Math.abs(ext0003.getNewEntryPoint() - ext0003.getCurrStopLoss()) * contractAmount) *
 													broker.getMinimumContractAmountMultiply(assetType) ) ) / 1000);
 				
 				
 				
 				EntryStrategyDataObject entryStrategyDataObject = new EntryStrategyDataObject(entryStrategyStateAndTime.getTimeList(), null, entryStrategyStateAndTime.getState().getStatus(), entryStrategyManager.getDataHeaders());
-				TRD_0001 currTrade = new TRD_0001(entryStrategyDataObject, exitStrategiesList, this , xFactor , assetType, fractionOfOriginalStopLoss, currTradeQuantity);
+				TRD_0001 currTrade = new TRD_0001(entryStrategyDataObject, exitStrategiesList, this , xFactor , assetType, fractionOfOriginalStopLoss, currTradeQuantity, this.exitStrategiesBehavior);
 				this.tradeManagers.add(currTrade);
 				
 				currTrade.setBroker(broker);
@@ -274,9 +301,9 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 		String headerString = newEntryStrategyDataHeaders;
 		double contractAmount = broker.getContractAmount(assetType);
 		ExitStrategyDataObject [] exitStrategiesList = new ExitStrategyDataObject[2];
-		EXT_0001 ext0001 = new EXT_0001(bottomSpread, topSpread);
+		IExitStrategy ext0001 = new EXT_0001(bottomSpread, topSpread);
 		exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0001, exit0001CloseOnTrigger, null, contractAmount);
-		EXT_0007 ext0007 = new EXT_0007(bottomSpread, topSpread);
+		IExitStrategy ext0007 = new EXT_0007(bottomSpread, topSpread);
 		exitStrategiesList[EXIT_0007] = new ExitStrategyDataObject(ext0007, exit0007CloseOnTrigger, null, contractAmount);
 		
 		TRD_0001 currTrade = new TRD_0001(entryStrategyManager.getDataHeaders(), this.xFactor, this.fractionOfOriginalStopLoss, exitStrategiesList);

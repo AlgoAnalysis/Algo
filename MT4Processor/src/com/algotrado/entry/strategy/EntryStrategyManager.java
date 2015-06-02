@@ -267,4 +267,8 @@ public class EntryStrategyManager implements IDataExtractorObserver {
 	public SubjectState getSubjectState() {
 		return subjectState;
 	}
+
+	public NewUpdateData[] getNewUpdateData() {
+		return newUpdateData;
+	}
 }
