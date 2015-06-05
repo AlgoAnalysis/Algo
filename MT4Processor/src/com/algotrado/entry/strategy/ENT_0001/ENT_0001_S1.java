@@ -23,20 +23,26 @@ public class ENT_0001_S1 extends ENT_0001_MAIN implements IEntryStrategyFirstSta
 	private PatternDataObject patternDataObject;
 	private int patternCandlesCounter = 1;
 	private SimpleUpdateData prevRSI;
+	private double maxRsiLongValue;
+	private double minRsiShortValue;
+	private int maxNumOfCandlesAfterPattern;
 	
 	public ENT_0001_S1(Object[] parameters) {
+		this(parameters, (Double)parameters[2], (Double)parameters[3], ((Double)parameters[4]).intValue());
+	}
+	
+	public ENT_0001_S1(Object[] parameters, double maxRsiLongValue, double minRsiShortValue, int maxNumOfCandlesAfterPattern) {
 		super(parameters);
 		status = EntryStrategyStateStatus.WAIT_TO_START;
+		this.maxRsiLongValue = maxRsiLongValue;
+		this.minRsiShortValue = minRsiShortValue;
+		this.maxNumOfCandlesAfterPattern = maxNumOfCandlesAfterPattern;
 	}
 
 	@Override
 	public void setNewData(NewUpdateData[] newData) {
 		if(status == EntryStrategyStateStatus.WAIT_TO_START || status == EntryStrategyStateStatus.RUN)
 		{
-//			if (newData == null || newData.length <= 2) {
-//				throw new RuntimeException("newData Should get patternDataObjects to check ENT_0001_S1. Got only : " + newData);
-//			}
-			
 			status = EntryStrategyStateStatus.RUN;
 			if (prevHigh > 0 && newData.length > 2) {
 				if (newData[2] instanceof PatternDataObject) {
@@ -82,7 +88,7 @@ public class ENT_0001_S1 extends ENT_0001_MAIN implements IEntryStrategyFirstSta
 
 	@Override
 	public IEntryStrategyState getCopyPatternState() {
-		return new ENT_0001_S1(parameters);
+		return new ENT_0001_S1(parameters, this.maxRsiLongValue, this.minRsiShortValue, this.maxNumOfCandlesAfterPattern);
 	}
 
 	@Override
@@ -92,7 +98,7 @@ public class ENT_0001_S1 extends ENT_0001_MAIN implements IEntryStrategyFirstSta
 
 	@Override
 	public IEntryStrategyState getNextState() {
-		return new ENT_0001_S2(parameters, patternManagerStatus, maxPatternHigh, minPatternLow, prevRSI);
+		return new ENT_0001_S2(parameters, patternManagerStatus, maxPatternHigh, minPatternLow, prevRSI, this.maxRsiLongValue, this.minRsiShortValue, this.maxNumOfCandlesAfterPattern);
 	}
 
 	@Override

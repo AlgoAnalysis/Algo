@@ -58,6 +58,9 @@ public class InternalEntryStrategyTest  extends IDataExtractorSubject implements
 		rsiHistoryLength = 0;
 		int rsiType = 1; // 1 (SMA) or 2 (EMA)
 		String filePath = "C:\\Algo\\test\\" + state.getCode() +"_"+ entryStrategyTriggerType.toString()+"_EntryStrategy.csv";
+		double maxRsiLongValue = (double)80;
+		double minRsiShortValue = (double)20;
+		double maxNumOfCandlesAfterPattern = 5;
 		//////////////////////////////////////////////////////
 		
 		patternManagers = new ArrayList<PatternManager>();
@@ -73,6 +76,9 @@ public class InternalEntryStrategyTest  extends IDataExtractorSubject implements
 		rsiParameters.add((double)japaneseCandleBarPropertyType.ordinal());
 		rsiParameters.add((double)rsiLength);
 		rsiParameters.add((double)rsiType); // RSI type
+		entryStrategyParameters.add(maxRsiLongValue);
+		entryStrategyParameters.add(minRsiShortValue);
+		entryStrategyParameters.add(maxNumOfCandlesAfterPattern);
 		entryStrategyManager = new EntryStrategyManager(new ENT_0001_S1(entryStrategyParameters.toArray()), patternManagers, AssetType.USOIL.name());
 		
 		dataRecorder = new FileDataRecorder(filePath, this);

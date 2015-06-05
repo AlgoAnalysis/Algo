@@ -103,6 +103,10 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 		this.rsiLongExitValue = 80;
 		this.rsiShortExitValue = 20;
 		
+		double maxRsiLongValue = (double)80;
+		double minRsiShortValue = (double)20;
+		double maxNumOfCandlesAfterPattern = 5;
+		
 		// end of change values
 		
 		this.broker = dataSource;
@@ -131,6 +135,9 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 		rsiParameters.add((double)japaneseCandleBarPropertyType.ordinal());
 		rsiParameters.add((double)rsiLength);
 		rsiParameters.add((double)rsiType); // RSI type
+		entryStrategyParameters.add(maxRsiLongValue);
+		entryStrategyParameters.add(minRsiShortValue);
+		entryStrategyParameters.add(maxNumOfCandlesAfterPattern);
 		entryStrategyManager = new EntryStrategyManager(new ENT_0001_S1(entryStrategyParameters.toArray()), patternManagers, AssetType.USOIL.name());
 		entryStrategyManager.setMoneyManager(this);
 		

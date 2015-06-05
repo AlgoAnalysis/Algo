@@ -13,9 +13,9 @@ import com.algotrado.pattern.PatternManagerStatus;
 
 
 public class ENT_0001_S2 extends ENT_0001_MAIN implements IEntryStrategyLastState {
-	private static final int MAX_RSI_LONG_VALUE = 80;
-	private static final int MIN_RSI_SHORT_VALUE = 20;
-	private static final int MAX_NUM_OF_CANDLES_AFTER_PATTERN = 5;
+	private double maxRsiLongValue;
+	private double minRsiShortValue;
+	private int maxNumOfCandlesAfterPattern;
 	protected final Integer stateNumber = Integer.valueOf(2);
 	private PatternManagerStatus patternDirection = null;
 	private double patternHighLimit;
@@ -27,7 +27,8 @@ public class ENT_0001_S2 extends ENT_0001_MAIN implements IEntryStrategyLastStat
 	private EntryStrategyTriggerType entryStrategyTriggerType;
 	private SimpleUpdateData prevRSI;
 
-	public ENT_0001_S2(Object[] parameters, PatternManagerStatus patternDirection, double patternHighLimit, double patternLowLimit, SimpleUpdateData prevRSI) {
+	public ENT_0001_S2(Object[] parameters, PatternManagerStatus patternDirection, double patternHighLimit, double patternLowLimit,
+			SimpleUpdateData prevRSI, double maxRsiLongValue, double minRsiShortValue, int maxNumOfCandlesAfterPattern) {
 		super(parameters);
 		this.patternDirection = patternDirection;
 		this.patternHighLimit = patternHighLimit;
@@ -36,6 +37,9 @@ public class ENT_0001_S2 extends ENT_0001_MAIN implements IEntryStrategyLastStat
 		this.countCandlesIndex = 1;
 		this.entryStrategyTriggerType = EntryStrategyTriggerType.getEntryStrategyTriggerType(((Double)parameters[1]).intValue());
 		this.prevRSI = prevRSI;
+		this.maxRsiLongValue = maxRsiLongValue;
+		this.minRsiShortValue = minRsiShortValue;
+		this.maxNumOfCandlesAfterPattern = maxNumOfCandlesAfterPattern;
 	}
 
 	/**
@@ -44,7 +48,7 @@ public class ENT_0001_S2 extends ENT_0001_MAIN implements IEntryStrategyLastStat
 	@Override
 	public void setNewData(NewUpdateData[] newData) {
 		if (this.status == EntryStrategyStateStatus.RUN) {
-			if (countCandlesIndex > MAX_NUM_OF_CANDLES_AFTER_PATTERN) {// We have already checked 5 candles. kill state.
+			if (countCandlesIndex > maxNumOfCandlesAfterPattern) {// We have already checked 5 candles. kill state.
 				this.status = EntryStrategyStateStatus.KILL_STATE;
 			} else {
 				JapaneseCandleBar japaneseCandleBar = (JapaneseCandleBar)newData[0];
@@ -53,13 +57,13 @@ public class ENT_0001_S2 extends ENT_0001_MAIN implements IEntryStrategyLastStat
 				SimpleUpdateData simpleUpdateData = (this.entryStrategyTriggerType == EntryStrategyTriggerType.BUYING_BREAK_PRICE) ? prevRSI : ((SimpleUpdateData)newData[1]);
 				if ((candleBarBreakOutPriceLong > patternHighLimit) && 
 						(patternDirection == PatternManagerStatus.TRIGGER_BULLISH || patternDirection == PatternManagerStatus.TRIGGER_NOT_SPECIFIED) && 
-						(simpleUpdateData.getValue() < MAX_RSI_LONG_VALUE)) {
+						(simpleUpdateData.getValue() < maxRsiLongValue)) {
 					triggerDate = japaneseCandleBar.getTime();
 					status = EntryStrategyStateStatus.TRIGGER_BULLISH;
 					triggerCandlePrice = candleBarBreakOutPriceLong;
 				} else if ((candleBarBreakOutPriceShort < patternLowLimit) &&
 						(patternDirection == PatternManagerStatus.TRIGGER_BEARISH || patternDirection == PatternManagerStatus.TRIGGER_NOT_SPECIFIED) &&
-						(simpleUpdateData.getValue() > MIN_RSI_SHORT_VALUE)) {
+						(simpleUpdateData.getValue() > minRsiShortValue)) {
 					triggerDate = japaneseCandleBar.getTime();
 					status = EntryStrategyStateStatus.TRIGGER_BEARISH;
 					triggerCandlePrice = candleBarBreakOutPriceShort;
