@@ -210,7 +210,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 			throw new RuntimeException("The trade need to be in this list. need to find the bug!!!");
 		}
 		
-		fileTrade.setAmount(amountToClose);
+		fileTrade.setAmount(fileDataExtractor.contractAmount * amountToClose);
 		return true;
 	}
 	

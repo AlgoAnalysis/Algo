@@ -1,14 +1,11 @@
-package com.algotrado.money.manager.demo;
+package com.algotrado.matlab.bridge;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-
-import javax.swing.SwingUtilities;
+import java.util.concurrent.Semaphore;
 
 import com.algotrado.broker.IBroker;
 import com.algotrado.data.event.DataEventType;
-import com.algotrado.data.event.NewUpdateData;
 import com.algotrado.data.event.SimpleUpdateData;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBarPropertyType;
 import com.algotrado.data.event.basic.japanese.JapaneseTimeFrameType;
@@ -22,106 +19,113 @@ import com.algotrado.entry.strategy.ENT_0001.ENT_0001_S1;
 import com.algotrado.exit.strategy.ExitStrategyDataObject;
 import com.algotrado.exit.strategy.ExitStrategyStatus;
 import com.algotrado.exit.strategy.IExitStrategy;
-import com.algotrado.exit.strategy.EXT_0001.EXT_0001;
-import com.algotrado.exit.strategy.EXT_0003.EXT_0003;
 import com.algotrado.exit.strategy.EXT_0007.EXT_0007;
 import com.algotrado.extract.data.AssetType;
 import com.algotrado.extract.data.DataSource;
-import com.algotrado.extract.data.IDataExtractorObserver;
-import com.algotrado.extract.data.IDataExtractorSubject;
 import com.algotrado.extract.data.RegisterDataExtractor;
 import com.algotrado.extract.data.SubjectState;
 import com.algotrado.money.manager.IMoneyManager;
-import com.algotrado.output.file.FileDataRecorder;
 import com.algotrado.output.file.IGUIController;
 import com.algotrado.pattern.IPatternState;
 import com.algotrado.pattern.PatternManager;
 import com.algotrado.pattern.PTN_0001.PTN_0001_S1;
+import com.algotrado.pattern.PTN_0002.PTN_0002_S1;
+import com.algotrado.pattern.PTN_0003.PTN_0003_S1;
 import com.algotrado.trade.PositionOrderStatusType;
 import com.algotrado.trade.PositionStatus;
 import com.algotrado.trade.TradeManager;
 import com.algotrado.trade.TRD_0001.TRD_0001;
 import com.algotrado.util.Setting;
 
-public class TradeManagerReportDemo extends IDataExtractorSubject implements IGUIController, Runnable, IMoneyManager {
+public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, IMoneyManager {
 	
-	private static final int EXIT_0001 = 0;
-	private static final int EXIT_0007 = 1;
-	private static DataSource dataSource = DataSource.FILE;
+	private DataSource dataSource = DataSource.FILE;
+	private DataEventType dataEventType;
+	private List<Double> parameters;
 	private int rsiLength;
 	private int rsiHistoryLength;
+	private List<TradeManager> tradeManagers;
+	private long timeMili;
+	double exit0007CloseOnTrigger;
+	private double xFactor;
+	private double topSpread;
+	private double bottomSpread;
 	private List<PatternManager> patternManagers;
 	private List<Double> rsiParameters = new ArrayList<Double>();
 	private EntryStrategyManager entryStrategyManager;
-	private IDataExtractorObserver dataRecorder;
 	private SubjectState subjectState;
-	private long timeMili;
-	private double rsiLongExitValue;
-	private double rsiShortExitValue;
+	private AssetType assetType;
+	private IBroker broker;
+	private Semaphore semaphore;
 	
-	private double xFactor;
-	private double fractionOfOriginalStopLoss;
-	double topSpread;
-	double bottomSpread;
-	double exit0001CloseOnTrigger;
-	double exit0007CloseOnTrigger;
+	// Stats:
+	private double totalNumOfEntries = 0;
+	private double totalNumOfSuccesses = 0;
 	
 	private ExitStrategyStatus [][] exitStrategiesBehavior;
 	
-	private static int numOfTrades = 0;
-	
-	private IBroker broker;
-	
-	private List<TradeManager> tradeManagers;
-	
-	public TradeManagerReportDemo() {
-		super(dataSource, AssetType.USOIL, DataEventType.JAPANESE, (List<Double>)(new ArrayList<Double>()));
+	public MatlabJavaOptimizationBridge() {
+		
+	}
+
+	public MatlabJavaOptimizationBridge(DataSource dataSource, AssetType assetType, DataEventType dataEventType, Double [] params) {
+		//super(dataSource, assetType, dataEventType, parameters);
+		init(dataSource, assetType, dataEventType, params);
+	}
+
+	public void init(DataSource dataSource, AssetType assetType,
+			DataEventType dataEventType, Double[] params) {
+		this.dataSource = dataSource;
+		this.assetType = assetType;
+		this.dataEventType = dataEventType;
 		this.tradeManagers = new ArrayList<TradeManager>();
 		
 		timeMili = System.currentTimeMillis();
 		
 		////////change here ///////////////////
-		IPatternState state = new PTN_0001_S1(1); // Pattern code, after changing press Ctrl+shift+o
-		EntryStrategyTriggerType entryStrategyTriggerType = EntryStrategyTriggerType.BUYING_BREAK_PRICE;
+		int patternType = params[0].intValue();
+		int patternParametersIndex = params[1].intValue();
+		IPatternState state; // Pattern code, after changing press Ctrl+shift+o
+		if (patternType == 1) {
+			state = new PTN_0001_S1(patternParametersIndex); 
+		} else if (patternType == 2) {
+			state = new PTN_0002_S1(patternParametersIndex); 
+		} else if (patternType == 3) {
+			state = new PTN_0003_S1(patternParametersIndex); 
+		} else {
+			throw new RuntimeException("patternType contains illegal value. only values 1-3 are permitted");
+		}
+		EntryStrategyTriggerType entryStrategyTriggerType = EntryStrategyTriggerType.values()[params[2].intValue()];
 		// parameters 
-		JapaneseTimeFrameType japaneseTimeFrameType = JapaneseTimeFrameType.FIVE_MINUTE;
+		JapaneseTimeFrameType japaneseTimeFrameType = JapaneseTimeFrameType.values()[params[3].intValue()];
 		// RSI parameters
-		JapaneseCandleBarPropertyType japaneseCandleBarPropertyType = JapaneseCandleBarPropertyType.CLOSE;
-		rsiLength = 7;
-		rsiHistoryLength = 0;
-		int rsiType = 1; // 1 (SMA) or 2 (EMA)
-		String filePath = "C:\\Algo\\test\\" + state.getCode() + "_" + entryStrategyTriggerType.toString() +"_Trade_Ext0003.csv";
+		JapaneseCandleBarPropertyType japaneseCandleBarPropertyType = JapaneseCandleBarPropertyType.values()[params[4].intValue()];
+		rsiLength = params[5].intValue();
+		rsiHistoryLength = params[6].intValue();
+		int rsiType = params[7].intValue(); // 1 (SMA) or 2 (EMA)
+		//String filePath = "C:\\Algo\\test\\" + state.getCode() + "_" + entryStrategyTriggerType.toString() +"_Trade_Ext0003.csv";
 		
-//		AssetType assetType = AssetType.USOIL;
-		this.xFactor = 1.5;//for the 1:x exit strategy.
-		this.fractionOfOriginalStopLoss = 0.1;// for the 1:1 exit strategy.
+		this.xFactor = params[8];//for the 1:x exit strategy.
+		//this.fractionOfOriginalStopLoss = 0.1;// for the 1:1 exit strategy.
 		this.topSpread = Setting.getUsOilTopSpread();
 		this.bottomSpread = Setting.getUsOilBottomSpread();
-		this.exit0001CloseOnTrigger = 0.5;
-		this.exit0007CloseOnTrigger = 1;
+		//this.exit0001CloseOnTrigger = 0.5;
+		this.exit0007CloseOnTrigger = params[9];
 		
-		this.rsiLongExitValue = 80;
-		this.rsiShortExitValue = 20;
+		/*params[10].intValue();
+		params[11].intValue();*/
 		
-		double maxRsiLongValueForEntry = (double)80;
-		double minRsiShortValueForEntry = (double)20;
-		double maxNumOfCandlesAfterPattern = 5;
+		double maxRsiLongValueForEntry = params[10];
+		double minRsiShortValueForEntry = params[11];
+		double maxNumOfCandlesAfterPatternForEntry = params[12].intValue();
 		
-		// end of change values
-		
-		this.broker = dataSource;
-		
-		/*this.exitStrategiesBehavior = new ExitStrategyStatus [2][2];
-		this.exitStrategiesBehavior[0][0] = ExitStrategyStatus.TRIGGER;
-		this.exitStrategiesBehavior[0][1] = ExitStrategyStatus.RUN;
-		this.exitStrategiesBehavior[1][0] = ExitStrategyStatus.TRIGGER_AND_MOVE_STOP_LOSS;
-		this.exitStrategiesBehavior[1][1] = ExitStrategyStatus.TRIGGER;*/
+		// End of change values
 		
 		this.exitStrategiesBehavior = new ExitStrategyStatus [1][1];
 		this.exitStrategiesBehavior[0][0] = ExitStrategyStatus.TRIGGER;
 		
-		//////////////////////////////////////////////////////
-
+		this.broker = dataSource;
+		
 		patternManagers = new ArrayList<PatternManager>();
 		patternManagers.add(new PatternManager(state));
 		parameters = new ArrayList<Double>();
@@ -137,25 +141,13 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 		rsiParameters.add((double)rsiType); // RSI type
 		entryStrategyParameters.add(maxRsiLongValueForEntry);
 		entryStrategyParameters.add(minRsiShortValueForEntry);
-		entryStrategyParameters.add(maxNumOfCandlesAfterPattern);
-		entryStrategyManager = new EntryStrategyManager(new ENT_0001_S1(entryStrategyParameters.toArray()), patternManagers, AssetType.USOIL.name());
+		entryStrategyParameters.add(maxNumOfCandlesAfterPatternForEntry);
+		entryStrategyManager = new EntryStrategyManager(new ENT_0001_S1(entryStrategyParameters.toArray()), patternManagers, assetType.name());
 		entryStrategyManager.setMoneyManager(this);
 		
-		
-		dataRecorder = new FileDataRecorder(filePath, this);
-//		dataRecorder.setSubject(this);
-		
-		
 		subjectState = SubjectState.RUNNING;
-		// and link the to report builder.
-	}
-
-
-	public static void main(String[] args) {
-		// TODO create money manager.
-		// entry strategy manager.
-		TradeManagerReportDemo tradeManagerReportDemo = new TradeManagerReportDemo();
-		SwingUtilities.invokeLater(tradeManagerReportDemo);
+		
+		semaphore = new Semaphore(0);
 	}
 
 	@Override
@@ -174,8 +166,15 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 		if (positionStatus.getPositionStatus() == PositionOrderStatusType.CLOSED || isEndOfLife) {
 			if (isEndOfLife) {
 				subjectState = SubjectState.END_OF_LIFE;
+				semaphore.release();
 			}
-			notifyObservers(assetType, dataEventType, rsiParameters);
+			if (positionStatus.getPositionStatus() == PositionOrderStatusType.CLOSED) {
+				totalNumOfEntries++;
+				if (positionStatus.getPositionCurrGain() > 0) {
+					totalNumOfSuccesses++;
+				}
+			}
+//			notifyObservers(assetType, dataEventType, rsiParameters);
 		}
 	}
 
@@ -201,11 +200,11 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 //				exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0001, exit0001CloseOnTrigger, null, contractAmount);
 				IExitStrategy ext0007 = new EXT_0007(lastState, xFactor, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType));
 //				IExitStrategy ext0003 = new EXT_0003(lastState, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType), currRsiValue, rsiLongExitValue, rsiShortExitValue);
-				exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0007, exit0007CloseOnTrigger, null, contractAmount);
+				exitStrategiesList[TradeManager.EXIT_0007] = new ExitStrategyDataObject(ext0007, exit0007CloseOnTrigger, null, contractAmount);
 				// contract amount = 500
 				// account = 1000000
 				// min move 1 cent = 5$
-				// 1% of account = 10000 = [num of cents = (entry - stop)] * [contract amount] * [num of contracts]
+				// 1% of account = 10000 = [num of cents = (entry - stop)] * [contract amount] * [num of contracts] - TODO change quantity to constant value for optimization.
 				int currTradeQuantity = (int)( ( (broker.getAccountStatus().getBalance()/100) / 
 											((Math.abs(ext0007.getNewEntryPoint() - ext0007.getCurrStopLoss()) * contractAmount) *
 													broker.getMinimumContractAmountMultiply(assetType) ) ) / 1000);
@@ -213,7 +212,7 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 				
 				
 				EntryStrategyDataObject entryStrategyDataObject = new EntryStrategyDataObject(entryStrategyStateAndTime.getTimeList(), null, entryStrategyStateAndTime.getState().getStatus(), entryStrategyManager.getDataHeaders());
-				TRD_0001 currTrade = new TRD_0001(entryStrategyDataObject, exitStrategiesList, this , xFactor , assetType, fractionOfOriginalStopLoss, currTradeQuantity, this.exitStrategiesBehavior);
+				TRD_0001 currTrade = new TRD_0001(entryStrategyDataObject, exitStrategiesList, this , xFactor , assetType, 0.1/*This belongs to exit strategy 1*/, currTradeQuantity, this.exitStrategiesBehavior);
 				this.tradeManagers.add(currTrade);
 				
 				currTrade.setBroker(broker);
@@ -236,12 +235,20 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 				}
 			} else if (entryStrategyManager.getSubjectState() == SubjectState.END_OF_LIFE) {
 				subjectState = SubjectState.END_OF_LIFE;
-				notifyObservers(assetType, dataEventType, parameters);
+				semaphore.release();
+//				notifyObservers(assetType, dataEventType, parameters);
 			}
 		}
 
 	}
 
+	public Semaphore getSemaphore() {
+		return semaphore;
+	}
+
+	public long getTimeMili() {
+		return timeMili;
+	}
 
 	@Override
 	public void run() {
@@ -253,11 +260,32 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 		 * Register to Japanese candles.
 		 */
 		RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters,0, entryStrategyManager);
+	}
+	
+	public void runSingleParamsOptimizationCheck(Double [] params) {
+		if (params.length < 12) {
+			System.out.println("Usage: runSingleParamsOptimizationCheck({patternType={1-3}, patternParametersIndex={1}, entryStrategyTriggerType={0,1}, " +
+					"japaneseTimeFrameType={0-7}, japaneseCandleBarPropertyType={0-3}, rsiLength, rsiHistoryLength, rsiType={1-2}, xFactor={1.5 or any other value}, "
+					+ "exit0007CloseOnTrigger=(0-1], maxRsiLongValueForEntry, minRsiShortValueForEntry, maxNumOfCandlesAfterPatternForEntry" + "})");
+		}
 		
-		this.registerObserver(dataRecorder);
+		init(DataSource.FILE, AssetType.USOIL, DataEventType.JAPANESE, params);
+		run();
+		//SwingUtilities.invokeLater(this);
+		
+		// Try to acquire semaphore and sleep until end of run.
+		
+		try {
+			this.getSemaphore().acquire();
+		} catch (InterruptedException e) {
+			System.out.println("Could not acuire semaphore for some reason.");
+			e.printStackTrace();
+		}
+		
+		System.out.println("Total time: " + (System.currentTimeMillis() - this.getTimeMili())/1000 + " Seconds.");
 		
 	}
-
+	
 	@Override
 	public void setErrorMessage(String ErrorMsg, boolean endProgram) {
 		System.out.println("Error: " + ErrorMsg);
@@ -272,84 +300,41 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 		Double deffTime = Double.valueOf((double)(System.currentTimeMillis() - timeMili)/1000);
 		System.out.println(deffTime.toString() + " Sec");
 	}
-
-	@Override
-	public NewUpdateData getNewData() {
-		// not implement because the file recorder not need this.
-		return null;
+	
+	public double getTotalNumOfEntries() {
+		return totalNumOfEntries;
 	}
 
-	@Override
-	public DataEventType getDataEventType() {
-		return null;
-	}
-
-	@Override
-	public void setParameters(List<Double> parameters) {
-		this.parameters = parameters;
-	}
-
-	// Reports trade + exit
-	// data headers = > all data I get from trade + entry + exit
-	// toString => trade entry start, entry end, exit# trigger or eliminate, exit# end time, 
-	//... all exits ... , amount purchased, Gain/Loss amount 
-	@Override
-	public String getDataHeaders() {
-		String entryStrategyDataHeaders = entryStrategyManager.getDataHeaders();
-		String newEntryStrategyDataHeaders = "";
-		String[] splitDataHeaders = entryStrategyDataHeaders.split("\n");
-		int cnt = 0;
-		for (String single : splitDataHeaders) {// Remove last row from entry Strategy headers.
-			if (cnt != (splitDataHeaders.length - 1)) {
-				newEntryStrategyDataHeaders += single;
-			}
-			cnt++;
-		}
-		String headerString = newEntryStrategyDataHeaders;
-		double contractAmount = broker.getContractAmount(assetType);
-		ExitStrategyDataObject [] exitStrategiesList = new ExitStrategyDataObject[2];
-		IExitStrategy ext0001 = new EXT_0001(bottomSpread, topSpread);
-		exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0001, exit0001CloseOnTrigger, null, contractAmount);
-		IExitStrategy ext0007 = new EXT_0007(bottomSpread, topSpread);
-		exitStrategiesList[EXIT_0007] = new ExitStrategyDataObject(ext0007, exit0007CloseOnTrigger, null, contractAmount);
-		
-		TRD_0001 currTrade = new TRD_0001(entryStrategyManager.getDataHeaders(), this.xFactor, this.fractionOfOriginalStopLoss, exitStrategiesList);
-		headerString += currTrade.getDataHeaders();
-		
-		return headerString;
+	public double getTotalNumOfSuccesses() {
+		return totalNumOfSuccesses;
 	}
 	
-	public String toString() {
-		String toString = "";
+	public double getSuccessPercentage() {
+		return (totalNumOfSuccesses == 0) ? 0 : totalNumOfSuccesses/totalNumOfEntries;
+	}
+	
+	public double getAccountBalance() {
+		return broker.getAccountStatus().getBalance();
+	}
+
+	public static void main(String[] args) {
+		// TODO create money manager.
+		// entry strategy manager.
 		
-		for (Iterator<TradeManager> iterator = tradeManagers.iterator(); iterator.hasNext();) {
-			TradeManager tradeManager =  iterator.next();
-			if (tradeManager.isClosedTrade() || tradeManager.getSubjectState() == SubjectState.END_OF_LIFE) {
-				
-				toString += ((TRD_0001)tradeManager).getPositionId() + "," + tradeManager.toString() + "\n";
-//				tradeManager.unregisterObserver(dataSource, dataEventType, parameters, rsiParameters);
-				iterator.remove();
-			}
-		}
-		if (toString.endsWith("\n")) {
-			toString = toString.substring(0, toString.lastIndexOf('\n'));
-		}
-		return toString;
+		Double [] params = {/*patternType*/1.0, /*patternParametersIndex*/1.0, /*entryStrategyTriggerType*/0.0, /*japaneseTimeFrameType*/1.0, /*japaneseCandleBarPropertyType*/1.0, 
+							/*rsiLength*/7.0, /*rsiHistoryLength*/0.0, /*rsiType*/1.0, /*xFactor*/1.5, /*exit0007CloseOnTrigger*/1.0, /*rsiLongExitValue 80.0, 
+							/*rsiShortExitValue 20.0,*/ /*maxRsiLongValueForEntry*/80.0, /*minRsiShortValueForEntry*/20.0, /*maxNumOfCandlesAfterPatternForEntry*/5.0};
+		
+		
+		MatlabJavaOptimizationBridge matlabJavaOB = new MatlabJavaOptimizationBridge();
+		
+		matlabJavaOB.runSingleParamsOptimizationCheck(params);
+		
+		System.out.println("Account Balance = " + matlabJavaOB.getAccountBalance());
+		System.out.println("Success Percentage = " + matlabJavaOB.getSuccessPercentage());
+		System.out.println("Total num of Successes = " + matlabJavaOB.getTotalNumOfSuccesses());
+		System.out.println("Total num of Entries = " + matlabJavaOB.getTotalNumOfEntries());
+		
 	}
-
-	@Override
-	public SubjectState getSubjectState() {
-		return subjectState;
-	}
-
-
-	public void setRsiLength(int rsiLength) {
-		this.rsiLength = rsiLength;
-	}
-
-
-	public void setRsiHistoryLength(int rsiHistoryLength) {
-		this.rsiHistoryLength = rsiHistoryLength;
-	}
-
+	
 }
