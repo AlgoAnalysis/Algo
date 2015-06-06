@@ -24,6 +24,7 @@ import com.algotrado.extract.data.AssetType;
 import com.algotrado.extract.data.DataSource;
 import com.algotrado.extract.data.RegisterDataExtractor;
 import com.algotrado.extract.data.SubjectState;
+import com.algotrado.extract.data.file.FileDataExtractor;
 import com.algotrado.money.manager.IMoneyManager;
 import com.algotrado.output.file.IGUIController;
 import com.algotrado.pattern.IPatternState;
@@ -75,6 +76,11 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 
 	public void init(DataSource dataSource, AssetType assetType,
 			DataEventType dataEventType, Double[] params) {
+		// Reset program to start from scratch.
+		FileDataExtractor.resetAccount();
+		
+		
+		// init params for program.
 		this.dataSource = dataSource;
 		this.assetType = assetType;
 		this.dataEventType = dataEventType;
@@ -148,6 +154,8 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		subjectState = SubjectState.RUNNING;
 		
 		semaphore = new Semaphore(0);
+		
+		
 	}
 
 	@Override

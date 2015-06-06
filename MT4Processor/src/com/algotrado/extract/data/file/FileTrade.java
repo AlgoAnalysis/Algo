@@ -182,7 +182,7 @@ public class FileTrade {
 	{
 		if(status.getPositionOrderStatusType() == PositionOrderStatusType.CLOSED)
 		{
-			throw new RuntimeException("trade all reday closed!!!");
+			throw new RuntimeException("trade already closed!!!");
 		}
 		double prevCurrentPrice = currentPrice;
 		boolean needToCloseTrade = false;
