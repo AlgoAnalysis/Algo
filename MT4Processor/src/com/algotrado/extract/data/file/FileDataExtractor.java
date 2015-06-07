@@ -428,6 +428,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 		for(Iterator<FileTrade> iterator = assetTradeList.iterator(); iterator.hasNext() ;)
 		{
 			FileTrade trade = iterator.next();
+			if (trade.getStatus().getPositionOrderStatusType() == PositionOrderStatusType.CLOSED) continue;  // TODO 
 			trade.updatePriceTrade(newSimple.getValue(), spread);
 			FileTradeStatus status = trade.getStatus();
 			if(status.getPositionOrderStatusType() == PositionOrderStatusType.CLOSED)

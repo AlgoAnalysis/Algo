@@ -52,7 +52,7 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	private double topSpread;
 	private double bottomSpread;
 	private List<PatternManager> patternManagers;
-	private List<Double> rsiParameters = new ArrayList<Double>();
+	private List<Double> rsiParameters;
 	private EntryStrategyManager entryStrategyManager;
 	private SubjectState subjectState;
 	private AssetType assetType;
@@ -60,8 +60,8 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	private Semaphore semaphore;
 	
 	// Stats:
-	private double totalNumOfEntries = 0;
-	private double totalNumOfSuccesses = 0;
+	private double totalNumOfEntries;
+	private double totalNumOfSuccesses;
 	
 	private ExitStrategyStatus [][] exitStrategiesBehavior;
 	
@@ -78,7 +78,8 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 			DataEventType dataEventType, Double[] params) {
 		// Reset program to start from scratch.
 		FileDataExtractor.resetAccount();
-		
+		totalNumOfEntries = 0;
+		totalNumOfSuccesses = 0;
 		
 		// init params for program.
 		this.dataSource = dataSource;
@@ -141,6 +142,7 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		entryStrategyParameters.addAll(parameters);
 		entryStrategyParameters.add((double) entryStrategyTriggerType.ordinal());
 		
+		rsiParameters = new ArrayList<Double>();
 		rsiParameters.add((double)japaneseTimeFrameType.getValueInMinutes());
 		rsiParameters.add((double)japaneseCandleBarPropertyType.ordinal());
 		rsiParameters.add((double)rsiLength);
@@ -336,12 +338,14 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		
 		MatlabJavaOptimizationBridge matlabJavaOB = new MatlabJavaOptimizationBridge();
 		
-		matlabJavaOB.runSingleParamsOptimizationCheck(params);
-		
-		System.out.println("Account Balance = " + matlabJavaOB.getAccountBalance());
-		System.out.println("Success Percentage = " + matlabJavaOB.getSuccessPercentage());
-		System.out.println("Total num of Successes = " + matlabJavaOB.getTotalNumOfSuccesses());
-		System.out.println("Total num of Entries = " + matlabJavaOB.getTotalNumOfEntries());
+		for (int i = 1; i <= 2; i++) {
+			matlabJavaOB.runSingleParamsOptimizationCheck(params);
+			
+			System.out.println("Account Balance = " + matlabJavaOB.getAccountBalance());
+			System.out.println("Success Percentage = " + matlabJavaOB.getSuccessPercentage());
+			System.out.println("Total num of Successes = " + matlabJavaOB.getTotalNumOfSuccesses());
+			System.out.println("Total num of Entries = " + matlabJavaOB.getTotalNumOfEntries());
+		}
 		
 	}
 	
