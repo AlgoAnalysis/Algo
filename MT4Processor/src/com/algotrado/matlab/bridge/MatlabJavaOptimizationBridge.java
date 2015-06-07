@@ -90,14 +90,14 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		
 		////////change here ///////////////////
 		int patternType = params[0].intValue();
-		int patternParametersIndex = params[1].intValue();
+//		int patternParametersIndex = params[1].intValue();
 		IPatternState state; // Pattern code, after changing press Ctrl+shift+o
 		if (patternType == 1) {
-			state = new PTN_0001_S1(patternParametersIndex); 
+			state = new PTN_0001_S1(new Double [] {params[1]}); 
 		} else if (patternType == 2) {
-			state = new PTN_0002_S1(patternParametersIndex); 
+			state = new PTN_0002_S1(new Double [] {params[1]}); 
 		} else if (patternType == 3) {
-			state = new PTN_0003_S1(patternParametersIndex); 
+			state = new PTN_0003_S1(new Double [] {params[1]}); 
 		} else {
 			throw new RuntimeException("patternType contains illegal value. only values 1-3 are permitted");
 		}
@@ -329,7 +329,7 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		// TODO create money manager.
 		// entry strategy manager.
 		
-		Double [] params = {/*patternType*/1.0, /*patternParametersIndex*/1.0, /*entryStrategyTriggerType*/0.0, /*japaneseTimeFrameType*/1.0, /*japaneseCandleBarPropertyType*/1.0, 
+		Double [] params = {/*patternType*/1.0, /*Harami Percentage diff Of body size*/0.1, /*entryStrategyTriggerType*/0.0, /*japaneseTimeFrameType*/1.0, /*japaneseCandleBarPropertyType*/1.0, 
 							/*rsiLength*/7.0, /*rsiHistoryLength*/0.0, /*rsiType*/1.0, /*xFactor*/1.5, /*exit0007CloseOnTrigger*/1.0, /*rsiLongExitValue 80.0, 
 							/*rsiShortExitValue 20.0,*/ /*maxRsiLongValueForEntry*/80.0, /*minRsiShortValueForEntry*/20.0, /*maxNumOfCandlesAfterPatternForEntry*/5.0};
 		
