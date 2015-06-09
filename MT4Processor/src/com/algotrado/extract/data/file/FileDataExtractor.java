@@ -56,7 +56,6 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 	private double spread = 0; // TODO : This fix was made to fit tal excel results.
 	private List<FileTrade> assetTradeList;
 	
-	
 	public static void main(String [] args)
 	{
 		// Check that static method is working.
@@ -428,13 +427,12 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 		for(Iterator<FileTrade> iterator = assetTradeList.iterator(); iterator.hasNext() ;)
 		{
 			FileTrade trade = iterator.next();
-			if (trade.getStatus().getPositionOrderStatusType() == PositionOrderStatusType.CLOSED) continue;  // TODO 
-			trade.updatePriceTrade(newSimple.getValue(), spread);
-			FileTradeStatus status = trade.getStatus();
-			if(status.getPositionOrderStatusType() == PositionOrderStatusType.CLOSED)
+			if (trade.getStatus().getPositionOrderStatusType() == PositionOrderStatusType.CLOSED)
 			{
 				iterator.remove();
+				continue;  
 			}
+			trade.updatePriceTrade(newSimple.getValue(), spread);
 		}
 		notifyObservers(assetType, dataEventType, parameters);
 		
