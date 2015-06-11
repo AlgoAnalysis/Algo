@@ -13,6 +13,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import javax.swing.SwingUtilities;
 
 import com.algotrado.broker.Account;
 import com.algotrado.data.event.DataEventType;
@@ -55,6 +58,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 	private double contractAmount = 500; //TODO  
 	private double spread = 0; // TODO : This fix was made to fit tal excel results.
 	private List<FileTrade> assetTradeList;
+	boolean runNewTask = false;
 	
 	public static void main(String [] args)
 	{
@@ -419,6 +423,8 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 		}
 		subjectState = SubjectState.END_OF_LIFE;
 		internalNotifyObservers();
+		runNewTask = false;
+		this.observers = new ConcurrentLinkedQueue<IDataExtractorObserver>();
 	}
 	
 	public void internalNotifyObservers()
@@ -436,6 +442,21 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 		}
 		notifyObservers(assetType, dataEventType, parameters);
 		
+	}
+	
+	@Override
+	public IDataExtractorSubject registerObserver(IDataExtractorObserver observer) {
+		
+		if (!findElementInCollection(this.observers,observer)) {
+			this.observers.add(observer);
+			observer.setSubject(this);
+		}
+		if (runNewTask == false) {
+			runNewTask = true;
+			SwingUtilities.invokeLater(this);
+//			new Thread(this).run();
+		}
+		return this;
 	}
 	
 

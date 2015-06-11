@@ -55,17 +55,9 @@ public abstract class IDataExtractorSubject implements Comparable<IDataExtractor
 	 * @param observer
 	 */
 	public IDataExtractorSubject registerObserver(IDataExtractorObserver observer) {
-		boolean runNewTask = false;
-		if (this.observers.isEmpty()) {
-			runNewTask = true;
-		}
 		if (!findElementInCollection(this.observers,observer)) {
 			this.observers.add(observer);
 			observer.setSubject(this);
-		}
-		if (runNewTask && dataEventType == DataEventType.NEW_QUOTE) {
-			SwingUtilities.invokeLater((MinimalTimeFrame)this);
-//			new Thread(this).run();
 		}
 		return this;
 	}

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
+import javax.swing.SwingUtilities;
+
 import com.algotrado.broker.IBroker;
 import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.SimpleUpdateData;
@@ -46,7 +48,6 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	private int rsiLength;
 	private int rsiHistoryLength;
 	private List<TradeManager> tradeManagers;
-	private long timeMili;
 	double exit0007CloseOnTrigger;
 	private double xFactor;
 	private double topSpread;
@@ -66,7 +67,6 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	private ExitStrategyStatus [][] exitStrategiesBehavior;
 	
 	public MatlabJavaOptimizationBridge() {
-		
 	}
 
 	public MatlabJavaOptimizationBridge(DataSource dataSource, AssetType assetType, DataEventType dataEventType, Double [] params) {
@@ -87,7 +87,7 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		this.dataEventType = dataEventType;
 		this.tradeManagers = new ArrayList<TradeManager>();
 		
-		timeMili = System.currentTimeMillis();
+		
 		
 		////////change here ///////////////////
 		int patternType = params[0].intValue();
@@ -256,12 +256,10 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		return semaphore;
 	}
 
-	public long getTimeMili() {
-		return timeMili;
-	}
-
 	@Override
 	public void run() {
+		
+		RegisterDataExtractor.resetRegisterDataExtractor();
 		/**
 		 * Register to RSI.
 		 */
@@ -291,11 +289,8 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 			System.out.println("Could not acuire semaphore for some reason.");
 			e.printStackTrace();
 		}
-		
-		System.out.println("Total time: " + (System.currentTimeMillis() - this.getTimeMili())/1000 + " Seconds.");
-		
 	}
-	
+		
 	@Override
 	public void setErrorMessage(String ErrorMsg, boolean endProgram) {
 		System.out.println("Error: " + ErrorMsg);
@@ -307,8 +302,8 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 
 	@Override
 	public void resetGUI() {
-		Double deffTime = Double.valueOf((double)(System.currentTimeMillis() - timeMili)/1000);
-		System.out.println(deffTime.toString() + " Sec");
+//		Double deffTime = Double.valueOf((double)(System.currentTimeMillis() - timeMili)/1000);
+//		System.out.println(deffTime.toString() + " Sec");
 	}
 	
 	public double getTotalNumOfEntries() {
@@ -326,27 +321,38 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	public double getAccountBalance() {
 		return broker.getAccountStatus().getBalance();
 	}
+	
 
 	public static void main(String[] args) {
 		// TODO create money manager.
 		// entry strategy manager.
-		
+		long minimumTime = (long)Integer.MAX_VALUE;
+		long timeMili;
+		long exeTime;
 		Double [] params = {/*patternType*/1.0, /*Harami Percentage diff Of body size*/0.1, /*entryStrategyTriggerType*/0.0, /*japaneseTimeFrameType*/1.0, /*japaneseCandleBarPropertyType*/1.0, 
-							/*rsiLength*/7.0, /*rsiHistoryLength*/0.0, /*rsiType*/1.0, /*xFactor*/1.5, /*exit0007CloseOnTrigger*/1.0, /*rsiLongExitValue 80.0, 
+							/*rsiLength*/7.0, /*rsiHistoryLength*/0.0, /*rsiType*/1.0, /*xFactor*/5.0, /*exit0007CloseOnTrigger*/1.0, /*rsiLongExitValue 80.0, 
 							/*rsiShortExitValue 20.0,*/ /*maxRsiLongValueForEntry*/80.0, /*minRsiShortValueForEntry*/20.0, /*maxNumOfCandlesAfterPatternForEntry*/5.0};
 		
 		
-		MatlabJavaOptimizationBridge matlabJavaOB = new MatlabJavaOptimizationBridge();
 		
-		for (int i = 1; i <= 2; i++) {
+		MatlabJavaOptimizationBridge matlabJavaOB = new MatlabJavaOptimizationBridge();
+		for (int i = 1; i <= 10; i++) {
+			timeMili = System.currentTimeMillis();
 			matlabJavaOB.runSingleParamsOptimizationCheck(params);
-			
+			exeTime = (System.currentTimeMillis() - timeMili);
+			System.out.println("Total time: " + exeTime + " miliseconds.");
 			System.out.println("Account Balance = " + matlabJavaOB.getAccountBalance());
 			System.out.println("Success Percentage = " + matlabJavaOB.getSuccessPercentage());
 			System.out.println("Total num of Successes = " + matlabJavaOB.getTotalNumOfSuccesses());
 			System.out.println("Total num of Entries = " + matlabJavaOB.getTotalNumOfEntries());
+			System.out.println("\n");
+			if(exeTime < minimumTime)
+			{
+				minimumTime = exeTime;
+			}
 		}
 		
+		System.out.println("\nMinimum total time: " + minimumTime + " miliseconds.");
 	}
 	
 }

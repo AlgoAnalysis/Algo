@@ -80,6 +80,11 @@ public class RegisterDataExtractor {
 			}
 		}
 	}
+	
+	public synchronized static void resetRegisterDataExtractor()
+	{
+		extractorSubjectList = new HashMap<DataSource , Map<AssetType,Map<DataEventType,RegisterInternalParametersMap>>>();
+	}
 
 	private static IDataExtractorSubject createDataSourceList(DataSource dataSource, AssetType assetType,DataEventType dataEventType,List<Double> parameters)
 	{

@@ -161,5 +161,15 @@ public class IND_0001 extends IDataExtractorSubject implements
 		length = parameters.get(2).intValue();
 		historyLength = parameters.get(3).intValue();
 	}
+	
+	@Override
+	public void unregisterObserver(IDataExtractorObserver observer) {
+		this.observers.remove(observer);
+		observer.removeSubject(this);
+		if (this.observers.isEmpty()) {
+			dataExtractorSubject.unregisterObserver(this);
+			RegisterDataExtractor.removeDataExtractorSubject(dataSource, assetType, dataEventType, parameters);
+		}
+	}
 
 }
