@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
-import javax.swing.SwingUtilities;
-
 import com.algotrado.broker.IBroker;
 import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.SimpleUpdateData;
@@ -61,8 +59,12 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	private Semaphore semaphore;
 	
 	// Stats:
-	private double totalNumOfEntries;
-	private double totalNumOfSuccesses;
+	private long totalNumOfEntries;
+	private long totalNumOfSuccesses;
+	private long maxHighForDrawDown;
+	private long minLowForDrawDown;
+	private long maxDrawDown;
+	private long currValueForDrawDown;
 	
 	private ExitStrategyStatus [][] exitStrategiesBehavior;
 	
@@ -157,7 +159,10 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		
 		semaphore = new Semaphore(0);
 		
-		
+		maxHighForDrawDown = 0;
+		minLowForDrawDown = 1000000;
+		maxDrawDown = 0;
+		currValueForDrawDown = 0;
 	}
 
 	@Override
@@ -182,6 +187,26 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 				totalNumOfEntries++;
 				if (positionStatus.getPositionCurrGain() > 0) {
 					totalNumOfSuccesses++;
+					currValueForDrawDown++;
+				} else {
+					currValueForDrawDown--;
+				}
+				
+				long currMinDrawDown = minLowForDrawDown;
+				if (currValueForDrawDown > maxHighForDrawDown) {
+					maxHighForDrawDown = currValueForDrawDown;
+//					System.out.println("new max high" + maxHighForDrawDown);
+					minLowForDrawDown = 1000000;//Start counting new low after a new highest point has been set for draw down.
+				} else if (currValueForDrawDown < minLowForDrawDown) {
+					minLowForDrawDown = currValueForDrawDown;
+//					System.out.println("new min low" + minLowForDrawDown);
+					currMinDrawDown = minLowForDrawDown;
+				}
+				
+				long currDrawdown = maxHighForDrawDown - currMinDrawDown;
+				
+				if (currDrawdown > maxDrawDown) {
+					maxDrawDown = currDrawdown;
 				}
 			}
 //			notifyObservers(assetType, dataEventType, rsiParameters);
@@ -323,6 +348,10 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	}
 	
 
+	public long getMaxDrawDown() {
+		return maxDrawDown;
+	}
+
 	public static void main(String[] args) {
 		// TODO create money manager.
 		// entry strategy manager.
@@ -345,6 +374,7 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 			System.out.println("Success Percentage = " + matlabJavaOB.getSuccessPercentage());
 			System.out.println("Total num of Successes = " + matlabJavaOB.getTotalNumOfSuccesses());
 			System.out.println("Total num of Entries = " + matlabJavaOB.getTotalNumOfEntries());
+			System.out.println("Total max draw down = " + matlabJavaOB.getMaxDrawDown());
 			System.out.println("\n");
 			if(exeTime < minimumTime)
 			{
