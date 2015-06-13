@@ -1,6 +1,7 @@
 package com.algotrado.money.manager.demo;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -22,9 +23,7 @@ import com.algotrado.entry.strategy.ENT_0001.ENT_0001_S1;
 import com.algotrado.exit.strategy.ExitStrategyDataObject;
 import com.algotrado.exit.strategy.ExitStrategyStatus;
 import com.algotrado.exit.strategy.IExitStrategy;
-import com.algotrado.exit.strategy.EXT_0001.EXT_0001;
 import com.algotrado.exit.strategy.EXT_0003.EXT_0003;
-import com.algotrado.exit.strategy.EXT_0007.EXT_0007;
 import com.algotrado.extract.data.AssetType;
 import com.algotrado.extract.data.DataSource;
 import com.algotrado.extract.data.IDataExtractorObserver;
@@ -46,6 +45,7 @@ import com.algotrado.util.Setting;
 public class TradeManagerReportDemo extends IDataExtractorSubject implements IGUIController, Runnable, IMoneyManager {
 	
 	private static final int EXIT_0001 = 0;
+	private static final int EXIT_0003 = 0;
 	private static final int EXIT_0007 = 1;
 	private static DataSource dataSource = DataSource.FILE;
 	private int rsiLength;
@@ -90,7 +90,7 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 		rsiLength = 7;
 		rsiHistoryLength = 0;
 		int rsiType = 1; // 1 (SMA) or 2 (EMA)
-		String filePath = "C:\\Algo\\test\\" + state.getCode() + "_" + entryStrategyTriggerType.toString() +"_Trade_Ext0003.csv";
+		String filePath = "C:\\Algo\\test\\" + state.getCode() + "_" + entryStrategyTriggerType.toString() +"_Trade_Ext0006.csv";
 		
 //		AssetType assetType = AssetType.USOIL;
 		this.xFactor = 1.5;//for the 1:x exit strategy.
@@ -100,8 +100,8 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 		this.exit0001CloseOnTrigger = 0.5;
 		this.exit0007CloseOnTrigger = 1;
 		
-		this.rsiLongExitValue = 80;
-		this.rsiShortExitValue = 20;
+		this.rsiLongExitValue = 90;
+		this.rsiShortExitValue = 10;
 		
 		double maxRsiLongValueForEntry = (double)80;
 		double minRsiShortValueForEntry = (double)20;
@@ -180,7 +180,7 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 	}
 
 	@Override
-	public void updateOnEntry(List<EntryStrategyStateAndTime> stateArr) {
+	public void updateOnEntry(List<EntryStrategyStateAndTime> stateArr, Date entryDateAndTime) {
 		for (EntryStrategyStateAndTime entryStrategyStateAndTime : stateArr) {
 			if (entryStrategyStateAndTime.getState().getStatus() == EntryStrategyStateStatus.TRIGGER_BEARISH ||
 					entryStrategyStateAndTime.getState().getStatus() == EntryStrategyStateStatus.TRIGGER_BULLISH) {
@@ -199,15 +199,15 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 				ExitStrategyDataObject [] exitStrategiesList = new ExitStrategyDataObject[1];//new ExitStrategyDataObject[2];
 //				EXT_0001 ext0001 = new EXT_0001(lastState, fractionOfOriginalStopLoss, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType));
 //				exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0001, exit0001CloseOnTrigger, null, contractAmount);
-				IExitStrategy ext0007 = new EXT_0007(lastState, xFactor, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType));
-//				IExitStrategy ext0003 = new EXT_0003(lastState, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType), currRsiValue, rsiLongExitValue, rsiShortExitValue);
-				exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0007, exit0007CloseOnTrigger, null, contractAmount);
+//				IExitStrategy ext0007 = new EXT_0007(lastState, xFactor, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType));
+				IExitStrategy ext0003 = new EXT_0003(lastState, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType), currRsiValue, rsiLongExitValue, rsiShortExitValue);
+				exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0003, exit0007CloseOnTrigger, null, contractAmount);
 				// contract amount = 500
 				// account = 1000000
 				// min move 1 cent = 5$
 				// 1% of account = 10000 = [num of cents = (entry - stop)] * [contract amount] * [num of contracts]
 				int currTradeQuantity = (int)( ( (broker.getAccountStatus().getBalance()/100) / 
-											((Math.abs(ext0007.getNewEntryPoint() - ext0007.getCurrStopLoss()) * contractAmount) *
+											((Math.abs(ext0003.getNewEntryPoint() - ext0003.getCurrStopLoss()) * contractAmount) *
 													broker.getMinimumContractAmountMultiply(assetType) ) ) / 1000);
 				
 				
@@ -307,11 +307,13 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 		}
 		String headerString = newEntryStrategyDataHeaders;
 		double contractAmount = broker.getContractAmount(assetType);
-		ExitStrategyDataObject [] exitStrategiesList = new ExitStrategyDataObject[2];
-		IExitStrategy ext0001 = new EXT_0001(bottomSpread, topSpread);
-		exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0001, exit0001CloseOnTrigger, null, contractAmount);
-		IExitStrategy ext0007 = new EXT_0007(bottomSpread, topSpread);
-		exitStrategiesList[EXIT_0007] = new ExitStrategyDataObject(ext0007, exit0007CloseOnTrigger, null, contractAmount);
+		ExitStrategyDataObject [] exitStrategiesList = new ExitStrategyDataObject[1];
+//		IExitStrategy ext0001 = new EXT_0001(bottomSpread, topSpread);
+//		exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0001, exit0001CloseOnTrigger, null, contractAmount);
+		IExitStrategy ext0003 = new EXT_0003(bottomSpread, topSpread);
+		exitStrategiesList[EXIT_0003] = new ExitStrategyDataObject(ext0003, 1, null, contractAmount);
+//		IExitStrategy ext0007 = new EXT_0007(bottomSpread, topSpread);
+//		exitStrategiesList[EXIT_0007] = new ExitStrategyDataObject(ext0007, exit0007CloseOnTrigger, null, contractAmount);
 		
 		TRD_0001 currTrade = new TRD_0001(entryStrategyManager.getDataHeaders(), this.xFactor, this.fractionOfOriginalStopLoss, exitStrategiesList);
 		headerString += currTrade.getDataHeaders();

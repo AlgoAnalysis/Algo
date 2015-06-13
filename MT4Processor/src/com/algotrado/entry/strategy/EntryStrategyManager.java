@@ -231,7 +231,7 @@ public class EntryStrategyManager implements IDataExtractorObserver {
 					this.getStatus() == EntryStrategyManagerStatus.TRIGGER_BULLISH) {
 				//notifyObservers(AssetType.valueOf(assetName), dataEventType, parameters);
 				// notify Money Manager. 
-				moneyManager.updateOnEntry(stateArr);
+				moneyManager.updateOnEntry(stateArr, japaneseCandle.getTime());
 			}
 			rsi = null;
 			japaneseCandle = null;

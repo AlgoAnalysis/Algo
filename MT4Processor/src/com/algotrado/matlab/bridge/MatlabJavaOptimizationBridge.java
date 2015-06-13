@@ -1,6 +1,9 @@
 package com.algotrado.matlab.bridge;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -40,6 +43,10 @@ import com.algotrado.util.Setting;
 
 public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, IMoneyManager {
 	
+	private static final long MINUTES_IN_MILISEC = 60*1000;
+	private static final long HOUR_IN_MINUTES = 60;
+	private static final long WEEK_IN_MINUTES = 24*60*7;
+	
 	private DataSource dataSource = DataSource.FILE;
 	private DataEventType dataEventType;
 	private List<Double> parameters;
@@ -59,12 +66,15 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	private Semaphore semaphore;
 	
 	// Stats:
-	private long totalNumOfEntries;
-	private long totalNumOfSuccesses;
+	private double totalNumOfEntries;
+	private double totalNumOfSuccesses;
 	private long maxHighForDrawDown;
 	private long minLowForDrawDown;
 	private long maxDrawDown;
 	private long currValueForDrawDown;
+	
+	private int hourToStartApproveTrades;
+	private int windowLengthInHoursToApproveTrades;
 	
 	private ExitStrategyStatus [][] exitStrategiesBehavior;
 	
@@ -163,6 +173,13 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		minLowForDrawDown = 1000000;
 		maxDrawDown = 0;
 		currValueForDrawDown = 0;
+		if (params.length >= 15) {
+			hourToStartApproveTrades = new Double(params[13]).intValue();
+			windowLengthInHoursToApproveTrades = new Double(params[14]).intValue();
+		} else {// trade all hours of day
+			hourToStartApproveTrades = -1;
+			windowLengthInHoursToApproveTrades = -1;
+		}
 	}
 
 	@Override
@@ -214,59 +231,31 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	}
 
 	@Override
-	public void updateOnEntry(List<EntryStrategyStateAndTime> stateArr) {
+	public void updateOnEntry(List<EntryStrategyStateAndTime> stateArr, Date entryDateAndTime) {
 		for (EntryStrategyStateAndTime entryStrategyStateAndTime : stateArr) {
 			if (entryStrategyStateAndTime.getState().getStatus() == EntryStrategyStateStatus.TRIGGER_BEARISH ||
 					entryStrategyStateAndTime.getState().getStatus() == EntryStrategyStateStatus.TRIGGER_BULLISH) {
-				// create new trade for each entry, for reports only.
-				IEntryStrategyLastState lastState = (IEntryStrategyLastState)entryStrategyStateAndTime.getState();
 				
-				double currRsiValue = -100;
-				if (entryStrategyManager.getNewUpdateData() != null && 
-						entryStrategyManager.getNewUpdateData().length > 1 && 
-						entryStrategyManager.getNewUpdateData()[1] instanceof SimpleUpdateData) {
-					currRsiValue = ((SimpleUpdateData)(entryStrategyManager.getNewUpdateData()[1])).getValue();
-				}
-				
-				double contractAmount = broker.getContractAmount(assetType);
-				// give each trade the data needed for the trade.
-				ExitStrategyDataObject [] exitStrategiesList = new ExitStrategyDataObject[1];//new ExitStrategyDataObject[2];
-//				EXT_0001 ext0001 = new EXT_0001(lastState, fractionOfOriginalStopLoss, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType));
-//				exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0001, exit0001CloseOnTrigger, null, contractAmount);
-				IExitStrategy ext0007 = new EXT_0007(lastState, xFactor, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType));
-//				IExitStrategy ext0003 = new EXT_0003(lastState, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType), currRsiValue, rsiLongExitValue, rsiShortExitValue);
-				exitStrategiesList[TradeManager.EXIT_0007] = new ExitStrategyDataObject(ext0007, exit0007CloseOnTrigger, null, contractAmount);
-				// contract amount = 500
-				// account = 1000000
-				// min move 1 cent = 5$
-				// 1% of account = 10000 = [num of cents = (entry - stop)] * [contract amount] * [num of contracts] - TODO change quantity to constant value for optimization.
-				int currTradeQuantity = (int)( ( (broker.getAccountStatus().getBalance()/100) / 
-											((Math.abs(ext0007.getNewEntryPoint() - ext0007.getCurrStopLoss()) * contractAmount) *
-													broker.getMinimumContractAmountMultiply(assetType) ) ) / 1000);
-				
-				
-				
-				EntryStrategyDataObject entryStrategyDataObject = new EntryStrategyDataObject(entryStrategyStateAndTime.getTimeList(), null, entryStrategyStateAndTime.getState().getStatus(), entryStrategyManager.getDataHeaders());
-				TRD_0001 currTrade = new TRD_0001(entryStrategyDataObject, exitStrategiesList, this , xFactor , assetType, 0.1/*This belongs to exit strategy 1*/, currTradeQuantity, this.exitStrategiesBehavior);
-				this.tradeManagers.add(currTrade);
-				
-				currTrade.setBroker(broker);
-				boolean openedTrade = currTrade.startTrade();
-				
-				if (openedTrade) {
-					/**
-					 * Register to RSI.
-					 */
-					RegisterDataExtractor.register(dataSource, assetType, DataEventType.RSI, rsiParameters,rsiHistoryLength, currTrade);	
-					/**
-					 * Register to Japanese candles.
-					 */
-					RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters,0, currTrade);
+				if (hourToStartApproveTrades > 0 && hourToStartApproveTrades < 23 && 
+						windowLengthInHoursToApproveTrades > 0 && windowLengthInHoursToApproveTrades < 24) {//limit trades to given hours.
+					Calendar calendarOfEntryTime = GregorianCalendar.getInstance();
+					calendarOfEntryTime.setTimeInMillis(entryDateAndTime.getTime());
 					
-					RegisterDataExtractor.register(dataSource, assetType, DataEventType.NEW_QUOTE, new ArrayList<Double>(),rsiHistoryLength, currTrade);
-				
-				} else {
-					this.tradeManagers.remove(currTrade);
+					Calendar startTradeCalendar = getTodayStartTradeCalendar(entryDateAndTime);
+					long startTradeTime = startTradeCalendar.getTimeInMillis();
+					long endTradeTime = startTradeCalendar.getTimeInMillis() + (windowLengthInHoursToApproveTrades * HOUR_IN_MINUTES * MINUTES_IN_MILISEC);
+					if (calendarOfEntryTime.getTimeInMillis() >= startTradeTime && calendarOfEntryTime.getTimeInMillis() <= endTradeTime) {
+						openNewTrade(entryStrategyStateAndTime);
+					} else {//move one day back and check trade times.
+						startTradeCalendar.add(Calendar.DATE, -1);
+						startTradeTime = startTradeCalendar.getTimeInMillis();
+						endTradeTime = startTradeCalendar.getTimeInMillis() + (windowLengthInHoursToApproveTrades * HOUR_IN_MINUTES * MINUTES_IN_MILISEC);
+						if (calendarOfEntryTime.getTimeInMillis() >= startTradeTime && calendarOfEntryTime.getTimeInMillis() <= endTradeTime) {
+							openNewTrade(entryStrategyStateAndTime);
+						}
+					}
+				} else { //trade all hours of day.
+					openNewTrade(entryStrategyStateAndTime);
 				}
 			} else if (entryStrategyManager.getSubjectState() == SubjectState.END_OF_LIFE) {
 				subjectState = SubjectState.END_OF_LIFE;
@@ -275,6 +264,67 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 			}
 		}
 
+	}
+	
+	private Calendar getTodayStartTradeCalendar(Date today){
+		Calendar calendar = GregorianCalendar.getInstance();
+		calendar.setTimeInMillis(today.getTime());
+		calendar.set(Calendar.HOUR_OF_DAY, hourToStartApproveTrades);
+		calendar.set(Calendar.MINUTE, 0);
+		return calendar;
+	}
+
+	private void openNewTrade(EntryStrategyStateAndTime entryStrategyStateAndTime) {
+		// create new trade for each entry, for reports only.
+		IEntryStrategyLastState lastState = (IEntryStrategyLastState)entryStrategyStateAndTime.getState();
+		
+		double currRsiValue = -100;
+		if (entryStrategyManager.getNewUpdateData() != null && 
+				entryStrategyManager.getNewUpdateData().length > 1 && 
+				entryStrategyManager.getNewUpdateData()[1] instanceof SimpleUpdateData) {
+			currRsiValue = ((SimpleUpdateData)(entryStrategyManager.getNewUpdateData()[1])).getValue();
+		}
+		
+		double contractAmount = broker.getContractAmount(assetType);
+		// give each trade the data needed for the trade.
+		ExitStrategyDataObject [] exitStrategiesList = new ExitStrategyDataObject[1];//new ExitStrategyDataObject[2];
+//				EXT_0001 ext0001 = new EXT_0001(lastState, fractionOfOriginalStopLoss, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType));
+//				exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0001, exit0001CloseOnTrigger, null, contractAmount);
+		IExitStrategy ext0007 = new EXT_0007(lastState, xFactor, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType));
+//				IExitStrategy ext0003 = new EXT_0003(lastState, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType), currRsiValue, rsiLongExitValue, rsiShortExitValue);
+		exitStrategiesList[TradeManager.EXIT_0007] = new ExitStrategyDataObject(ext0007, exit0007CloseOnTrigger, null, contractAmount);
+		// contract amount = 500
+		// account = 1000000
+		// min move 1 cent = 5$
+		// 1% of account = 10000 = [num of cents = (entry - stop)] * [contract amount] * [num of contracts] - TODO change quantity to constant value for optimization.
+		int currTradeQuantity = (int)( ( (broker.getAccountStatus().getBalance()/100) / 
+									((Math.abs(ext0007.getNewEntryPoint() - ext0007.getCurrStopLoss()) * contractAmount) *
+											broker.getMinimumContractAmountMultiply(assetType) ) ) / 1000);
+		
+		
+		
+		EntryStrategyDataObject entryStrategyDataObject = new EntryStrategyDataObject(entryStrategyStateAndTime.getTimeList(), null, entryStrategyStateAndTime.getState().getStatus(), entryStrategyManager.getDataHeaders());
+		TRD_0001 currTrade = new TRD_0001(entryStrategyDataObject, exitStrategiesList, this , xFactor , assetType, 0.1/*This belongs to exit strategy 1*/, currTradeQuantity, this.exitStrategiesBehavior);
+		this.tradeManagers.add(currTrade);
+		
+		currTrade.setBroker(broker);
+		boolean openedTrade = currTrade.startTrade();
+		
+		if (openedTrade) {
+			/**
+			 * Register to RSI.
+			 */
+			RegisterDataExtractor.register(dataSource, assetType, DataEventType.RSI, rsiParameters,rsiHistoryLength, currTrade);	
+			/**
+			 * Register to Japanese candles.
+			 */
+			RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters,0, currTrade);
+			
+			RegisterDataExtractor.register(dataSource, assetType, DataEventType.NEW_QUOTE, new ArrayList<Double>(),rsiHistoryLength, currTrade);
+		
+		} else {
+			this.tradeManagers.remove(currTrade);
+		}
 	}
 
 	public Semaphore getSemaphore() {
@@ -296,10 +346,11 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	}
 	
 	public void runSingleParamsOptimizationCheck(Double [] params) {
-		if (params.length < 12) {
+		if (params.length < 15) {
 			System.out.println("Usage: runSingleParamsOptimizationCheck({patternType={1-3}, patternParametersIndex={1}, entryStrategyTriggerType={0,1}, " +
 					"japaneseTimeFrameType={0-7}, japaneseCandleBarPropertyType={0-3}, rsiLength, rsiHistoryLength, rsiType={1-2}, xFactor={1.5 or any other value}, "
-					+ "exit0007CloseOnTrigger=(0-1], maxRsiLongValueForEntry, minRsiShortValueForEntry, maxNumOfCandlesAfterPatternForEntry" + "})");
+					+ "exit0007CloseOnTrigger=(0-1], maxRsiLongValueForEntry, minRsiShortValueForEntry, maxNumOfCandlesAfterPatternForEntry, start trade hour 0-23, how many hours to trade 0-23" + "})");
+			return;
 		}
 		
 		init(DataSource.FILE, AssetType.USOIL, DataEventType.JAPANESE, params);
@@ -360,7 +411,8 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		long exeTime;
 		Double [] params = {/*patternType*/1.0, /*Harami Percentage diff Of body size*/0.1, /*entryStrategyTriggerType*/0.0, /*japaneseTimeFrameType*/1.0, /*japaneseCandleBarPropertyType*/1.0, 
 							/*rsiLength*/7.0, /*rsiHistoryLength*/0.0, /*rsiType*/1.0, /*xFactor*/5.0, /*exit0007CloseOnTrigger*/1.0, /*rsiLongExitValue 80.0, 
-							/*rsiShortExitValue 20.0,*/ /*maxRsiLongValueForEntry*/80.0, /*minRsiShortValueForEntry*/20.0, /*maxNumOfCandlesAfterPatternForEntry*/5.0};
+							/*rsiShortExitValue 20.0,*/ /*maxRsiLongValueForEntry*/80.0, /*minRsiShortValueForEntry*/20.0, /*maxNumOfCandlesAfterPatternForEntry*/5.0, 
+							/*Hour in day to start approving trades*/ 8.0, /*Length of TRade approval window*/ 8.0};
 		
 		
 		

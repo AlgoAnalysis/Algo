@@ -1,5 +1,6 @@
 package com.algotrado.money.manager;
 
+import java.util.Date;
 import java.util.List;
 
 import com.algotrado.entry.strategy.EntryStrategyDataObject;
@@ -18,5 +19,5 @@ public interface IMoneyManager {
 	
 //	public Double requestPermissionToOpenTrade(ExitStrategyDataObject [] exitStrategiesList, EntryStrategyDataObject entryStrategyDataObj);
 	
-	public void updateOnEntry(List<EntryStrategyStateAndTime> stateArr);
+	public void updateOnEntry(List<EntryStrategyStateAndTime> stateArr, Date entryDateAndTime);
 }
