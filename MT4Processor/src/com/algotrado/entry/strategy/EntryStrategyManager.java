@@ -240,6 +240,8 @@ public class EntryStrategyManager implements IDataExtractorObserver {
 			}
 			rsi = null;
 			japaneseCandle = null;
+		} else if (this.subjectState == SubjectState.END_OF_LIFE) {
+			moneyManager.updateOnEntry(stateArr, new Date());
 		}
 	}
 

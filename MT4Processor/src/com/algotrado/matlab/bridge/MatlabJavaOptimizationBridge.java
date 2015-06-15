@@ -257,11 +257,12 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 				} else { //trade all hours of day.
 					openNewTrade(entryStrategyStateAndTime);
 				}
-			} else if (entryStrategyManager.getSubjectState() == SubjectState.END_OF_LIFE) {
-				subjectState = SubjectState.END_OF_LIFE;
-				semaphore.release();
-//				notifyObservers(assetType, dataEventType, parameters);
-			}
+			} 
+		}
+		
+		if (entryStrategyManager.getSubjectState() == SubjectState.END_OF_LIFE) {
+			subjectState = SubjectState.END_OF_LIFE;
+			semaphore.release();
 		}
 
 	}
@@ -414,6 +415,10 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 							/*rsiShortExitValue 20.0,*/ /*maxRsiLongValueForEntry*/80.0, /*minRsiShortValueForEntry*/20.0, /*maxNumOfCandlesAfterPatternForEntry*/5.0, 
 							/*Hour in day to start approving trades*/ 8.0, /*Length of TRade approval window*/ 8.0};
 		
+//		Double [] params = {/*patternType*/1.0, /*Harami Percentage diff Of body size*/0.1, /*entryStrategyTriggerType*/1.0, /*japaneseTimeFrameType*/1.0, /*japaneseCandleBarPropertyType*/1.0, 
+//				/*rsiLength*/8.0, /*rsiHistoryLength*/0.0, /*rsiType*/1.0, /*xFactor*/9.5, /*exit0007CloseOnTrigger*/1.0, /*rsiLongExitValue 80.0, 
+//				/*rsiShortExitValue 20.0,*/ /*maxRsiLongValueForEntry*/50.0, /*minRsiShortValueForEntry*/0.0, /*maxNumOfCandlesAfterPatternForEntry*/20.0, /*maxNumOfCandlesAfterPatternForEntry*/-5.0, 
+//				/*Hour in day to start approving trades*/ -8.0, /*Length of TRade approval window*/ -8.0};
 		
 		
 		MatlabJavaOptimizationBridge matlabJavaOB = new MatlabJavaOptimizationBridge();
