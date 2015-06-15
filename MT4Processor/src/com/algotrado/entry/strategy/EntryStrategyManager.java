@@ -221,6 +221,10 @@ public class EntryStrategyManager implements IDataExtractorObserver {
 			rsi = (SimpleUpdateData)this.rsiDataExtractorSubject.getNewData();
 		}
 		
+		this.subjectState = ((this.rsiDataExtractorSubject != null && this.rsiDataExtractorSubject.getSubjectState() == SubjectState.END_OF_LIFE) ||
+				(this.dataExtractorSubject != null && this.dataExtractorSubject.getSubjectState() == SubjectState.END_OF_LIFE)) ? 
+						SubjectState.END_OF_LIFE : this.subjectState;
+		
 		if (japaneseCandle != null  && rsi != null) {
 			newUpdateData = new NewUpdateData[2];
 			newUpdateData[0] = japaneseCandle;
@@ -228,7 +232,8 @@ public class EntryStrategyManager implements IDataExtractorObserver {
 			this.setNewData(newUpdateData);
 			
 			if (this.getStatus() == EntryStrategyManagerStatus.TRIGGER_BEARISH || 
-					this.getStatus() == EntryStrategyManagerStatus.TRIGGER_BULLISH) {
+					this.getStatus() == EntryStrategyManagerStatus.TRIGGER_BULLISH || 
+					this.subjectState == SubjectState.END_OF_LIFE) {
 				//notifyObservers(AssetType.valueOf(assetName), dataEventType, parameters);
 				// notify Money Manager. 
 				moneyManager.updateOnEntry(stateArr, japaneseCandle.getTime());
@@ -236,10 +241,6 @@ public class EntryStrategyManager implements IDataExtractorObserver {
 			rsi = null;
 			japaneseCandle = null;
 		}
-		
-		this.subjectState = ((this.rsiDataExtractorSubject != null && this.rsiDataExtractorSubject.getSubjectState() == SubjectState.END_OF_LIFE) ||
-				(this.dataExtractorSubject != null && this.dataExtractorSubject.getSubjectState() == SubjectState.END_OF_LIFE)) ? 
-						SubjectState.END_OF_LIFE : this.subjectState;
 	}
 
 	@Override
