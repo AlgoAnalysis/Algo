@@ -236,8 +236,8 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 			if (entryStrategyStateAndTime.getState().getStatus() == EntryStrategyStateStatus.TRIGGER_BEARISH ||
 					entryStrategyStateAndTime.getState().getStatus() == EntryStrategyStateStatus.TRIGGER_BULLISH) {
 				
-				if (hourToStartApproveTrades > 0 && hourToStartApproveTrades < 23 && 
-						windowLengthInHoursToApproveTrades > 0 && windowLengthInHoursToApproveTrades < 24) {//limit trades to given hours.
+				if (hourToStartApproveTrades >= 0 && hourToStartApproveTrades < 24 && 
+						windowLengthInHoursToApproveTrades > 0 && windowLengthInHoursToApproveTrades <= 24) {//limit trades to given hours.
 					Calendar calendarOfEntryTime = GregorianCalendar.getInstance();
 					calendarOfEntryTime.setTimeInMillis(entryDateAndTime.getTime());
 					
@@ -349,7 +349,7 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		if (params.length < 15) {
 			System.out.println("Usage: runSingleParamsOptimizationCheck({patternType={1-3}, patternParametersIndex={1}, entryStrategyTriggerType={0,1}, " +
 					"japaneseTimeFrameType={0-7}, japaneseCandleBarPropertyType={0-3}, rsiLength, rsiHistoryLength, rsiType={1-2}, xFactor={1.5 or any other value}, "
-					+ "exit0007CloseOnTrigger=(0-1], maxRsiLongValueForEntry, minRsiShortValueForEntry, maxNumOfCandlesAfterPatternForEntry, start trade hour 0-23, how many hours to trade 0-23" + "})");
+					+ "exit0007CloseOnTrigger=(0-1], maxRsiLongValueForEntry, minRsiShortValueForEntry, maxNumOfCandlesAfterPatternForEntry, start trade hour 0-23, how many hours to trade 1-24" + "})");
 			return;
 		}
 		
