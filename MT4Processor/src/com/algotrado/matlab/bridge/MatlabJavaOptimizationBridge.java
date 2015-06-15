@@ -63,7 +63,7 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	private SubjectState subjectState;
 	private AssetType assetType;
 	private IBroker broker;
-	private Semaphore semaphore;
+	private boolean runDone;
 	
 	// Stats:
 	private double totalNumOfEntries;
@@ -167,7 +167,7 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		
 		subjectState = SubjectState.RUNNING;
 		
-		semaphore = new Semaphore(0);
+		runDone = false;
 		
 		maxHighForDrawDown = 0;
 		minLowForDrawDown = 1000000;
@@ -198,7 +198,7 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		if (positionStatus.getPositionStatus() == PositionOrderStatusType.CLOSED || isEndOfLife) {
 			if (isEndOfLife) {
 				subjectState = SubjectState.END_OF_LIFE;
-				semaphore.release();
+				runDone = true;
 			}
 			if (positionStatus.getPositionStatus() == PositionOrderStatusType.CLOSED) {
 				totalNumOfEntries++;
@@ -262,7 +262,7 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		
 		if (entryStrategyManager.getSubjectState() == SubjectState.END_OF_LIFE) {
 			subjectState = SubjectState.END_OF_LIFE;
-			semaphore.release();
+			runDone = true;
 		}
 
 	}
@@ -328,10 +328,6 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		}
 	}
 
-	public Semaphore getSemaphore() {
-		return semaphore;
-	}
-
 	@Override
 	public void run() {
 		
@@ -359,13 +355,6 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		//SwingUtilities.invokeLater(this);
 		
 		// Try to acquire semaphore and sleep until end of run.
-		
-		try {
-			this.getSemaphore().acquire();
-		} catch (InterruptedException e) {
-			System.out.println("Could not acuire semaphore for some reason.");
-			e.printStackTrace();
-		}
 	}
 		
 	@Override
@@ -403,6 +392,10 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	public long getMaxDrawDown() {
 		return maxDrawDown;
 	}
+	
+	public boolean isRunDone() {
+		return runDone;
+	}
 
 	public static void main(String[] args) {
 		// TODO create money manager.
@@ -425,6 +418,15 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		for (int i = 1; i <= 10; i++) {
 			timeMili = System.currentTimeMillis();
 			matlabJavaOB.runSingleParamsOptimizationCheck(params);
+			while(!matlabJavaOB.isRunDone())
+			{
+				try {
+					Thread.sleep(10);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 			exeTime = (System.currentTimeMillis() - timeMili);
 			System.out.println("Total time: " + exeTime + " miliseconds.");
 			System.out.println("Account Balance = " + matlabJavaOB.getAccountBalance());
