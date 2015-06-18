@@ -10,6 +10,7 @@ public abstract class TradeManager implements IDataExtractorObserver {
 	
 	public final static int EXIT_0001 = 0;
 	public final static int EXIT_0003 = 0;
+	public final static int EXIT_0004 = 0;
 	public final static int EXIT_0007 = 0;
 
 	// 1 entry manager

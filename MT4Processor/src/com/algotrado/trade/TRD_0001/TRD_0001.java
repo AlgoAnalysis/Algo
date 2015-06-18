@@ -9,6 +9,7 @@ import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.NewUpdateData;
 import com.algotrado.data.event.SimpleUpdateData;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
+import com.algotrado.data.event.indicator.IND_0003.ZigZagUpdateData;
 import com.algotrado.entry.strategy.EntryStrategyDataObject;
 import com.algotrado.entry.strategy.EntryStrategyStateStatus;
 import com.algotrado.exit.strategy.ExitStrategyDataObject;
@@ -45,10 +46,12 @@ public class TRD_0001 extends TradeManager {
 	private IDataExtractorSubject japaneseSource;
 	private IDataExtractorSubject rsiSource;
 	private IDataExtractorSubject quoteSource;
+	private IDataExtractorSubject zigzagSource;
 	
 	private JapaneseCandleBar japaneseCandleBar;
 	private SimpleUpdateData rsi;
 	private JapaneseCandleBar quote;
+	private ZigZagUpdateData zigZagUpdateData;
 	
 	private List<TradeStateAndTime> tradeStateTimeList; 
 	
@@ -151,6 +154,10 @@ public class TRD_0001 extends TradeManager {
 				// TODO - need support in case the minimum time frame is not JapaneseCandleBar (not file)
 				SimpleUpdateData simpleUpdateData = (SimpleUpdateData)this.quoteSource.getNewData();
 				quote = new JapaneseCandleBar(simpleUpdateData.getValue(), simpleUpdateData.getValue(), simpleUpdateData.getValue(), simpleUpdateData.getValue(), simpleUpdateData.getVolume(), simpleUpdateData.getTime(), simpleUpdateData.getAssetName());
+			} else if (dataEventType == DataEventType.ZIGZAG) {
+				// TODO - need support in case the minimum time frame is not JapaneseCandleBar (not file)
+				SimpleUpdateData simpleUpdateData = (SimpleUpdateData)this.zigzagSource.getNewData();
+				zigZagUpdateData = new ZigZagUpdateData(simpleUpdateData.getAsset(), simpleUpdateData.getTime(), simpleUpdateData.getValue(), simpleUpdateData.getVolume());
 			} else {
 				throw new RuntimeException("Data type not supported. Please add support for data type.");
 			}
@@ -160,12 +167,22 @@ public class TRD_0001 extends TradeManager {
 				
 				// if there is an active trade. than we should set new Data to exit strategies to see if any exit trigger has happened.
 				if (japaneseCandleBar != null && rsi != null) {
-					newData = new NewUpdateData[3];
+					if (zigZagUpdateData != null) {
+						newData = new NewUpdateData[4];
+						newData[3] = zigZagUpdateData;
+					} else {
+						newData = new NewUpdateData[3];
+					}
 					newData[0] = quote;
 					newData[1] = japaneseCandleBar;
 					newData[2] = rsi;
 				} else {
-					newData = new NewUpdateData[1];
+					if (zigZagUpdateData != null) {
+						newData = new NewUpdateData[2];
+						newData[1] = zigZagUpdateData;
+					} else {
+						newData = new NewUpdateData[1];
+					}
 					newData[0] = quote;
 				}
 
@@ -185,6 +202,7 @@ public class TRD_0001 extends TradeManager {
 				}
 
 				quote = null;
+				zigZagUpdateData = null;
 			}
 		} else {
 			if (quoteSource != null) {
@@ -203,6 +221,13 @@ public class TRD_0001 extends TradeManager {
 				japaneseSource.unregisterObserver(this);
 				if (japaneseSource != null) {
 					this.removeSubject(japaneseSource);
+				}
+			}
+			
+			if (zigzagSource != null) {
+				zigzagSource.unregisterObserver(this);
+				if (zigzagSource != null) {
+					this.removeSubject(zigzagSource);
 				}
 			}
 			
@@ -332,6 +357,7 @@ public class TRD_0001 extends TradeManager {
 			japaneseSource = null;
 			rsiSource = null;
 			quoteSource = null;
+			zigzagSource = null;
 		} else {
 			if (dataExtractorSubject.getDataEventType() == DataEventType.JAPANESE) {
 				japaneseSource = dataExtractorSubject;
@@ -339,6 +365,8 @@ public class TRD_0001 extends TradeManager {
 				rsiSource = dataExtractorSubject;
 			} else if (dataExtractorSubject.getDataEventType() == DataEventType.NEW_QUOTE) {
 				quoteSource = dataExtractorSubject;
+			} else if (dataExtractorSubject.getDataEventType() == DataEventType.ZIGZAG) {
+				zigzagSource = dataExtractorSubject;
 			} else {
 				throw new RuntimeException("IDataExtractorSubject source not supported");
 			}

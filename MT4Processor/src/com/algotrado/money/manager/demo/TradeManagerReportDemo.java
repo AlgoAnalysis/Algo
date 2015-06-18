@@ -66,6 +66,13 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 	double exit0001CloseOnTrigger;
 	double exit0007CloseOnTrigger;
 	
+	int depth;
+	double deviation;
+	int backstep;
+	int maxHistoryLength;
+	
+	private JapaneseTimeFrameType japaneseTimeFrameType;
+	
 	private ExitStrategyStatus [][] exitStrategiesBehavior;
 	
 	private static int numOfTrades = 0;
@@ -84,7 +91,7 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 		IPatternState state = new PTN_0001_S1(1); // Pattern code, after changing press Ctrl+shift+o
 		EntryStrategyTriggerType entryStrategyTriggerType = EntryStrategyTriggerType.BUYING_BREAK_PRICE;
 		// parameters 
-		JapaneseTimeFrameType japaneseTimeFrameType = JapaneseTimeFrameType.FIVE_MINUTE;
+		japaneseTimeFrameType = JapaneseTimeFrameType.FIVE_MINUTE;
 		// RSI parameters
 		JapaneseCandleBarPropertyType japaneseCandleBarPropertyType = JapaneseCandleBarPropertyType.CLOSE;
 		rsiLength = 7;
@@ -102,6 +109,11 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 		
 		this.rsiLongExitValue = 90;
 		this.rsiShortExitValue = 10;
+		
+		this.depth = 5;
+		this.deviation = 5;
+		this.backstep = 3;
+		this.maxHistoryLength = 4;
 		
 		double maxRsiLongValueForEntry = (double)80;
 		double minRsiShortValueForEntry = (double)20;
@@ -230,6 +242,17 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 					RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters,0, currTrade);
 					
 					RegisterDataExtractor.register(dataSource, assetType, DataEventType.NEW_QUOTE, new ArrayList<Double>(),rsiHistoryLength, currTrade);
+					
+					
+					String filePath = "C:\\Algo\\test\\Zigzag_on_" + assetType.name()+".csv";
+					///////////////////////////////////////
+					List<Double> zigzagParameters = new ArrayList<Double>();
+					
+					zigzagParameters.add((double)japaneseTimeFrameType.getValueInMinutes());
+					zigzagParameters.add((double)depth);
+					zigzagParameters.add(deviation);
+					zigzagParameters.add((double)backstep);
+					RegisterDataExtractor.register(dataSource, assetType, DataEventType.ZIGZAG, zigzagParameters,maxHistoryLength, currTrade);
 				
 				} else {
 					this.tradeManagers.remove(currTrade);
