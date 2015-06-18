@@ -16,10 +16,13 @@ public class EXT_0004 extends IExitStrategy {
 	private double secondLocalExtremumPointOfPrice;
 	private double currentPrice;
 	
+	private double zigzagMultiplier;
+	
 	
 	public EXT_0004(PositionDirectionType positionDirectionType) {
 		super();
 		this.positionDirectionType = positionDirectionType;
+		this.zigzagMultiplier = (positionDirectionType == PositionDirectionType.LONG) ? 1.0 : (-1.0);
 		init();
 	}
 
@@ -62,16 +65,16 @@ public class EXT_0004 extends IExitStrategy {
 				if (firstLocalExtremumPointOfPrice < 0) {// first zigzag assumed to be high/low according to direction
 					firstLocalExtremumPointOfPrice = ((ZigZagUpdateData)newData[i]).getValue();
 				} else {// Next zigzag fixes assumption if was wrong
-					double prevLocalExtremumPointOfPriceForCalc = getDirectionMultiplier() * firstLocalExtremumPointOfPrice;
-					double currLocalExtremumPointOfPrice = getDirectionMultiplier() * ((ZigZagUpdateData)newData[i]).getValue();
+					double prevLocalExtremumPointOfPriceForCalc = zigzagMultiplier * firstLocalExtremumPointOfPrice;
+					double currLocalExtremumPointOfPrice = zigzagMultiplier * ((ZigZagUpdateData)newData[i]).getValue();
 					firstLocalExtremumPointOfPrice = 
 							(currLocalExtremumPointOfPrice > prevLocalExtremumPointOfPriceForCalc) ? 
 									Math.abs(currLocalExtremumPointOfPrice) : firstLocalExtremumPointOfPrice;
 				}
 				// second zigzag low/high (contrary to previous)
 				if (secondLocalExtremumPointOfPrice < 0 && firstLocalExtremumPointOfPrice > 0 &&
-						(getDirectionMultiplier() * firstLocalExtremumPointOfPrice) > 
-							(getDirectionMultiplier() * ((ZigZagUpdateData)newData[i]).getValue()) ) {
+						(zigzagMultiplier * firstLocalExtremumPointOfPrice) > 
+							(zigzagMultiplier * ((ZigZagUpdateData)newData[i]).getValue()) ) {
 					secondLocalExtremumPointOfPrice = ((ZigZagUpdateData)newData[i]).getValue();
 				}
 				
@@ -80,8 +83,8 @@ public class EXT_0004 extends IExitStrategy {
 			if (secondLocalExtremumPointOfPrice > 0 && firstLocalExtremumPointOfPrice > 0 && i == 1 &&
 					(newData[i] instanceof JapaneseCandleBar)) {
 				currentPrice = ((JapaneseCandleBar)newData[i]).getClose(); 
-				if ((getDirectionMultiplier() * currentPrice) >  
-					(getDirectionMultiplier() * firstLocalExtremumPointOfPrice)) {// Close Price crossed previous high/low.
+				if ((zigzagMultiplier * currentPrice) >  
+					(zigzagMultiplier * firstLocalExtremumPointOfPrice)) {// Close Price crossed previous high/low.
 					this.exitStrategyStatus = ExitStrategyStatus.MOVE_STOP_LOSS;
 					setNewStopLoss(secondLocalExtremumPointOfPrice);// set stop loss to second extremum point.
 					init();
@@ -89,10 +92,6 @@ public class EXT_0004 extends IExitStrategy {
 			}
 		}
 
-	}
-
-	private double getDirectionMultiplier() {
-		return (positionDirectionType == PositionDirectionType.LONG) ? 1.0 : (-1.0);
 	}
 
 	@Override

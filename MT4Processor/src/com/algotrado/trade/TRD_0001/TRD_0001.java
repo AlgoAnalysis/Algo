@@ -162,31 +162,28 @@ public class TRD_0001 extends TradeManager {
 				throw new RuntimeException("Data type not supported. Please add support for data type.");
 			}
 
-			if (quote != null) {
-				NewUpdateData [] newData = new NewUpdateData[2];
+			if (quote != null) { 
+				ArrayList<NewUpdateData> newData = new ArrayList<NewUpdateData>();
+				
+				newData.add(quote);
+				
+				if (japaneseCandleBar != null && rsi != null) {
+//					if (japaneseCandleBar != null) {
+						newData.add(japaneseCandleBar);
+//					}
+
+//					if (rsi != null) {
+						newData.add(rsi);
+//					}
+				}
+				
+				if (zigZagUpdateData != null) {
+					newData.add(zigZagUpdateData);
+				}
 				
 				// if there is an active trade. than we should set new Data to exit strategies to see if any exit trigger has happened.
-				if (japaneseCandleBar != null && rsi != null) {
-					if (zigZagUpdateData != null) {
-						newData = new NewUpdateData[4];
-						newData[3] = zigZagUpdateData;
-					} else {
-						newData = new NewUpdateData[3];
-					}
-					newData[0] = quote;
-					newData[1] = japaneseCandleBar;
-					newData[2] = rsi;
-				} else {
-					if (zigZagUpdateData != null) {
-						newData = new NewUpdateData[2];
-						newData[1] = zigZagUpdateData;
-					} else {
-						newData = new NewUpdateData[1];
-					}
-					newData[0] = quote;
-				}
 
-				updateExitStrategiesWithNewData(newData, false);
+				updateExitStrategiesWithNewData(newData.toArray(new NewUpdateData[newData.size()]), false);
 
 				setExitStrategiesPositionAccordingToData();
 
