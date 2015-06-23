@@ -1,11 +1,16 @@
 package com.algotrado.matlab.bridge;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.concurrent.Semaphore;
+
+import javax.management.RuntimeErrorException;
 
 import com.algotrado.broker.IBroker;
 import com.algotrado.data.event.DataEventType;
@@ -29,6 +34,7 @@ import com.algotrado.extract.data.RegisterDataExtractor;
 import com.algotrado.extract.data.SubjectState;
 import com.algotrado.extract.data.file.FileDataExtractor;
 import com.algotrado.money.manager.IMoneyManager;
+import com.algotrado.output.file.FileDataRecorder;
 import com.algotrado.output.file.IGUIController;
 import com.algotrado.pattern.IPatternState;
 import com.algotrado.pattern.PatternManager;
@@ -43,6 +49,7 @@ import com.algotrado.util.Setting;
 
 public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, IMoneyManager {
 	
+	private static final int WEEKS_IN_YEAR = 54;
 	private static final long MINUTES_IN_MILISEC = 60*1000;
 	private static final long HOUR_IN_MINUTES = 60;
 	private static final long WEEK_IN_MINUTES = 24*60*7;
@@ -64,17 +71,39 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	private AssetType assetType;
 	private IBroker broker;
 	private boolean runDone;
+	private JapaneseTimeFrameType japaneseTimeFrameType;
+	private int depth = 5;
+	private double deviation = 5;
+	private int backstep = 3;
+	private int maxHistoryLength = 4;
 	
 	// Stats:
 	private double totalNumOfEntries;
 	private double totalNumOfSuccesses;
 	private long maxHighForDrawDown;
+	private long highPointAccountBalanceAtMaxDrawDown;
 	private long minLowForDrawDown;
-	private long maxDrawDown;
+	private double [][] minMaxAccountBalanceForDrawDown;
+	private List<double []> minMaxAccountBalanceForDrawDownList;
+	private long maxDrawDownOfBalance;
 	private long currValueForDrawDown;
+	private long minAccountBalance;
 	
 	private int hourToStartApproveTrades;
 	private int windowLengthInHoursToApproveTrades;
+	
+	private MoneyManagerTradeDirection moneyManagerTradeDirection;
+	private boolean shouldTradeShorts;
+	private boolean shouldTradeLongs;
+	
+	/**
+	 * This is for checking specific trade periods.
+	 * I.e. To Be able to check only 4 weeks of trades without actually cutting the file that includes all trades. 
+	 */
+	private long startAllTradesTimeStamp;
+	private long endAllTradesTimestamp;
+	
+	private double initialAccountBalance;
 	
 	private ExitStrategyStatus [][] exitStrategiesBehavior;
 	
@@ -116,7 +145,7 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		}
 		EntryStrategyTriggerType entryStrategyTriggerType = EntryStrategyTriggerType.values()[params[2].intValue()];
 		// parameters 
-		JapaneseTimeFrameType japaneseTimeFrameType = JapaneseTimeFrameType.values()[params[3].intValue()];
+		japaneseTimeFrameType = JapaneseTimeFrameType.values()[params[3].intValue()];
 		// RSI parameters
 		JapaneseCandleBarPropertyType japaneseCandleBarPropertyType = JapaneseCandleBarPropertyType.values()[params[4].intValue()];
 		rsiLength = params[5].intValue();
@@ -168,18 +197,39 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		subjectState = SubjectState.RUNNING;
 		
 		runDone = false;
-		
-		maxHighForDrawDown = 0;
-		minLowForDrawDown = 1000000;
-		maxDrawDown = 0;
+		initialAccountBalance = broker.getAccountStatus().getBalance();
+		maxHighForDrawDown = new Double(initialAccountBalance).longValue();
+		minLowForDrawDown = (long) 1E12;
+		minAccountBalance = (long) 1E12;
+		maxDrawDownOfBalance = 0;
 		currValueForDrawDown = 0;
+		moneyManagerTradeDirection = MoneyManagerTradeDirection.BOTH;
 		if (params.length >= 15) {
 			hourToStartApproveTrades = new Double(params[13]).intValue();
 			windowLengthInHoursToApproveTrades = new Double(params[14]).intValue();
+			if (params.length >= 16) {
+				if (params[15].intValue() > 2 || params[15].intValue() < 0) {
+					throw new RuntimeException("Invalid param for trade direction of money manager, should be {0-2}.");
+				}
+				moneyManagerTradeDirection = MoneyManagerTradeDirection.values()[params[15].intValue()];
+			}
+			
+			if (params.length >= 17) {
+				if (params[16].longValue() > 0 && startAllTradesTimeStamp > 0) {
+					endAllTradesTimestamp = startAllTradesTimeStamp + (params[16].longValue() * WEEK_IN_MINUTES * MINUTES_IN_MILISEC);
+				}
+			}
 		} else {// trade all hours of day
 			hourToStartApproveTrades = -1;
 			windowLengthInHoursToApproveTrades = -1;
 		}
+		
+		shouldTradeShorts = moneyManagerTradeDirection == MoneyManagerTradeDirection.SHORT || moneyManagerTradeDirection == MoneyManagerTradeDirection.BOTH;
+		shouldTradeLongs = moneyManagerTradeDirection == MoneyManagerTradeDirection.LONG || moneyManagerTradeDirection == MoneyManagerTradeDirection.BOTH;
+		
+		
+		
+		minMaxAccountBalanceForDrawDownList = new ArrayList<double[]>();
 	}
 
 	@Override
@@ -204,37 +254,76 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 				totalNumOfEntries++;
 				if (positionStatus.getPositionCurrGain() > 0) {
 					totalNumOfSuccesses++;
-					currValueForDrawDown++;
-				} else {
-					currValueForDrawDown--;
-				}
+				} 
+				currValueForDrawDown = new Double (broker.getAccountStatus().getBalance()).longValue();
 				
 				long currMinDrawDown = minLowForDrawDown;
 				if (currValueForDrawDown > maxHighForDrawDown) {
+					if (maxHighForDrawDown > 0 && minLowForDrawDown < maxHighForDrawDown) {
+						double [] firstminThanMaxArr = new double[2];
+						firstminThanMaxArr[0] = minLowForDrawDown;
+						firstminThanMaxArr[1] = maxHighForDrawDown;
+						minMaxAccountBalanceForDrawDownList.add(firstminThanMaxArr);
+					}
 					maxHighForDrawDown = currValueForDrawDown;
 //					System.out.println("new max high" + maxHighForDrawDown);
-					minLowForDrawDown = 1000000;//Start counting new low after a new highest point has been set for draw down.
+					minLowForDrawDown = (long) 1E12;//Start counting new low after a new highest point has been set for draw down.
 				} else if (currValueForDrawDown < minLowForDrawDown) {
 					minLowForDrawDown = currValueForDrawDown;
 //					System.out.println("new min low" + minLowForDrawDown);
 					currMinDrawDown = minLowForDrawDown;
 				}
 				
+				if (currValueForDrawDown < minAccountBalance) {
+					minAccountBalance = currValueForDrawDown;
+				}
+				
 				long currDrawdown = maxHighForDrawDown - currMinDrawDown;
 				
-				if (currDrawdown > maxDrawDown) {
-					maxDrawDown = currDrawdown;
+				if (currDrawdown > 0                           /*maxDrawDownOfBalance*/) {
+					double currRelativeMaxDrawDown = (double)maxDrawDownOfBalance/(double)highPointAccountBalanceAtMaxDrawDown;
+					double currRelativeDrawDown = (double)currDrawdown / (double)maxHighForDrawDown;
+					if (currRelativeDrawDown > currRelativeMaxDrawDown || maxDrawDownOfBalance == 0) {
+						maxDrawDownOfBalance = currDrawdown;
+						highPointAccountBalanceAtMaxDrawDown = maxHighForDrawDown;
+					}
 				}
 			}
 //			notifyObservers(assetType, dataEventType, rsiParameters);
+		}
+		
+		if (runDone) {
+			fillDrawDownArray();
+		}
+	}
+
+	private void fillDrawDownArray() {
+		if(minLowForDrawDown < maxHighForDrawDown){
+			// Add last min max couple for draw down.
+			double [] firstminThanMaxArr = new double[2];
+			firstminThanMaxArr[0] = minLowForDrawDown;
+			firstminThanMaxArr[1] = maxHighForDrawDown;
+			minMaxAccountBalanceForDrawDownList.add(firstminThanMaxArr);
+		}
+		minMaxAccountBalanceForDrawDown = new double[minMaxAccountBalanceForDrawDownList.size()][2];
+		int i = 0;
+		for (double [] firstminThanMaxArrForLoop : minMaxAccountBalanceForDrawDownList ) {
+			minMaxAccountBalanceForDrawDown[i][0] = firstminThanMaxArrForLoop[0];
+			minMaxAccountBalanceForDrawDown[i][1] = firstminThanMaxArrForLoop[1];
+			i++;
 		}
 	}
 
 	@Override
 	public void updateOnEntry(List<EntryStrategyStateAndTime> stateArr, Date entryDateAndTime) {
 		for (EntryStrategyStateAndTime entryStrategyStateAndTime : stateArr) {
-			if (entryStrategyStateAndTime.getState().getStatus() == EntryStrategyStateStatus.TRIGGER_BEARISH ||
-					entryStrategyStateAndTime.getState().getStatus() == EntryStrategyStateStatus.TRIGGER_BULLISH) {
+			boolean shouldOpenTrade = (entryStrategyStateAndTime.getState().getStatus() == EntryStrategyStateStatus.TRIGGER_BEARISH && shouldTradeShorts) || 
+					(entryStrategyStateAndTime.getState().getStatus() == EntryStrategyStateStatus.TRIGGER_BULLISH && shouldTradeLongs);
+			
+			shouldOpenTrade = shouldOpenTrade && entryDateAndTime.getTime() >= startAllTradesTimeStamp &&
+					entryDateAndTime.getTime() <= endAllTradesTimestamp;
+			
+			if (shouldOpenTrade) {
 				
 				if (hourToStartApproveTrades >= 0 && hourToStartApproveTrades < 24 && 
 						windowLengthInHoursToApproveTrades > 0 && windowLengthInHoursToApproveTrades <= 24) {//limit trades to given hours.
@@ -263,6 +352,7 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		if (entryStrategyManager.getSubjectState() == SubjectState.END_OF_LIFE) {
 			subjectState = SubjectState.END_OF_LIFE;
 			runDone = true;
+			fillDrawDownArray();
 		}
 
 	}
@@ -322,6 +412,20 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 			RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters,0, currTrade);
 			
 			RegisterDataExtractor.register(dataSource, assetType, DataEventType.NEW_QUOTE, new ArrayList<Double>(),rsiHistoryLength, currTrade);
+			
+			DataSource dataSource = DataSource.FILE;
+			AssetType assetType = AssetType.USOIL;
+			
+			
+			String filePath = "C:\\Algo\\test\\Zigzag_on_" + assetType.name()+".csv";
+			
+//			List<Double> parameters = new ArrayList<Double>();
+//			
+//			parameters.add((double)japaneseTimeFrameType.getValueInMinutes());
+//			parameters.add((double)depth);
+//			parameters.add(deviation);
+//			parameters.add((double)backstep);
+//			RegisterDataExtractor.register(dataSource, assetType, DataEventType.ZIGZAG, parameters,maxHstoryLength, currTrade);
 		
 		} else {
 			this.tradeManagers.remove(currTrade);
@@ -343,18 +447,38 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	}
 	
 	public void runSingleParamsOptimizationCheck(Double [] params) {
+		runSingleParamsOptimizationCheck(params, null);
+	}
+	
+	public void runSingleParamsOptimizationCheck(Double [] params, String [] DateStr) throws RuntimeException {
 		if (params.length < 15) {
 			System.out.println("Usage: runSingleParamsOptimizationCheck({patternType={1-3}, patternParametersIndex={1}, entryStrategyTriggerType={0,1}, " +
 					"japaneseTimeFrameType={0-7}, japaneseCandleBarPropertyType={0-3}, rsiLength, rsiHistoryLength, rsiType={1-2}, xFactor={1.5 or any other value}, "
-					+ "exit0007CloseOnTrigger=(0-1], maxRsiLongValueForEntry, minRsiShortValueForEntry, maxNumOfCandlesAfterPatternForEntry, start trade hour 0-23, how many hours to trade 1-24" + "})");
+					+ "exit0007CloseOnTrigger=(0-1], maxRsiLongValueForEntry, minRsiShortValueForEntry, maxNumOfCandlesAfterPatternForEntry, start trade hour 0-23, how many hours to trade 1-24"
+					+ "moneyManagerTradeDirection={0-2}, " + "{trade window length in weeks > 0}, " + "}, {String date format of start trading date ('yyyy/MM/dd') all numbers})");
 			return;
+		}
+		
+		SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd");
+		if (DateStr == null || DateStr[0] == null) { // Trade all the trades.
+			startAllTradesTimeStamp = 0;
+			endAllTradesTimestamp = WEEK_IN_MINUTES * MINUTES_IN_MILISEC * WEEKS_IN_YEAR * 100000;
+		} else {
+			try {
+				Date startTradeDate = format.parse(DateStr[0]);
+				startAllTradesTimeStamp = startTradeDate.getTime();
+				endAllTradesTimestamp = 0; // No trade will be made unless this has been properly configured.
+				if (params.length >= 17 && params[16].longValue() <= 0) {
+					System.out.println("No trade will be made unless Trade window length has been properly configured");
+				}
+			} catch (ParseException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
 		}
 		
 		init(DataSource.FILE, AssetType.USOIL, DataEventType.JAPANESE, params);
 		run();
-		//SwingUtilities.invokeLater(this);
-		
-		// Try to acquire semaphore and sleep until end of run.
 	}
 		
 	@Override
@@ -389,12 +513,28 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	}
 	
 
-	public long getMaxDrawDown() {
-		return maxDrawDown;
+	public double getInitialAccountBalance() {
+		return initialAccountBalance;
+	}
+
+	public double getMaxDrawDown() {
+		return (double)maxDrawDownOfBalance/(double)highPointAccountBalanceAtMaxDrawDown;
 	}
 	
 	public boolean isRunDone() {
 		return runDone;
+	}
+
+	public double[][] getMinMaxAccountBalanceForDrawDown() {
+		return minMaxAccountBalanceForDrawDown;
+	}
+	
+	/**
+	 * 
+	 * @return Loss = (account balance start - account balance total min) / account balance start
+	 */
+	public double getLossFromInitialAccount() {
+		return (double)(initialAccountBalance - minAccountBalance)/(double)initialAccountBalance;
 	}
 
 	public static void main(String[] args) {
@@ -406,18 +546,20 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		Double [] params = {/*patternType*/1.0, /*Harami Percentage diff Of body size*/0.1, /*entryStrategyTriggerType*/0.0, /*japaneseTimeFrameType*/1.0, /*japaneseCandleBarPropertyType*/1.0, 
 							/*rsiLength*/7.0, /*rsiHistoryLength*/0.0, /*rsiType*/1.0, /*xFactor*/5.0, /*exit0007CloseOnTrigger*/1.0, /*rsiLongExitValue 80.0, 
 							/*rsiShortExitValue 20.0,*/ /*maxRsiLongValueForEntry*/80.0, /*minRsiShortValueForEntry*/20.0, /*maxNumOfCandlesAfterPatternForEntry*/5.0, 
-							/*Hour in day to start approving trades*/ 8.0, /*Length of TRade approval window*/ 8.0};
+							/*Hour in day to start approving trades*/ 8.0, /*Length of TRade approval window*/ 8.0, /*moneyManagerTradeDirection*/ 2.0, /*window length in weeks*/ 8.0};
 		
 //		Double [] params = {/*patternType*/1.0, /*Harami Percentage diff Of body size*/0.1, /*entryStrategyTriggerType*/1.0, /*japaneseTimeFrameType*/1.0, /*japaneseCandleBarPropertyType*/1.0, 
 //				/*rsiLength*/8.0, /*rsiHistoryLength*/0.0, /*rsiType*/1.0, /*xFactor*/9.5, /*exit0007CloseOnTrigger*/1.0, /*rsiLongExitValue 80.0, 
 //				/*rsiShortExitValue 20.0,*/ /*maxRsiLongValueForEntry*/50.0, /*minRsiShortValueForEntry*/0.0, /*maxNumOfCandlesAfterPatternForEntry*/20.0, /*maxNumOfCandlesAfterPatternForEntry*/-5.0, 
-//				/*Hour in day to start approving trades*/ -8.0, /*Length of TRade approval window*/ -8.0};
+//				/*Hour in day to start approving trades*/ -8.0, /*Length of TRade approval window*/ -8.0, /*moneyManagerTradeDirection*/ 0.0};
 		
+		String startTradeDateStr = "2014/02/03";
+		String[] strParams = new String[] {startTradeDateStr};
 		
 		MatlabJavaOptimizationBridge matlabJavaOB = new MatlabJavaOptimizationBridge();
 		for (int i = 1; i <= 10; i++) {
 			timeMili = System.currentTimeMillis();
-			matlabJavaOB.runSingleParamsOptimizationCheck(params);
+			matlabJavaOB.runSingleParamsOptimizationCheck(params, strParams);
 			while(!matlabJavaOB.isRunDone())
 			{
 				try {
@@ -429,11 +571,18 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 			}
 			exeTime = (System.currentTimeMillis() - timeMili);
 			System.out.println("Total time: " + exeTime + " miliseconds.");
+			System.out.println("Initial Account Balance = " + matlabJavaOB.getInitialAccountBalance());
+			System.out.println("Initial Account Loss = " + matlabJavaOB.getLossFromInitialAccount());
 			System.out.println("Account Balance = " + matlabJavaOB.getAccountBalance());
 			System.out.println("Success Percentage = " + matlabJavaOB.getSuccessPercentage());
 			System.out.println("Total num of Successes = " + matlabJavaOB.getTotalNumOfSuccesses());
 			System.out.println("Total num of Entries = " + matlabJavaOB.getTotalNumOfEntries());
 			System.out.println("Total max draw down = " + matlabJavaOB.getMaxDrawDown());
+			System.out.println("Draw Down Arrays: \n");
+			int drawDownIndex = 0;
+			for (double [] minMaxDrawDownArr : matlabJavaOB.getMinMaxAccountBalanceForDrawDown()) {
+				System.out.println((drawDownIndex++) + ") " + Arrays.toString(minMaxDrawDownArr));
+			}
 			System.out.println("\n");
 			if(exeTime < minimumTime)
 			{

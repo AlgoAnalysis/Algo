@@ -19,31 +19,11 @@ public class EXT_0001 extends IExitStrategy {
 
 	public EXT_0001(IEntryStrategyLastState entryLastState, double fractionOfOriginalStopLoss, 
 			double bottomSpread, double topSpread, double currBrokerSpread, double currPrice) {
-		super();
+		super(entryLastState, bottomSpread, topSpread, currBrokerSpread, entryLastState.getStopLossPrice(), 
+				entryLastState.getBuyOrderPrice());
 		this.entryLastState = entryLastState;
-		this.entryStopLoss = entryLastState.getStopLossPrice();
 		this.exitStrategyStatus = ExitStrategyStatus.RUN;
 		this.fractionOfOriginalStopLoss = fractionOfOriginalStopLoss;
-		this.bottomSpread = bottomSpread;
-		this.topSpread = topSpread;
-		this.entryStrategyEntryPoint = entryLastState.getBuyOrderPrice();
-		this.currBrokerSpread = currBrokerSpread;
-		
-		if (((IEntryStrategyState)this.entryLastState).getStatus() == EntryStrategyStateStatus.TRIGGER_BEARISH) {
-			this.isShortDirection = true;
-		} else if (((IEntryStrategyState)this.entryLastState).getStatus() == EntryStrategyStateStatus.TRIGGER_BULLISH) {
-			this.isLongDirection = true;
-		} else if (((IEntryStrategyState)this.entryLastState).getStatus() == EntryStrategyStateStatus.ERROR) {
-			this.exitStrategyStatus = ExitStrategyStatus.ERROR;
-		}
-		
-		if (isLongDirection) {
-			exitStrategyEntryPoint = entryStrategyEntryPoint + topSpread + currBrokerSpread;
-			currStopLoss = entryStopLoss - bottomSpread;
-		} else if (isShortDirection) {
-			exitStrategyEntryPoint = entryStrategyEntryPoint - bottomSpread;
-			currStopLoss = entryStopLoss + topSpread + currBrokerSpread;
-		}
 		
 		if (this.exitStrategyStatus != ExitStrategyStatus.ERROR) {
 			if (isLongDirection) {

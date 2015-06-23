@@ -1,7 +1,9 @@
 package com.algotrado.exit.strategy;
 
 import com.algotrado.data.event.NewUpdateData;
+import com.algotrado.entry.strategy.EntryStrategyStateStatus;
 import com.algotrado.entry.strategy.IEntryStrategyLastState;
+import com.algotrado.entry.strategy.IEntryStrategyState;
 import com.algotrado.trade.PositionDirectionType;
 import com.algotrado.trade.TradeManager;
 
@@ -22,6 +24,36 @@ public abstract class IExitStrategy {
 	
 	public abstract void forceTrigger();
 	
+	public IExitStrategy(){}
+	
+	public IExitStrategy(IEntryStrategyLastState entryLastState,
+			double bottomSpread, double topSpread, double currBrokerSpread,
+			double entryStopLoss, double entryStrategyEntryPoint) {
+		super();
+		this.entryLastState = entryLastState;
+		this.bottomSpread = bottomSpread;
+		this.topSpread = topSpread;
+		this.currBrokerSpread = currBrokerSpread;
+		this.entryStopLoss = entryStopLoss;
+		this.entryStrategyEntryPoint = entryStrategyEntryPoint;
+		
+		if (((IEntryStrategyState)this.entryLastState).getStatus() == EntryStrategyStateStatus.TRIGGER_BEARISH) {
+			this.isShortDirection = true;
+		} else if (((IEntryStrategyState)this.entryLastState).getStatus() == EntryStrategyStateStatus.TRIGGER_BULLISH) {
+			this.isLongDirection = true;
+		} else if (((IEntryStrategyState)this.entryLastState).getStatus() == EntryStrategyStateStatus.ERROR) {
+			this.exitStrategyStatus = ExitStrategyStatus.ERROR;
+		}
+		
+		if (isLongDirection) {
+			exitStrategyEntryPoint = entryStrategyEntryPoint + topSpread + currBrokerSpread;
+			currStopLoss = entryStopLoss - bottomSpread;
+		} else if (isShortDirection) {
+			exitStrategyEntryPoint = entryStrategyEntryPoint - bottomSpread;
+			currStopLoss = entryStopLoss + topSpread + currBrokerSpread;
+		}
+	}
+
 	public ExitStrategyStatus getStatus() {
 		return this.exitStrategyStatus;
 	}
