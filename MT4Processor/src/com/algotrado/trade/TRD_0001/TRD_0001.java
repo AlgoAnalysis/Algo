@@ -293,14 +293,21 @@ public class TRD_0001 extends TradeManager {
 		exit.forceTrigger();
 		PositionStatus positionStatus = broker.getPositionStatus(positionId);
 		this.exitStrategiesList[index].setClosingPrice(positionStatus.getCurrentPosition());
-		boolean success = broker.modifyPosition(positionId, exit.getCurrStopLoss(),0);
+		double directionMultiplier = (positionStatus.getPositionDirectionType().ordinal() > 0) ? (-1.0) : 1.0;
+		boolean success = true;
+		boolean shouldUpdateStopLoss = (directionMultiplier * exit.getCurrStopLoss()) > (directionMultiplier * currStopLoss);
+		if (shouldUpdateStopLoss) {// update only if SL advances.
+			success = broker.modifyPosition(positionId, exit.getCurrStopLoss(),0);
+		}
 
 		if (!success) {
 			// Here we should think what to do if position is not closed.
 			throw new RuntimeException("Broker did not modify position, Please handle with this issue.");
 		}
 
-		currStopLoss = exit.getCurrStopLoss();
+		if (shouldUpdateStopLoss) {
+			currStopLoss = exit.getCurrStopLoss();
+		}
 
 
 		tradeStateTimeList.get(tradeStateTimeList.size() - 1).getExits().get(index).setTriggerOrEliminate(TRIGGER);
