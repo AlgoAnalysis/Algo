@@ -130,7 +130,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 	
 	public static void resetAccount()
 	{
-		fileAccount = new FileAccount(1E9,100,100,30);
+		fileAccount = new FileAccount(1E5,100,100,30);
 		nextPositionId = 1;
 		tradeList = new HashMap<Integer,FileTrade>();
 		for(FileDataExtractor fileDataExtractor :fileDataExtractorList.values())

@@ -396,7 +396,7 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		// 1% of account = 10000 = [num of cents = (entry - stop)] * [contract amount] * [num of contracts] - TODO change quantity to constant value for optimization.
 		int currTradeQuantity = (int)( ( (broker.getAccountStatus().getBalance()/100) / 
 									((Math.abs(ext0007.getNewEntryPoint() - ext0007.getCurrStopLoss()) * contractAmount) *
-											broker.getMinimumContractAmountMultiply(assetType) ) ) / 1000);
+											broker.getMinimumContractAmountMultiply(assetType) ) ) /*/ 1000*/);
 		
 		
 		
