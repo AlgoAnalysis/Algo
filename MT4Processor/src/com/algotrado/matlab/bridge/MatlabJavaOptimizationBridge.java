@@ -166,9 +166,6 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		//this.exit0001CloseOnTrigger = 0.5;
 		this.exit0007CloseOnTrigger = params[9];
 		
-		/*params[10].intValue();
-		params[11].intValue();*/
-		
 		double maxRsiLongValueForEntry = params[10];
 		double minRsiShortValueForEntry = params[11];
 		double maxNumOfCandlesAfterPatternForEntry = params[12].intValue();
@@ -553,6 +550,18 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	public double getAverageLossTrade() {
 		return sumOfLosses / (double)(totalNumOfEntries - totalNumOfSuccesses);
 	}
+	
+	public double getProfitFactor () {
+		return sumOfProfits / sumOfLosses;
+	}
+	
+	public double getGrossProfit () {
+		return sumOfProfits;
+	}
+	
+	public double getGrossLoss () {
+		return sumOfLosses;
+	}
 
 	public static void main(String[] args) {
 		// TODO create money manager.
@@ -560,17 +569,51 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		long minimumTime = (long)Integer.MAX_VALUE;
 		long timeMili;
 		long exeTime;
-		Double [] params = {/*patternType*/1.0, /*Harami Percentage diff Of body size*/0.1, /*entryStrategyTriggerType*/0.0, /*japaneseTimeFrameType*/1.0, /*japaneseCandleBarPropertyType*/1.0, 
-							/*rsiLength*/7.0, /*rsiHistoryLength*/0.0, /*rsiType*/1.0, /*xFactor*/5.0, /*exit0007CloseOnTrigger*/1.0, /*rsiLongExitValue 80.0, 
-							/*rsiShortExitValue 20.0,*/ /*maxRsiLongValueForEntry*/80.0, /*minRsiShortValueForEntry*/20.0, /*maxNumOfCandlesAfterPatternForEntry*/5.0, 
-							/*Hour in day to start approving trades*/ 8.0, /*Length of TRade approval window*/ 8.0, /*moneyManagerTradeDirection*/ 2.0, /*window length in weeks*/ 8.0};
+		
+		Double [] params = {
+				(double)1,//patternType
+				(double)0.08,//HaramiPercentageDiffOfBodySize
+				(double)0,//entryStrategyTriggerType
+				(double)1,//japaneseTimeFrameType
+				(double)0,//japaneseCandleBarPropertyType
+				(double)18,//rsiLength
+				(double)0,//rsiHistoryLength
+				(double)2,//rsiType
+				(double)0.5,//xFactor
+				(double)1,//exit0007CloseOnTrigger
+				(double)8,//maxRsiLongValueForEntry
+				(double)45,//minRsiShortValueForEntry
+				(double)70,//maxNumOfCandlesAfterPatternForEntry
+				(double)2.75,//HourInDayToStartApprovingTrades
+				(double)1,//LengthOfTradeApprovalWindow
+				2.0,/*moneyManagerTradeDirection*/
+				208.0/*window length in weeks*/
+		};
+		
+//		Double [] params = {/*patternType*/1.0, 
+//							/*Harami Percentage diff Of body size*/0.1, 
+//							/*entryStrategyTriggerType*/0.0, 
+//							/*japaneseTimeFrameType*/1.0, 
+//							/*japaneseCandleBarPropertyType*/1.0, 
+//							/*rsiLength*/7.0, 
+//							/*rsiHistoryLength*/0.0, 
+//							/*rsiType*/1.0, 
+//							/*xFactor*/5.0, 
+//							/*exit0007CloseOnTrigger*/1.0,
+//							/*maxRsiLongValueForEntry*/80.0, 
+//							/*minRsiShortValueForEntry*/20.0, 
+//							/*maxNumOfCandlesAfterPatternForEntry*/5.0, 
+//							/*Hour in day to start approving trades*/ 8.0, 
+//							/*Length of TRade approval window*/ 8.0, 
+//							/*moneyManagerTradeDirection*/ 2.0, 
+//							/*window length in weeks*/ 8.0};
 		
 //		Double [] params = {/*patternType*/1.0, /*Harami Percentage diff Of body size*/0.1, /*entryStrategyTriggerType*/1.0, /*japaneseTimeFrameType*/1.0, /*japaneseCandleBarPropertyType*/1.0, 
 //				/*rsiLength*/8.0, /*rsiHistoryLength*/0.0, /*rsiType*/1.0, /*xFactor*/9.5, /*exit0007CloseOnTrigger*/1.0, /*rsiLongExitValue 80.0, 
 //				/*rsiShortExitValue 20.0,*/ /*maxRsiLongValueForEntry*/50.0, /*minRsiShortValueForEntry*/0.0, /*maxNumOfCandlesAfterPatternForEntry*/20.0, /*maxNumOfCandlesAfterPatternForEntry*/-5.0, 
 //				/*Hour in day to start approving trades*/ -8.0, /*Length of TRade approval window*/ -8.0, /*moneyManagerTradeDirection*/ 0.0};
 		
-		String startTradeDateStr = "2014/02/03";
+		String startTradeDateStr = "2013/02/03";
 		String[] strParams = new String[] {startTradeDateStr};
 		
 		MatlabJavaOptimizationBridge matlabJavaOB = new MatlabJavaOptimizationBridge();
@@ -592,8 +635,11 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 			System.out.println("Initial Account Loss = " + matlabJavaOB.getLossFromInitialAccount());
 			System.out.println("Account Balance = " + matlabJavaOB.getAccountBalance());
 			System.out.println("Success Percentage = " + matlabJavaOB.getSuccessPercentage());
+			System.out.println("Gross Profit = " + matlabJavaOB.getGrossProfit());
+			System.out.println("Gross Loss = " + matlabJavaOB.getGrossLoss());
 			System.out.println("Average Profit Trade = " + matlabJavaOB.getAverageProfitTrade());
 			System.out.println("Average Losing Trade = " + matlabJavaOB.getAverageLossTrade());
+			System.out.println("Profit factor = " + matlabJavaOB.getProfitFactor());
 			System.out.println("Total num of Successes = " + matlabJavaOB.getTotalNumOfSuccesses());
 			System.out.println("Total num of Entries = " + matlabJavaOB.getTotalNumOfEntries());
 			System.out.println("Total max draw down = " + matlabJavaOB.getMaxDrawDown());
