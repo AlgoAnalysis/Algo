@@ -89,6 +89,9 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	private long currValueForDrawDown;
 	private long minAccountBalance;
 	
+	private double sumOfProfits;
+	private double sumOfLosses;
+	
 	private int hourToStartApproveTrades;
 	private int windowLengthInHoursToApproveTrades;
 	
@@ -119,8 +122,8 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 			DataEventType dataEventType, Double[] params) {
 		// Reset program to start from scratch.
 		FileDataExtractor.resetAccount();
-		totalNumOfEntries = 0;
-		totalNumOfSuccesses = 0;
+		this.totalNumOfEntries = 0;
+		this.totalNumOfSuccesses = 0;
 		
 		// init params for program.
 		this.dataSource = dataSource;
@@ -128,6 +131,9 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		this.dataEventType = dataEventType;
 		this.tradeManagers = new ArrayList<TradeManager>();
 		
+		
+		this.sumOfProfits = 0;
+		this.sumOfLosses = 0;
 		
 		
 		////////change here ///////////////////
@@ -254,7 +260,10 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 				totalNumOfEntries++;
 				if (positionStatus.getPositionCurrGain() > 0) {
 					totalNumOfSuccesses++;
-				} 
+					sumOfProfits += positionStatus.getPositionCurrGain();
+				} else {
+					sumOfLosses -= positionStatus.getPositionCurrGain();
+				}
 				currValueForDrawDown = new Double (broker.getAccountStatus().getBalance()).longValue();
 				
 				long currMinDrawDown = minLowForDrawDown;
@@ -536,6 +545,14 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	public double getLossFromInitialAccount() {
 		return (double)(initialAccountBalance - minAccountBalance)/(double)initialAccountBalance;
 	}
+	
+	public double getAverageProfitTrade() {
+		return sumOfProfits / totalNumOfSuccesses;
+	}
+	
+	public double getAverageLossTrade() {
+		return sumOfLosses / (double)(totalNumOfEntries - totalNumOfSuccesses);
+	}
 
 	public static void main(String[] args) {
 		// TODO create money manager.
@@ -575,6 +592,8 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 			System.out.println("Initial Account Loss = " + matlabJavaOB.getLossFromInitialAccount());
 			System.out.println("Account Balance = " + matlabJavaOB.getAccountBalance());
 			System.out.println("Success Percentage = " + matlabJavaOB.getSuccessPercentage());
+			System.out.println("Average Profit Trade = " + matlabJavaOB.getAverageProfitTrade());
+			System.out.println("Average Losing Trade = " + matlabJavaOB.getAverageLossTrade());
 			System.out.println("Total num of Successes = " + matlabJavaOB.getTotalNumOfSuccesses());
 			System.out.println("Total num of Entries = " + matlabJavaOB.getTotalNumOfEntries());
 			System.out.println("Total max draw down = " + matlabJavaOB.getMaxDrawDown());

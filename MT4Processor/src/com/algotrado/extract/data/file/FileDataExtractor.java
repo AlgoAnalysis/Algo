@@ -56,7 +56,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 	private int recordDataIndex;
 	private double minimumContractAmountMultiply = 1; // TODO
 	private double contractAmount = 500; //TODO  
-	private double spread = 0; // TODO : This fix was made to fit tal excel results.
+	private double spread = 0.05; // TODO : This fix was made to fit tal excel results.
 	private List<FileTrade> assetTradeList;
 	boolean runNewTask = false;
 	
