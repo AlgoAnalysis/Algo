@@ -52,6 +52,7 @@ public class TRD_0001 extends TradeManager {
 	private SimpleUpdateData rsi;
 	private JapaneseCandleBar quote;
 	private ZigZagUpdateData zigZagUpdateData;
+	private int tradeCounterForCheck = 0;
 	
 	private List<TradeStateAndTime> tradeStateTimeList; 
 	
@@ -175,13 +176,20 @@ public class TRD_0001 extends TradeManager {
 //					if (rsi != null) {
 						newData.add(rsi);
 //					}
+					if (zigZagUpdateData != null) {
+						newData.add(zigZagUpdateData);
+					}
 				}
 				
-				if (zigZagUpdateData != null) {
-					newData.add(zigZagUpdateData);
-				}
 				
 				// if there is an active trade. than we should set new Data to exit strategies to see if any exit trigger has happened.
+				
+//				if (positionId == 283) {
+//					if (tradeCounterForCheck == 580) {
+//						System.out.println("");
+//					}
+//					System.out.println("" + tradeCounterForCheck++);
+//				}
 
 				updateExitStrategiesWithNewData(newData.toArray(new NewUpdateData[newData.size()]), false);
 
@@ -320,6 +328,21 @@ public class TRD_0001 extends TradeManager {
 		this.exitStrategiesList[index].setExit(null);
 		
 		return true;
+	}
+	
+	public boolean moveSL(IExitStrategy exit, int index) {
+		PositionStatus positionStatus = broker.getPositionStatus(positionId);
+		double directionMultiplier = (positionStatus.getPositionDirectionType().ordinal() > 0) ? (-1.0) : 1.0;
+		boolean shouldUpdateStopLoss = (directionMultiplier * exit.getCurrStopLoss()) > (directionMultiplier * currStopLoss);
+		boolean success = true;
+		if (shouldUpdateStopLoss) {// update only if SL advances.
+			success = broker.modifyPosition(positionId, exit.getCurrStopLoss(),0);
+		}
+		if (shouldUpdateStopLoss) {
+			currStopLoss = exit.getCurrStopLoss();
+		}
+		moneyManager.updatePositionStatus(positionStatus);
+		return success;
 	}
 	
 	public void setClosedTrade() {

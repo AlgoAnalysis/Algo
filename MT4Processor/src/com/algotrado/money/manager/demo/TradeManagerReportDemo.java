@@ -10,7 +10,6 @@ import javax.swing.SwingUtilities;
 import com.algotrado.broker.IBroker;
 import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.NewUpdateData;
-import com.algotrado.data.event.SimpleUpdateData;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBarPropertyType;
 import com.algotrado.data.event.basic.japanese.JapaneseTimeFrameType;
 import com.algotrado.entry.strategy.EntryStrategyDataObject;
@@ -24,6 +23,7 @@ import com.algotrado.exit.strategy.ExitStrategyDataObject;
 import com.algotrado.exit.strategy.ExitStrategyStatus;
 import com.algotrado.exit.strategy.IExitStrategy;
 import com.algotrado.exit.strategy.EXT_0003.EXT_0003;
+import com.algotrado.exit.strategy.EXT_0004.EXT_0004;
 import com.algotrado.extract.data.AssetType;
 import com.algotrado.extract.data.DataSource;
 import com.algotrado.extract.data.IDataExtractorObserver;
@@ -36,6 +36,7 @@ import com.algotrado.output.file.IGUIController;
 import com.algotrado.pattern.IPatternState;
 import com.algotrado.pattern.PatternManager;
 import com.algotrado.pattern.PTN_0001.PTN_0001_S1;
+import com.algotrado.trade.PositionDirectionType;
 import com.algotrado.trade.PositionOrderStatusType;
 import com.algotrado.trade.PositionStatus;
 import com.algotrado.trade.TradeManager;
@@ -97,7 +98,7 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 		rsiLength = 7;
 		rsiHistoryLength = 0;
 		int rsiType = 1; // 1 (SMA) or 2 (EMA)
-		String filePath = "C:\\Algo\\test\\" + state.getCode() + "_" + entryStrategyTriggerType.toString() +"_Trade_Ext0006.csv";
+		String filePath = "C:\\Algo\\test\\" + state.getCode() + "_" + entryStrategyTriggerType.toString() +"_Trade_Ext0004.csv";
 		
 //		AssetType assetType = AssetType.USOIL;
 		this.xFactor = 1.5;//for the 1:x exit strategy.
@@ -199,27 +200,29 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 				// create new trade for each entry, for reports only.
 				IEntryStrategyLastState lastState = (IEntryStrategyLastState)entryStrategyStateAndTime.getState();
 				
-				double currRsiValue = -100;
-				if (entryStrategyManager.getNewUpdateData() != null && 
-						entryStrategyManager.getNewUpdateData().length > 1 && 
-						entryStrategyManager.getNewUpdateData()[1] instanceof SimpleUpdateData) {
-					currRsiValue = ((SimpleUpdateData)(entryStrategyManager.getNewUpdateData()[1])).getValue();
-				}
-				
+//				double currRsiValue = -100;
+//				if (entryStrategyManager.getNewUpdateData() != null && 
+//						entryStrategyManager.getNewUpdateData().length > 1 && 
+//						entryStrategyManager.getNewUpdateData()[1] instanceof SimpleUpdateData) {
+//					currRsiValue = ((SimpleUpdateData)(entryStrategyManager.getNewUpdateData()[1])).getValue();
+//				}
+				PositionDirectionType positionDirectionType = (entryStrategyStateAndTime.getState().getStatus() == EntryStrategyStateStatus.TRIGGER_BEARISH) ?
+																PositionDirectionType.SHORT : PositionDirectionType.LONG;
 				double contractAmount = broker.getContractAmount(assetType);
 				// give each trade the data needed for the trade.
 				ExitStrategyDataObject [] exitStrategiesList = new ExitStrategyDataObject[1];//new ExitStrategyDataObject[2];
 //				EXT_0001 ext0001 = new EXT_0001(lastState, fractionOfOriginalStopLoss, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType));
 //				exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0001, exit0001CloseOnTrigger, null, contractAmount);
 //				IExitStrategy ext0007 = new EXT_0007(lastState, xFactor, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType));
-				IExitStrategy ext0003 = new EXT_0003(lastState, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType), currRsiValue, rsiLongExitValue, rsiShortExitValue);
-				exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0003, exit0007CloseOnTrigger, null, contractAmount);
+				IExitStrategy ext0004 = new EXT_0004(lastState, positionDirectionType, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType));
+//				IExitStrategy ext0003 = new EXT_0003(lastState, bottomSpread, topSpread, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType), currRsiValue, rsiLongExitValue, rsiShortExitValue);
+				exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0004, exit0007CloseOnTrigger, null, contractAmount);
 				// contract amount = 500
 				// account = 1000000
 				// min move 1 cent = 5$
 				// 1% of account = 10000 = [num of cents = (entry - stop)] * [contract amount] * [num of contracts]
 				int currTradeQuantity = (int)( ( (broker.getAccountStatus().getBalance()/100) / 
-											((Math.abs(ext0003.getNewEntryPoint() - ext0003.getCurrStopLoss()) * contractAmount) *
+											((Math.abs(ext0004.getNewEntryPoint() - ext0004.getCurrStopLoss()) * contractAmount) *
 													broker.getMinimumContractAmountMultiply(assetType) ) ) / 1000);
 				
 				

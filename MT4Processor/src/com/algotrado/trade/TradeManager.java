@@ -41,6 +41,8 @@ public abstract class TradeManager implements IDataExtractorObserver {
 	
 	public abstract boolean executeExitAndMoveSL(IExitStrategy exit, int index);
 	
+	public abstract boolean moveSL(IExitStrategy exit, int index);
+	
 //	public abstract boolean executeExitAndMoveSL(EXT_0003 exit);
 //	public abstract boolean executeExitAndMoveSL(EXT_0007 exit);
 	

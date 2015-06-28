@@ -103,7 +103,7 @@ public abstract class IExitStrategy {
 	}
 
 	public void moveSL(TradeManager trade) {
-		throw new RuntimeException("Method not implemented.");
+		trade.moveSL(this, getStrategyIndex());
 	}
 	
 	public abstract int getStrategyIndex(); 

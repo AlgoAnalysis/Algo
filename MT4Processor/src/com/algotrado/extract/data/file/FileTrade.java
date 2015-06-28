@@ -124,7 +124,7 @@ public class FileTrade {
 		}
 		if(direction == PositionDirectionType.LONG)
 		{
-			if((newStopLoss != 0) && (newStopLoss >= currentPrice))
+			if((newStopLoss != 0) && (newStopLoss >= (currentPrice + spread)))
 			{
 				throw new RuntimeException("Error in stop loss!!!");
 			}

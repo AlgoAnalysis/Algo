@@ -79,6 +79,7 @@ IDataExtractorObserver{
 		super(dataSource, assetType, dataEventType, parameters);
 		backstepAuxiliary = backstep+1;
 		point = assetType.getPoint();
+		maxHstoryLength = 4;
 		dataHistory = new SimpleUpdateData[maxHstoryLength];
 		dataHistoryIndex = 0;
 		candleBarHistoryIndex = 0;
