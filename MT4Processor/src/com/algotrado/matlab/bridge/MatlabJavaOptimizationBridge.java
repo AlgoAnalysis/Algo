@@ -98,6 +98,7 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	private MoneyManagerTradeDirection moneyManagerTradeDirection;
 	private boolean shouldTradeShorts;
 	private boolean shouldTradeLongs;
+	private double enteryPercentage;
 	
 	/**
 	 * This is for checking specific trade periods.
@@ -111,6 +112,8 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	private ExitStrategyStatus [][] exitStrategiesBehavior;
 	
 	public MatlabJavaOptimizationBridge() {
+		startAllTradesTimeStamp = 0;
+		endAllTradesTimestamp = WEEK_IN_MINUTES * MINUTES_IN_MILISEC * WEEKS_IN_YEAR * 100000;
 	}
 
 	public MatlabJavaOptimizationBridge(DataSource dataSource, AssetType assetType, DataEventType dataEventType, Double [] params) {
@@ -120,6 +123,10 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 
 	public void init(DataSource dataSource, AssetType assetType,
 			DataEventType dataEventType, Double[] params) {
+		if (params.length != 17 )
+		{
+			throw new RuntimeException("the number of parameters mast to be 17");
+		}
 		// Reset program to start from scratch.
 		FileDataExtractor.resetAccount();
 		this.totalNumOfEntries = 0;
@@ -207,26 +214,20 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		maxDrawDownOfBalance = 0;
 		currValueForDrawDown = 0;
 		moneyManagerTradeDirection = MoneyManagerTradeDirection.BOTH;
-		if (params.length >= 15) {
-			hourToStartApproveTrades = new Double(params[13]).intValue();
-			windowLengthInHoursToApproveTrades = new Double(params[14]).intValue();
-			if (params.length >= 16) {
-				if (params[15].intValue() > 2 || params[15].intValue() < 0) {
-					throw new RuntimeException("Invalid param for trade direction of money manager, should be {0-2}.");
-				}
-				moneyManagerTradeDirection = MoneyManagerTradeDirection.values()[params[15].intValue()];
-			}
 			
-			if (params.length >= 17) {
-				if (params[16].longValue() > 0 && startAllTradesTimeStamp > 0) {
-					endAllTradesTimestamp = startAllTradesTimeStamp + (params[16].longValue() * WEEK_IN_MINUTES * MINUTES_IN_MILISEC);
-				}
-			}
-		} else {// trade all hours of day
-			hourToStartApproveTrades = -1;
-			windowLengthInHoursToApproveTrades = -1;
+		hourToStartApproveTrades = new Double(params[13]).intValue();
+		windowLengthInHoursToApproveTrades = new Double(params[14]).intValue();
+			
+		if (params[15].intValue() > 2 || params[15].intValue() < 0) {
+			throw new RuntimeException("Invalid param for trade direction of money manager, should be {0-2}.");
 		}
-		
+		moneyManagerTradeDirection = MoneyManagerTradeDirection.values()[params[15].intValue()];
+
+		if(params[16] <= 0 || params[16] > 1)
+		{
+			throw new RuntimeException("Invalid param for entery percentage of money manager, (0,1]");
+		}
+		enteryPercentage = params[16];
 		shouldTradeShorts = moneyManagerTradeDirection == MoneyManagerTradeDirection.SHORT || moneyManagerTradeDirection == MoneyManagerTradeDirection.BOTH;
 		shouldTradeLongs = moneyManagerTradeDirection == MoneyManagerTradeDirection.LONG || moneyManagerTradeDirection == MoneyManagerTradeDirection.BOTH;
 		
@@ -394,7 +395,7 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		// account = 1000000
 		// min move 1 cent = 5$
 		// 1% of account = 10000 = [num of cents = (entry - stop)] * [contract amount] * [num of contracts] - TODO change quantity to constant value for optimization.
-		int currTradeQuantity = (int)( ( (broker.getAccountStatus().getBalance()/100) / 
+		int currTradeQuantity = (int)( ( (broker.getAccountStatus().getBalance()*enteryPercentage) / 
 									((Math.abs(ext0007.getNewEntryPoint() - ext0007.getCurrStopLoss()) * contractAmount) *
 											broker.getMinimumContractAmountMultiply(assetType) ) ) /*/ 1000*/);
 		
@@ -452,35 +453,26 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters,0, entryStrategyManager);
 	}
 	
-	public void runSingleParamsOptimizationCheck(Double [] params) {
-		runSingleParamsOptimizationCheck(params, null);
+	public void setTradeFrameTime(String DateStr,Double windowLengthInWeeks)
+	{
+		SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd");
+		try {
+			Date startTradeDate = format.parse(DateStr);
+			startAllTradesTimeStamp = startTradeDate.getTime();
+			endAllTradesTimestamp = startAllTradesTimeStamp + (windowLengthInWeeks.longValue() * WEEK_IN_MINUTES * MINUTES_IN_MILISEC);
+		} catch (ParseException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}		
 	}
 	
-	public void runSingleParamsOptimizationCheck(Double [] params, String [] DateStr) throws RuntimeException {
-		if (params.length < 15) {
+	public void runSingleParamsOptimizationCheck(Double [] params) throws RuntimeException {
+		if (params.length < 17) {
 			System.out.println("Usage: runSingleParamsOptimizationCheck({patternType={1-3}, patternParametersIndex={1}, entryStrategyTriggerType={0,1}, " +
 					"japaneseTimeFrameType={0-7}, japaneseCandleBarPropertyType={0-3}, rsiLength, rsiHistoryLength, rsiType={1-2}, xFactor={1.5 or any other value}, "
 					+ "exit0007CloseOnTrigger=(0-1], maxRsiLongValueForEntry, minRsiShortValueForEntry, maxNumOfCandlesAfterPatternForEntry, start trade hour 0-23, how many hours to trade 1-24"
-					+ "moneyManagerTradeDirection={0-2}, " + "{trade window length in weeks > 0}, " + "}, {String date format of start trading date ('yyyy/MM/dd') all numbers})");
+					+ "moneyManagerTradeDirection={0-2}, " + "{enteryPercentage > 0}, " + "})");
 			return;
-		}
-		
-		SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd");
-		if (DateStr == null || DateStr[0] == null) { // Trade all the trades.
-			startAllTradesTimeStamp = 0;
-			endAllTradesTimestamp = WEEK_IN_MINUTES * MINUTES_IN_MILISEC * WEEKS_IN_YEAR * 100000;
-		} else {
-			try {
-				Date startTradeDate = format.parse(DateStr[0]);
-				startAllTradesTimeStamp = startTradeDate.getTime();
-				endAllTradesTimestamp = 0; // No trade will be made unless this has been properly configured.
-				if (params.length >= 17 && params[16].longValue() <= 0) {
-					System.out.println("No trade will be made unless Trade window length has been properly configured");
-				}
-			} catch (ParseException e) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
 		}
 		
 		init(DataSource.FILE, AssetType.USOIL, DataEventType.JAPANESE, params);
@@ -586,40 +578,16 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 				(double)70,//maxNumOfCandlesAfterPatternForEntry
 				(double)2.75,//HourInDayToStartApprovingTrades
 				(double)1,//LengthOfTradeApprovalWindow
-				2.0,/*moneyManagerTradeDirection*/
-				208.0/*window length in weeks*/
+				(double)2.0,//moneyManagerTradeDirection
+				(double)0.02//enteryPercentage
 		};
-		
-//		Double [] params = {/*patternType*/1.0, 
-//							/*Harami Percentage diff Of body size*/0.1, 
-//							/*entryStrategyTriggerType*/0.0, 
-//							/*japaneseTimeFrameType*/1.0, 
-//							/*japaneseCandleBarPropertyType*/1.0, 
-//							/*rsiLength*/7.0, 
-//							/*rsiHistoryLength*/0.0, 
-//							/*rsiType*/1.0, 
-//							/*xFactor*/5.0, 
-//							/*exit0007CloseOnTrigger*/1.0,
-//							/*maxRsiLongValueForEntry*/80.0, 
-//							/*minRsiShortValueForEntry*/20.0, 
-//							/*maxNumOfCandlesAfterPatternForEntry*/5.0, 
-//							/*Hour in day to start approving trades*/ 8.0, 
-//							/*Length of TRade approval window*/ 8.0, 
-//							/*moneyManagerTradeDirection*/ 2.0, 
-//							/*window length in weeks*/ 8.0};
-		
-//		Double [] params = {/*patternType*/1.0, /*Harami Percentage diff Of body size*/0.1, /*entryStrategyTriggerType*/1.0, /*japaneseTimeFrameType*/1.0, /*japaneseCandleBarPropertyType*/1.0, 
-//				/*rsiLength*/8.0, /*rsiHistoryLength*/0.0, /*rsiType*/1.0, /*xFactor*/9.5, /*exit0007CloseOnTrigger*/1.0, /*rsiLongExitValue 80.0, 
-//				/*rsiShortExitValue 20.0,*/ /*maxRsiLongValueForEntry*/50.0, /*minRsiShortValueForEntry*/0.0, /*maxNumOfCandlesAfterPatternForEntry*/20.0, /*maxNumOfCandlesAfterPatternForEntry*/-5.0, 
-//				/*Hour in day to start approving trades*/ -8.0, /*Length of TRade approval window*/ -8.0, /*moneyManagerTradeDirection*/ 0.0};
-		
 		String startTradeDateStr = "2013/02/03";
-		String[] strParams = new String[] {startTradeDateStr};
 		
 		MatlabJavaOptimizationBridge matlabJavaOB = new MatlabJavaOptimizationBridge();
+		matlabJavaOB.setTradeFrameTime(startTradeDateStr, (double)208);
 		for (int i = 1; i <= 10; i++) {
 			timeMili = System.currentTimeMillis();
-			matlabJavaOB.runSingleParamsOptimizationCheck(params, strParams);
+			matlabJavaOB.runSingleParamsOptimizationCheck(params);
 			while(!matlabJavaOB.isRunDone())
 			{
 				try {
@@ -643,11 +611,13 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 			System.out.println("Total num of Successes = " + matlabJavaOB.getTotalNumOfSuccesses());
 			System.out.println("Total num of Entries = " + matlabJavaOB.getTotalNumOfEntries());
 			System.out.println("Total max draw down = " + matlabJavaOB.getMaxDrawDown());
-			System.out.println("Draw Down Arrays: \n");
-			int drawDownIndex = 0;
-			for (double [] minMaxDrawDownArr : matlabJavaOB.getMinMaxAccountBalanceForDrawDown()) {
-				System.out.println((drawDownIndex++) + ") " + Arrays.toString(minMaxDrawDownArr));
-			}
+
+//			System.out.println("Draw Down Arrays: \n");
+//			int drawDownIndex = 0;
+//			for (double [] minMaxDrawDownArr : matlabJavaOB.getMinMaxAccountBalanceForDrawDown()) {
+//				System.out.println((drawDownIndex++) + ") " + Arrays.toString(minMaxDrawDownArr));
+//			}
+
 			System.out.println("\n");
 			if(exeTime < minimumTime)
 			{
