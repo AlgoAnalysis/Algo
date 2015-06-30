@@ -113,7 +113,7 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	
 	public MatlabJavaOptimizationBridge() {
 		startAllTradesTimeStamp = 0;
-		endAllTradesTimestamp = WEEK_IN_MINUTES * MINUTES_IN_MILISEC * WEEKS_IN_YEAR * 100000;
+		endAllTradesTimestamp = Long.MAX_VALUE;
 	}
 
 	public MatlabJavaOptimizationBridge(DataSource dataSource, AssetType assetType, DataEventType dataEventType, Double [] params) {
@@ -223,9 +223,9 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		}
 		moneyManagerTradeDirection = MoneyManagerTradeDirection.values()[params[15].intValue()];
 
-		if(params[16] <= 0 || params[16] > 1)
+		if(params[16] <= 0 || params[16] > 100)
 		{
-			throw new RuntimeException("Invalid param for entery percentage of money manager, (0,1]");
+			throw new RuntimeException("Invalid param for entery percentage of money manager, (0,100]");
 		}
 		enteryPercentage = params[16];
 		shouldTradeShorts = moneyManagerTradeDirection == MoneyManagerTradeDirection.SHORT || moneyManagerTradeDirection == MoneyManagerTradeDirection.BOTH;
@@ -395,7 +395,7 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		// account = 1000000
 		// min move 1 cent = 5$
 		// 1% of account = 10000 = [num of cents = (entry - stop)] * [contract amount] * [num of contracts] - TODO change quantity to constant value for optimization.
-		int currTradeQuantity = (int)( ( (broker.getAccountStatus().getBalance()*enteryPercentage) / 
+		int currTradeQuantity = (int)( ( (broker.getAccountStatus().getBalance()*enteryPercentage/100.0) / 
 									((Math.abs(ext0007.getNewEntryPoint() - ext0007.getCurrStopLoss()) * contractAmount) *
 											broker.getMinimumContractAmountMultiply(assetType) ) ) /*/ 1000*/);
 		
@@ -579,12 +579,12 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 				(double)2.75,//HourInDayToStartApprovingTrades
 				(double)1,//LengthOfTradeApprovalWindow
 				(double)2.0,//moneyManagerTradeDirection
-				(double)0.02//enteryPercentage
+				(double)5//enteryPercentage
 		};
-		String startTradeDateStr = "2013/02/03";
+		String startTradeDateStr = "2014/02/03";
 		
 		MatlabJavaOptimizationBridge matlabJavaOB = new MatlabJavaOptimizationBridge();
-		matlabJavaOB.setTradeFrameTime(startTradeDateStr, (double)208);
+		matlabJavaOB.setTradeFrameTime(startTradeDateStr, (double)38);
 		for (int i = 1; i <= 10; i++) {
 			timeMili = System.currentTimeMillis();
 			matlabJavaOB.runSingleParamsOptimizationCheck(params);
