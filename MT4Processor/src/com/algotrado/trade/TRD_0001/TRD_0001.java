@@ -119,6 +119,14 @@ public class TRD_0001 extends TradeManager {
 			if (direction.isValidStopLoss(currStopLoss, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType))) {
 				positionId = broker.openPosition(assetType, quantity, direction, currStopLoss,0);
 
+				List<Date> entryDates = this.entryStrategyDataObj.getEntryDates();
+				if (positionId < 0) { //no position was opened
+					System.out.println("Broker Refused trade at date: " + entryDates.get(entryDates.size() - 1) + 
+							" for direction " + direction.name() + 
+							",\n The account balance is " + broker.getAccountStatus().getBalance() + 
+							"\nThe Quantity for the trade is " + quantity);
+					return false;
+				}
 				originalQuantity = quantity;
 
 				// we should discuss what is the range of prices to open position.
@@ -130,7 +138,6 @@ public class TRD_0001 extends TradeManager {
 				
 				
 				tradeStateTimeList.add(new TradeStateAndTime(this, exits));
-				List<Date> entryDates = this.entryStrategyDataObj.getEntryDates();
 				tradeStateTimeList.get(tradeStateTimeList.size() - 1).addTime(entryDates.get(0));
 				tradeStateTimeList.get(tradeStateTimeList.size() - 1).addTime(entryDates.get(entryDates.size() - 1));
 				numOfTrades++;

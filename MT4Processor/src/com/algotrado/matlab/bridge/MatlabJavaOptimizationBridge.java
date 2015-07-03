@@ -403,12 +403,12 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		
 		EntryStrategyDataObject entryStrategyDataObject = new EntryStrategyDataObject(entryStrategyStateAndTime.getTimeList(), null, entryStrategyStateAndTime.getState().getStatus(), entryStrategyManager.getDataHeaders());
 		TRD_0001 currTrade = new TRD_0001(entryStrategyDataObject, exitStrategiesList, this , xFactor , assetType, 0.1/*This belongs to exit strategy 1*/, currTradeQuantity, this.exitStrategiesBehavior);
-		this.tradeManagers.add(currTrade);
 		
 		currTrade.setBroker(broker);
 		boolean openedTrade = currTrade.startTrade();
 		
 		if (openedTrade) {
+			this.tradeManagers.add(currTrade);
 			/**
 			 * Register to RSI.
 			 */
@@ -419,23 +419,6 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 			RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters,0, currTrade);
 			
 			RegisterDataExtractor.register(dataSource, assetType, DataEventType.NEW_QUOTE, new ArrayList<Double>(),rsiHistoryLength, currTrade);
-			
-			DataSource dataSource = DataSource.FILE;
-			AssetType assetType = AssetType.USOIL;
-			
-			
-			String filePath = "C:\\Algo\\test\\Zigzag_on_" + assetType.name()+".csv";
-			
-//			List<Double> parameters = new ArrayList<Double>();
-//			
-//			parameters.add((double)japaneseTimeFrameType.getValueInMinutes());
-//			parameters.add((double)depth);
-//			parameters.add(deviation);
-//			parameters.add((double)backstep);
-//			RegisterDataExtractor.register(dataSource, assetType, DataEventType.ZIGZAG, parameters,maxHstoryLength, currTrade);
-		
-		} else {
-			this.tradeManagers.remove(currTrade);
 		}
 	}
 
