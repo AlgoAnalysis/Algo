@@ -13,6 +13,7 @@ public class Setting {
 	private static double usOilTopSpread = 0.01;
 	private static double usOilBottomSpread = 0.01;
 	
+	private static boolean printMessageInConsole = false;
 	
 	public static String getDateTimeFormat(Date date) {
 		SimpleDateFormat dateformatter = new SimpleDateFormat(dateTimeFormat);
@@ -43,5 +44,14 @@ public class Setting {
 	public static double getUsOilBottomSpread() {
 		return usOilBottomSpread;
 	}
+
+	public static boolean isPrintMessageInConsole() {
+		return printMessageInConsole;
+	}
+
+	public static void setPrintMessageInConsole(boolean printMessageInConsole) {
+		Setting.printMessageInConsole = printMessageInConsole;
+	}
+	
 	
 }

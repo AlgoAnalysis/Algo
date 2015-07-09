@@ -121,10 +121,13 @@ public class TRD_0001 extends TradeManager {
 
 				List<Date> entryDates = this.entryStrategyDataObj.getEntryDates();
 				if (positionId < 0) { //no position was opened
-					System.out.println("Broker Refused trade at date: " + entryDates.get(entryDates.size() - 1) + 
-							" for direction " + direction.name() + 
-							",\n The account balance is " + broker.getAccountStatus().getBalance() + 
-							"\nThe Quantity for the trade is " + quantity);
+					if(Setting.isPrintMessageInConsole())
+					{
+						System.out.println("Broker Refused trade at date: " + entryDates.get(entryDates.size() - 1) + 
+								" for direction " + direction.name() + 
+								",\n The account balance is " + broker.getAccountStatus().getBalance() + 
+								"\nThe Quantity for the trade is " + quantity);
+					}
 					return false;
 				}
 				originalQuantity = quantity;

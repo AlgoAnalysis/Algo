@@ -3,14 +3,10 @@ package com.algotrado.matlab.bridge;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.concurrent.Semaphore;
-
-import javax.management.RuntimeErrorException;
 
 import com.algotrado.broker.IBroker;
 import com.algotrado.data.event.DataEventType;
@@ -34,7 +30,6 @@ import com.algotrado.extract.data.RegisterDataExtractor;
 import com.algotrado.extract.data.SubjectState;
 import com.algotrado.extract.data.file.FileDataExtractor;
 import com.algotrado.money.manager.IMoneyManager;
-import com.algotrado.output.file.FileDataRecorder;
 import com.algotrado.output.file.IGUIController;
 import com.algotrado.pattern.IPatternState;
 import com.algotrado.pattern.PatternManager;
@@ -53,6 +48,10 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	private static final long MINUTES_IN_MILISEC = 60*1000;
 	private static final long HOUR_IN_MINUTES = 60;
 	private static final long WEEK_IN_MINUTES = 24*60*7;
+	
+	private Double[] arrParameters;
+	private String startDate;
+	private Double windowLengthInWeeks;
 	
 	private DataSource dataSource = DataSource.FILE;
 	private DataEventType dataEventType;
@@ -123,6 +122,7 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 
 	public void init(DataSource dataSource, AssetType assetType,
 			DataEventType dataEventType, Double[] params) {
+		arrParameters = params;
 		if (params.length != 17 )
 		{
 			throw new RuntimeException("the number of parameters mast to be 17");
@@ -438,6 +438,8 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	
 	public void setTradeFrameTime(String DateStr,Double windowLengthInWeeks)
 	{
+		startDate = DateStr;
+		this.windowLengthInWeeks = windowLengthInWeeks;
 		SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd");
 		try {
 			Date startTradeDate = format.parse(DateStr);
@@ -538,9 +540,22 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		return sumOfLosses;
 	}
 
+	public Double[] getArrParameters() {
+		return arrParameters;
+	}
+	
+	public String getStartDate() {
+		return startDate;
+	}
+
+	public Double getWindowLengthInWeeks() {
+		return windowLengthInWeeks;
+	}
+
 	public static void main(String[] args) {
 		// TODO create money manager.
 		// entry strategy manager.
+		Setting.setPrintMessageInConsole(true);
 		long minimumTime = (long)Integer.MAX_VALUE;
 		long timeMili;
 		long exeTime;
