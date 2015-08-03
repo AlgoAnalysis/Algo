@@ -91,6 +91,10 @@ public class ApiController implements EWrapper {
 		sendEOM();
 	}
 
+	public IConnectionHandler getM_connectionHandler() {
+		return m_connectionHandler;
+	}
+
 	@Override public void managedAccounts(String accounts) {
 		ArrayList<String> list = new ArrayList<String>();
 		for( StringTokenizer st = new StringTokenizer( accounts, ","); st.hasMoreTokens(); ) {

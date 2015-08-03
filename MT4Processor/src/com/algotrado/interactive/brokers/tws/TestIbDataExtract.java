@@ -26,9 +26,10 @@ import com.ib.controller.Types.WhatToShow;
 
 public class TestIbDataExtract implements IConnectionHandler, Runnable {
 	
+	private static final int THOUSAND_SECONDS = 1000000;
 	private final ILogger m_inLogger = new LoggerForTws( );
 	private final ILogger m_outLogger = new LoggerForTws( );
-	private ApiController m_controller = new ApiController( this, m_inLogger, m_outLogger);
+	private ApiController m_controller = new ApiControllerWrapper(this, m_inLogger, m_outLogger, "C:\\Algo\\Asset History Date\\QM\\oil_action_log_" + System.currentTimeMillis() + ".txt", true);
 	private final ArrayList<String> m_acctList = new ArrayList<String>();
 	
 	private UpdatedAssetData updatedAssetData;
@@ -38,6 +39,7 @@ public class TestIbDataExtract implements IConnectionHandler, Runnable {
 	private Semaphore semaphore = new Semaphore(0);
 	
 	private static TestIbDataExtract historyDataRecorder;
+	private boolean isConnected = false;
 	
 	private Date initialEndDate = null;
 	private String initialEndDateFormatted = null;
@@ -98,7 +100,7 @@ public class TestIbDataExtract implements IConnectionHandler, Runnable {
 		
 		
 		historyDataRecorder = new TestIbDataExtract(qmContract);
-		historyDataRecorder.initialEndDateFormatted = "20150624 14:59:00";
+		historyDataRecorder.initialEndDateFormatted = "20150101 00:00:00";
 		try {
 			historyDataRecorder.initialEndDate = Bar.FORMAT.parse(historyDataRecorder.initialEndDateFormatted);
 		} catch (ParseException e1) {
@@ -121,23 +123,28 @@ public class TestIbDataExtract implements IConnectionHandler, Runnable {
 			
 	//		boolean snapshot = false;
 	//		test.controller().reqTopMktData(contract, genericTickList, snapshot , test.getUpdatedAssetData());
+			if (isConnected) {
+			
+				this.controller().reqHistoricalData(qmContract, initialEndDateFormatted, 1000, DurationUnit.SECOND, BarSize._1_secs, WhatToShow.TRADES, false, this.historyBarModel);
+			
+				try {
+					this.getSemaphore().acquire();
+					Thread.sleep(10000);
+				} catch (InterruptedException e) {
+					System.out.println("Get History From Broker Process was interrupted.");
+					e.printStackTrace();
+				}//Block until request finishes.
+				
+				if (isConnected) {
+					this.initialEndDate = new Date(this.initialEndDate.getTime() + THOUSAND_SECONDS);
+				
+	//			test.getCalendar().setTime(initialEndDate);
+					
+					initialEndDateFormatted = Bar.FORMAT.format(initialEndDate);
+				}
+			}
 			
 			
-			this.controller().reqHistoricalData(qmContract, initialEndDateFormatted, 1000, DurationUnit.SECOND, BarSize._1_secs, WhatToShow.TRADES, false, this.historyBarModel);
-		
-			this.initialEndDate = new Date(this.initialEndDate.getTime() + 1000000);
-			
-//			test.getCalendar().setTime(initialEndDate);
-			
-			initialEndDateFormatted = Bar.FORMAT.format(initialEndDate);
-			
-			try {
-				this.getSemaphore().acquire();
-				Thread.sleep(10000);
-			} catch (InterruptedException e) {
-				System.out.println("Get History From Broker Process was interrupted.");
-				e.printStackTrace();
-			}//Block until request finishes.
 		}
 		this.controller().disconnect();
 		
@@ -157,6 +164,7 @@ public class TestIbDataExtract implements IConnectionHandler, Runnable {
 		private ApiController controller;
 		private Semaphore semaphore;
 		private FileWriter destinationFile;
+		private Bar prevBar = null;
 		
 		
 		BarResultsPanel( ApiController controller, Semaphore semaphore, String filePath) {
@@ -165,7 +173,7 @@ public class TestIbDataExtract implements IConnectionHandler, Runnable {
 			try {
 				this.destinationFile = new FileWriter(filePath, false);
 			} catch (IOException e) {
-				System.out.println("Exception occoured while trying to open file for writing.");
+				System.err.println("Exception occoured while trying to open file for writing.");
 				e.printStackTrace();
 			}
 		}
@@ -186,7 +194,36 @@ public class TestIbDataExtract implements IConnectionHandler, Runnable {
 		}
 
 		@Override public void historicalData(Bar bar, boolean hasGaps) {
-			m_rows.add( bar);
+			
+			
+			Date initialEndDateParsed = null;
+			Date barDate = null;
+			try {
+				initialEndDateParsed = Bar.FORMAT.parse(historyDataRecorder.initialEndDateFormatted);
+				barDate = Bar.FORMAT.parse(bar.formattedTime().replace("-", ""));
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if ((initialEndDateParsed.getTime() % 86400000) < (THOUSAND_SECONDS + 1)) {
+				System.err.println("New Day Initial Formatted End Date=" + historyDataRecorder.initialEndDateFormatted);
+			}
+				
+			if (initialEndDateParsed.getTime() > (barDate.getTime() + THOUSAND_SECONDS + 1) /*||
+					historyDataRecorder.initialEndDate.getTime() > (barDate.getTime() + THOUSAND_SECONDS + 1)*/) {
+				System.err.println("1. Bar 					 Date=" + bar.formattedTime());
+				System.err.println("2. Initial 			 End Date=" + historyDataRecorder.initialEndDate);
+				System.err.println("3. Initial Formatted End Date=" + historyDataRecorder.initialEndDateFormatted);
+			} else if ((prevBar == null) || (bar.close() != prevBar.close()) ||
+						(bar.open() != prevBar.open()) ||
+						(bar.high() != prevBar.high()) ||
+						(bar.low() != prevBar.low()) || 
+						(bar.volume() > 0)) {
+//				if (prevBar == null) {
+					prevBar = bar;
+//				}
+				m_rows.add(bar);
+			}
 		}
 		
 		@Override public void historicalDataEnd() {
@@ -215,19 +252,26 @@ public class TestIbDataExtract implements IConnectionHandler, Runnable {
 
 		@Override
 		public void log(String valueOf) {
-			System.out.println(valueOf);
+			System.err.println(valueOf);
 		}
 		
 	}
 	
 	@Override
 	public void connected() {
-		show( "connected");
+		show( "connected 123");
+		isConnected = true;
+		if (this.getSemaphore().availablePermits() <= 0) {
+			this.getSemaphore().release();
+		}
 	}
 
 	@Override
 	public void disconnected() {
-		show( "disconnected");
+		show( "disconnected 123");
+		isConnected = false;
+		connectAPIController();
+//		restartHistoryRecorder();
 	}
 
 	@Override
@@ -256,7 +300,7 @@ public class TestIbDataExtract implements IConnectionHandler, Runnable {
 		break;
 		case 1: 
 		break;
-		case EClientErrors.NOT_CONNECTED_CONST:
+		case 2108://EClientErrors.NOT_CONNECTED_CONST:
 		case 162://162 Historical Market Data Service error message:HMDS query returned no data: QMU5@NYMEX Trades
 			// move date forward and try extracting more data.
 //			TestIbDataExtract.getHistoryDataRecorder().initialEndDate = 
@@ -265,7 +309,15 @@ public class TestIbDataExtract implements IConnectionHandler, Runnable {
 			break;
 		case 2103: //Market data farm connection is broken, Disconnect and connect again.
 			restartHistoryRecorder();
-		break;
+			break;
+		case 1100:
+		case 2110:
+			isConnected = false;
+			break;
+		case 1101:
+		case 1102:
+			isConnected = true;
+			break;
 		default:
 //			restartHistoryRecorder();
 		}
@@ -273,14 +325,27 @@ public class TestIbDataExtract implements IConnectionHandler, Runnable {
 
 	private void restartHistoryRecorder() {
 		TestIbDataExtract.getHistoryDataRecorder().controller().disconnect();
+		long startTimestamp = System.currentTimeMillis();
+		while (System.currentTimeMillis() < (startTimestamp + 10000)) {
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+//				e.printStackTrace();
+			}
+		}
+//		connectAPIController();
+//		new Thread(TestIbDataExtract.getHistoryDataRecorder()).start();
+		
+	}
+
+	private void connectAPIController() {
 		TestIbDataExtract.getHistoryDataRecorder().controller(new ApiController( this, m_inLogger, m_outLogger));
 		TestIbDataExtract.getHistoryDataRecorder().controller().connect( "127.0.0.1", 7496, 1);
-		new Thread(TestIbDataExtract.getHistoryDataRecorder()).start();
 	}
 
 	@Override
 	public void show(String string) {
-		System.err.println(string);
+		System.err.print(string);
 	}
 
 //	public Calendar getCalendar() {
