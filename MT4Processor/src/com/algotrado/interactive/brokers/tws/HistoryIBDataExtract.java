@@ -26,7 +26,7 @@ import com.ib.controller.Types.DurationUnit;
 import com.ib.controller.Types.SecType;
 import com.ib.controller.Types.WhatToShow;
 
-public class TestIbDataExtract implements IConnectionHandler, Runnable {
+public class HistoryIBDataExtract implements IConnectionHandler, Runnable {
 	
 	private static final int THOUSAND_EIGHT_HUNDRED_SECONDS = 1800000;
 	private final ILogger m_inLogger = new LoggerForTws( );
@@ -40,20 +40,20 @@ public class TestIbDataExtract implements IConnectionHandler, Runnable {
 //	private Calendar calendar = GregorianCalendar.getInstance();
 	private Semaphore semaphore = new Semaphore(0);
 	
-	private static TestIbDataExtract historyDataRecorder;
+	private static HistoryIBDataExtract historyDataRecorder;
 	private boolean isConnected = false;
 	
 	private Date initialEndDate = null;
 	private String initialEndDateFormatted = null;
 	
-	public static TestIbDataExtract getHistoryDataRecorder() {
+	public static HistoryIBDataExtract getHistoryDataRecorder() {
 		return historyDataRecorder;
 	}
 	
 	private NewContract qmContract;
 	
 	
-	public TestIbDataExtract(NewContract qmContract) {
+	public HistoryIBDataExtract(NewContract qmContract) {
 		m_controller.connect( "127.0.0.1", 7496, 1);
 		
 		this.qmContract = qmContract;
@@ -98,7 +98,7 @@ public class TestIbDataExtract implements IConnectionHandler, Runnable {
 		qmContract.multiplier("500");
 		
 		
-		historyDataRecorder = new TestIbDataExtract(qmContract);
+		historyDataRecorder = new HistoryIBDataExtract(qmContract);
 		historyDataRecorder.initialEndDateFormatted = "20150725 00:15:00";
 		try {
 			historyDataRecorder.initialEndDate = Bar.FORMAT.parse(historyDataRecorder.initialEndDateFormatted);
@@ -165,7 +165,7 @@ public class TestIbDataExtract implements IConnectionHandler, Runnable {
 	}
 	
 	static class BarResultsPanel extends NewTabPanel implements IHistoricalDataHandler, IRealTimeBarHandler {
-private static final int ONE_DAY_MILLIS = 24*60*60*1000;
+		private static final int ONE_DAY_MILLIS = 24*60*60*1000;
 		//		final BarModel m_model = new BarModel();
 		final ArrayList<Bar> m_rows = new ArrayList<Bar>();
 //		final boolean m_historical;
@@ -342,7 +342,7 @@ private static final int ONE_DAY_MILLIS = 24*60*60*1000;
 
 	private void restartHistoryRecorder() {
 		isConnected = false;
-		TestIbDataExtract.getHistoryDataRecorder().controller().disconnect();
+		HistoryIBDataExtract.getHistoryDataRecorder().controller().disconnect();
 		long startTimestamp = System.currentTimeMillis();
 		threadSleep(startTimestamp);
 //		connectAPIController();
@@ -362,8 +362,8 @@ private static final int ONE_DAY_MILLIS = 24*60*60*1000;
 	}
 
 	private void connectAPIController() {
-		TestIbDataExtract.getHistoryDataRecorder().controller(new ApiController( this, m_inLogger, m_outLogger));
-		TestIbDataExtract.getHistoryDataRecorder().controller().connect( "127.0.0.1", 7496, 1);
+		HistoryIBDataExtract.getHistoryDataRecorder().controller(new ApiController( this, m_inLogger, m_outLogger));
+		HistoryIBDataExtract.getHistoryDataRecorder().controller().connect( "127.0.0.1", 7496, 1);
 	}
 
 	@Override
@@ -393,7 +393,7 @@ public void run() {
 	
 	try 
 	{
-		while (! (TestIbDataExtract.getHistoryDataRecorder().controller().getClientConnection().isConnected())){
+		while (! (HistoryIBDataExtract.getHistoryDataRecorder().controller().getClientConnection().isConnected())){
 			Thread.sleep (1);
 		}
 	} catch (Exception e) 
