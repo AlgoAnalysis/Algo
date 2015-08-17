@@ -21,21 +21,9 @@ public class EXT_0001 extends IExitStrategy {
 			double bottomSpread, double topSpread, double currBrokerSpread, double currPrice) {
 		super(entryLastState, bottomSpread, topSpread, currBrokerSpread, entryLastState.getStopLossPrice(), 
 				entryLastState.getBuyOrderPrice());
-		this.entryLastState = entryLastState;
-		this.exitStrategyStatus = ExitStrategyStatus.RUN;
 		this.fractionOfOriginalStopLoss = fractionOfOriginalStopLoss;
-		
-		if (this.exitStrategyStatus != ExitStrategyStatus.ERROR) {
-			if (isLongDirection) {
-				if (currPrice > ((2 * exitStrategyEntryPoint) - currStopLoss)) {
-					this.exitStrategyStatus = ExitStrategyStatus.TRIGGER_AND_MOVE_STOP_LOSS;
-				}
-			} else if (isShortDirection) {
-				if (currPrice < ((2 * exitStrategyEntryPoint) - currStopLoss)) {
-					this.exitStrategyStatus = ExitStrategyStatus.TRIGGER_AND_MOVE_STOP_LOSS;
-				}
-			}
-		}
+		JapaneseCandleBar japaneseCandleBar = new JapaneseCandleBar(currPrice,currPrice,currPrice,currPrice,0,null,null);
+		setNewData(new NewUpdateData[] {japaneseCandleBar});
 	}
 
 	@Override
@@ -46,7 +34,7 @@ public class EXT_0001 extends IExitStrategy {
 				if (japaneseCandleBar.getHigh() > ((2 * exitStrategyEntryPoint) - currStopLoss)) {
 					this.exitStrategyStatus = ExitStrategyStatus.TRIGGER_AND_MOVE_STOP_LOSS;
 				}
-			} else if (isShortDirection) {
+			} else {
 				if (japaneseCandleBar.getLow() < ((2 * exitStrategyEntryPoint) - currStopLoss)) {
 					this.exitStrategyStatus = ExitStrategyStatus.TRIGGER_AND_MOVE_STOP_LOSS;
 				}
@@ -61,11 +49,8 @@ public class EXT_0001 extends IExitStrategy {
 	public void forceTrigger() {
 		if (isLongDirection) {
 			this.currStopLoss = this.exitStrategyEntryPoint - (Math.abs(this.exitStrategyEntryPoint - this.currStopLoss) * fractionOfOriginalStopLoss); 
-		} else if (isShortDirection) {
-			this.currStopLoss = this.exitStrategyEntryPoint + (Math.abs(this.exitStrategyEntryPoint - this.currStopLoss) * fractionOfOriginalStopLoss); 
 		} else {
-			this.exitStrategyStatus = ExitStrategyStatus.ERROR;
-			return;
+			this.currStopLoss = this.exitStrategyEntryPoint + (Math.abs(this.exitStrategyEntryPoint - this.currStopLoss) * fractionOfOriginalStopLoss); 
 		}
 		this.exitStrategyStatus = ExitStrategyStatus.TRIGGER_AND_MOVE_STOP_LOSS;
 	}

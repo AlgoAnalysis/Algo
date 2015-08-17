@@ -12,7 +12,6 @@ import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.NewUpdateData;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBarPropertyType;
 import com.algotrado.data.event.basic.japanese.JapaneseTimeFrameType;
-import com.algotrado.entry.strategy.EntryStrategyDataObject;
 import com.algotrado.entry.strategy.EntryStrategyManager;
 import com.algotrado.entry.strategy.EntryStrategyManager.EntryStrategyStateAndTime;
 import com.algotrado.entry.strategy.EntryStrategyStateStatus;
@@ -227,8 +226,7 @@ public class TradeManagerReportDemo extends IDataExtractorSubject implements IGU
 				
 				
 				
-				EntryStrategyDataObject entryStrategyDataObject = new EntryStrategyDataObject(entryStrategyStateAndTime.getTimeList(), null, entryStrategyStateAndTime.getState().getStatus(), entryStrategyManager.getDataHeaders());
-				TRD_0001 currTrade = new TRD_0001(entryStrategyDataObject, exitStrategiesList, this , xFactor , assetType, fractionOfOriginalStopLoss, currTradeQuantity, this.exitStrategiesBehavior);
+				TRD_0001 currTrade = new TRD_0001(entryStrategyStateAndTime, exitStrategiesList, this , assetType, currTradeQuantity, this.exitStrategiesBehavior);
 				this.tradeManagers.add(currTrade);
 				
 				currTrade.setBroker(broker);

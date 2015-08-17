@@ -44,6 +44,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 	private static Integer nextPositionId;
 	private static Map<Integer,FileTrade> tradeList;
 	private static FileAccount fileAccount;
+	private static Date lastUpdateTime;
 
 	private String filePath;
 	//	private CandleBarsCollection dataList;
@@ -56,7 +57,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 	private int recordDataIndex;
 	private double minimumContractAmountMultiply = 1; // TODO
 	private double contractAmount = 500; //TODO  
-	private double spread = 0.05; // TODO : This fix was made to fit tal excel results.
+	private double spread = 0.0; // TODO : This fix was made to fit tal excel results.
 	private List<FileTrade> assetTradeList;
 	boolean runNewTask = false;
 	
@@ -152,13 +153,13 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 	
 	public static double getContractAmount(AssetType asset)
 	{
-		double minimumContractAmountMultiply = -1;
+		double contractAmount = -1;
 		FileDataExtractor fileDataExtractor = fileDataExtractorList.get(asset);
 		if(fileDataExtractor != null)
 		{
-			minimumContractAmountMultiply = fileDataExtractor.contractAmount;
+			contractAmount = fileDataExtractor.contractAmount;
 		}		
-		return minimumContractAmountMultiply;
+		return contractAmount;
 	}
 	
 	public static int openPosition(AssetType asset, double contractAmount,PositionDirectionType direction, double stopLoss,double takeProfit)
@@ -179,7 +180,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 			return -1;
 		}
 		
-		FileTrade fileTrade = new FileTrade(fileAccount,asset,fileDataExtractor.contractAmount * contractAmount, assetPrice,fileDataExtractor.newSimple.getTime(), stopLoss, takeProfit, direction, fileDataExtractor.spread);
+		FileTrade fileTrade = new FileTrade(nextPositionId,fileAccount,asset,fileDataExtractor.contractAmount * contractAmount, assetPrice,fileDataExtractor.newSimple.getTime(), stopLoss, takeProfit, direction, fileDataExtractor.spread);
 		fileDataExtractor.assetTradeList.add(fileTrade);
 		tradeList.put(nextPositionId, fileTrade);
 		nextPositionId++;
@@ -213,7 +214,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 			throw new RuntimeException("The trade need to be in this list. need to find the bug!!!");
 		}
 		
-		fileTrade.setAmount(fileDataExtractor.contractAmount * amountToClose);
+		fileTrade.setAmount(fileDataExtractor.contractAmount * amountToClose,lastUpdateTime);
 		return true;
 	}
 	
@@ -235,7 +236,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 			throw new RuntimeException("The trade need to be in this list. need to find the bug!!!");
 		}
 		
-		fileTrade.closePosition();
+		fileTrade.closePosition(lastUpdateTime);
 		return true;
 	}
 	
@@ -268,7 +269,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 		{
 			return null;
 		}
-		return new PositionStatus(fileTrade.getDirection(), fileTrade.getEntryPrice(), fileTrade.getCurrentPrice(), fileTrade.getStatus().getPositionOrderStatusType(), fileTrade.getTime());
+		return new PositionStatus(fileTrade.getDirection(), fileTrade.getEntryPrice(), fileTrade.getCurrentPrice(), fileTrade.getStatus().getPositionOrderStatusType(), fileTrade.getStartTime());
 	}
 	
 	public static double getCurrentAskPrice(AssetType asset)
@@ -430,6 +431,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 	public void internalNotifyObservers()
 	{
 		newSimple = recordDataList.get(recordDataIndex);
+		lastUpdateTime = newSimple.getTime();
 		for(Iterator<FileTrade> iterator = assetTradeList.iterator(); iterator.hasNext() ;)
 		{
 			FileTrade trade = iterator.next();
@@ -438,7 +440,7 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 				iterator.remove();
 				continue;  
 			}
-			trade.updatePriceTrade(newSimple.getValue(), spread);
+			trade.updatePriceTrade(newSimple.getValue(), spread,lastUpdateTime);
 		}
 		notifyObservers(assetType, dataEventType, parameters);
 		
@@ -503,6 +505,10 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 	@Override
 	public void setParameters(List<Double> parameters) {
 		// no parameters
+	}
+
+	public static Map<Integer, FileTrade> getTradeList() {
+		return tradeList;
 	}
 	
 	

@@ -13,7 +13,6 @@ public abstract class IExitStrategy {
 	protected double currStopLoss;
 	protected ExitStrategyStatus exitStrategyStatus;
 	protected boolean isLongDirection;
-	protected boolean isShortDirection;
 	protected double bottomSpread;
 	protected double topSpread;
 	protected double currBrokerSpread;
@@ -36,19 +35,20 @@ public abstract class IExitStrategy {
 		this.currBrokerSpread = currBrokerSpread;
 		this.entryStopLoss = entryStopLoss;
 		this.entryStrategyEntryPoint = entryStrategyEntryPoint;
-		
+		this.exitStrategyStatus = ExitStrategyStatus.RUN;
 		if (((IEntryStrategyState)this.entryLastState).getStatus() == EntryStrategyStateStatus.TRIGGER_BEARISH) {
-			this.isShortDirection = true;
+			this.isLongDirection = false;
 		} else if (((IEntryStrategyState)this.entryLastState).getStatus() == EntryStrategyStateStatus.TRIGGER_BULLISH) {
 			this.isLongDirection = true;
 		} else if (((IEntryStrategyState)this.entryLastState).getStatus() == EntryStrategyStateStatus.ERROR) {
 			this.exitStrategyStatus = ExitStrategyStatus.ERROR;
+			throw new RuntimeException("Exit strategy Error: " + this.entryLastState);
 		}
 		
 		if (isLongDirection) {
 			exitStrategyEntryPoint = entryStrategyEntryPoint + topSpread + currBrokerSpread;
 			currStopLoss = entryStopLoss - bottomSpread;
-		} else if (isShortDirection) {
+		} else {
 			exitStrategyEntryPoint = entryStrategyEntryPoint - bottomSpread;
 			currStopLoss = entryStopLoss + topSpread + currBrokerSpread;
 		}

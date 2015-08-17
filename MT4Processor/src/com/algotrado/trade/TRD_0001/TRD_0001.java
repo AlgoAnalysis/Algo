@@ -10,13 +10,11 @@ import com.algotrado.data.event.NewUpdateData;
 import com.algotrado.data.event.SimpleUpdateData;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 import com.algotrado.data.event.indicator.IND_0003.ZigZagUpdateData;
-import com.algotrado.entry.strategy.EntryStrategyDataObject;
+import com.algotrado.entry.strategy.EntryStrategyManager.EntryStrategyStateAndTime;
 import com.algotrado.entry.strategy.EntryStrategyStateStatus;
 import com.algotrado.exit.strategy.ExitStrategyDataObject;
 import com.algotrado.exit.strategy.ExitStrategyStatus;
 import com.algotrado.exit.strategy.IExitStrategy;
-import com.algotrado.exit.strategy.EXT_0003.EXT_0003;
-import com.algotrado.exit.strategy.EXT_0007.EXT_0007;
 import com.algotrado.extract.data.AssetType;
 import com.algotrado.extract.data.IDataExtractorSubject;
 import com.algotrado.extract.data.SubjectState;
@@ -35,7 +33,7 @@ public class TRD_0001 extends TradeManager {
 	private static int numOfTrades = 0;
 	
 	// Members
-	private EntryStrategyDataObject entryStrategyDataObj;
+	private EntryStrategyStateAndTime entryStrategyStateAndTime;
 	private ExitStrategyDataObject [] exitStrategiesList;
 	private int [] exitStrategiesNumbersList = {1,7};
 	private ExitStrategyStatus [] [] exitStrategiesBehavior;
@@ -50,7 +48,7 @@ public class TRD_0001 extends TradeManager {
 	
 	private JapaneseCandleBar japaneseCandleBar;
 	private SimpleUpdateData rsi;
-	private JapaneseCandleBar quote;
+	private SimpleUpdateData quote;
 	private ZigZagUpdateData zigZagUpdateData;
 	private int tradeCounterForCheck = 0;
 	
@@ -81,11 +79,10 @@ public class TRD_0001 extends TradeManager {
 	
 	private boolean performedToStringOpertion = false;
 	
-	public TRD_0001(EntryStrategyDataObject entryStrategyDataObj,ExitStrategyDataObject [] exitStrategiesList,
-			IMoneyManager moneyManager, double xFactor, AssetType assetType, 
-			double fractionOfOriginalSLExit0001, double quantity, ExitStrategyStatus [] [] exitStrategiesBehavior) {
+	public TRD_0001(EntryStrategyStateAndTime entryStrategyStateAndTime,ExitStrategyDataObject [] exitStrategiesList,
+			IMoneyManager moneyManager, AssetType assetType, double quantity, ExitStrategyStatus [] [] exitStrategiesBehavior) {
 		super();
-		this.entryStrategyDataObj = entryStrategyDataObj;
+		this.entryStrategyStateAndTime = entryStrategyStateAndTime;
 		this.exitStrategiesList = exitStrategiesList;
 //		EXT_0001 ext0001 = new EXT_0001(this.entryStrategyDataObj.getEntry(), stopLoss, fractionOfOriginalSLExit0001);
 //		this.exitStrategiesList[EXIT_0001] = new ExitStrategyDataObject(ext0001, 0, null);
@@ -109,7 +106,7 @@ public class TRD_0001 extends TradeManager {
 	public boolean startTrade() {
 		if (quantity > 0) { // there is no open position. check for entry point.
 			PositionDirectionType direction = 
-					(this.entryStrategyDataObj.getStatus() == 
+					(this.entryStrategyStateAndTime.getState().getStatus() == 
 					EntryStrategyStateStatus.TRIGGER_BEARISH) ? PositionDirectionType.SHORT : PositionDirectionType.LONG;
 
 			currStopLoss = this.exitStrategiesList[EXIT_0001].getExit().getCurrStopLoss();
@@ -119,7 +116,7 @@ public class TRD_0001 extends TradeManager {
 			if (direction.isValidStopLoss(currStopLoss, broker.getLiveSpread(assetType), broker.getCurrentAskPrice(assetType))) {
 				positionId = broker.openPosition(assetType, quantity, direction, currStopLoss,0);
 
-				List<Date> entryDates = this.entryStrategyDataObj.getEntryDates();
+				List<Date> entryDates = this.entryStrategyStateAndTime.getTimeList();
 				if (positionId < 0) { //no position was opened
 					if(Setting.isPrintMessageInConsole())
 					{
@@ -163,8 +160,7 @@ public class TRD_0001 extends TradeManager {
 				rsi =  (SimpleUpdateData)rsiSource.getNewData();
 			} else if (dataEventType == DataEventType.NEW_QUOTE) {
 				// TODO - need support in case the minimum time frame is not JapaneseCandleBar (not file)
-				SimpleUpdateData simpleUpdateData = (SimpleUpdateData)this.quoteSource.getNewData();
-				quote = new JapaneseCandleBar(simpleUpdateData.getValue(), simpleUpdateData.getValue(), simpleUpdateData.getValue(), simpleUpdateData.getValue(), simpleUpdateData.getVolume(), simpleUpdateData.getTime(), simpleUpdateData.getAssetName());
+				quote = (SimpleUpdateData)this.quoteSource.getNewData();
 			} else if (dataEventType == DataEventType.ZIGZAG) {
 				// TODO - need support in case the minimum time frame is not JapaneseCandleBar (not file)
 				SimpleUpdateData simpleUpdateData = (SimpleUpdateData)this.zigzagSource.getNewData();
@@ -460,8 +456,8 @@ public class TRD_0001 extends TradeManager {
 	public String toString() {
 		String rowStr = "";	
 		
-		rowStr += Setting.getDateTimeFormat(this.entryStrategyDataObj.getEntryDates().get(0)) + ", ";
-		rowStr += Setting.getDateTimeFormat(this.entryStrategyDataObj.getEntryDates().get(this.entryStrategyDataObj.getEntryDates().size() - 1)) + ", ";
+		rowStr += Setting.getDateTimeFormat(this.entryStrategyStateAndTime.getTimeList().get(0)) + ", ";
+		rowStr += Setting.getDateTimeFormat(this.entryStrategyStateAndTime.getTimeList().get(this.entryStrategyStateAndTime.getTimeList().size() - 1)) + ", ";
 		
 		double remainingQuantity = originalQuantity;
 		int cnt = 0;

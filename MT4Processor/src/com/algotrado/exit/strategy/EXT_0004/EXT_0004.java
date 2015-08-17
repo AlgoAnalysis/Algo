@@ -23,8 +23,6 @@ public class EXT_0004 extends IExitStrategy {
 			double bottomSpread, double topSpread, double currBrokerSpread, double currPrice) {
 		super(entryLastState, bottomSpread, topSpread, currBrokerSpread, entryLastState.getStopLossPrice(), 
 				entryLastState.getBuyOrderPrice());
-		this.entryLastState = entryLastState;
-		this.exitStrategyStatus = ExitStrategyStatus.RUN;
 		this.positionDirectionType = positionDirectionType;
 		this.zigzagDirectionMultiplier = (positionDirectionType == PositionDirectionType.LONG) ? 1.0 : (-1.0);
 		init();
