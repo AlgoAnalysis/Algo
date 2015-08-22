@@ -1,23 +1,22 @@
 package com.algotrado.matlab.bridge;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.concurrent.Semaphore;
-
-import javax.management.RuntimeErrorException;
+import java.util.Map;
 
 import com.algotrado.broker.IBroker;
 import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.SimpleUpdateData;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBarPropertyType;
 import com.algotrado.data.event.basic.japanese.JapaneseTimeFrameType;
-import com.algotrado.entry.strategy.EntryStrategyDataObject;
 import com.algotrado.entry.strategy.EntryStrategyManager;
 import com.algotrado.entry.strategy.EntryStrategyManager.EntryStrategyStateAndTime;
 import com.algotrado.entry.strategy.EntryStrategyStateStatus;
@@ -33,8 +32,8 @@ import com.algotrado.extract.data.DataSource;
 import com.algotrado.extract.data.RegisterDataExtractor;
 import com.algotrado.extract.data.SubjectState;
 import com.algotrado.extract.data.file.FileDataExtractor;
+import com.algotrado.extract.data.file.FileTrade;
 import com.algotrado.money.manager.IMoneyManager;
-import com.algotrado.output.file.FileDataRecorder;
 import com.algotrado.output.file.IGUIController;
 import com.algotrado.pattern.IPatternState;
 import com.algotrado.pattern.PatternManager;
@@ -53,6 +52,10 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	private static final long MINUTES_IN_MILISEC = 60*1000;
 	private static final long HOUR_IN_MINUTES = 60;
 	private static final long WEEK_IN_MINUTES = 24*60*7;
+	
+	private Double[] arrParameters;
+	private String startDate;
+	private Double windowLengthInWeeks;
 	
 	private DataSource dataSource = DataSource.FILE;
 	private DataEventType dataEventType;
@@ -123,6 +126,7 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 
 	public void init(DataSource dataSource, AssetType assetType,
 			DataEventType dataEventType, Double[] params) {
+		arrParameters = params;
 		if (params.length != 17 )
 		{
 			throw new RuntimeException("the number of parameters mast to be 17");
@@ -209,8 +213,8 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		runDone = false;
 		initialAccountBalance = broker.getAccountStatus().getBalance();
 		maxHighForDrawDown = new Double(initialAccountBalance).longValue();
-		minLowForDrawDown = (long) 1E12;
-		minAccountBalance = (long) 1E12;
+		minLowForDrawDown = (long) broker.getAccountStatus().getBalance();
+		minAccountBalance = (long) broker.getAccountStatus().getBalance();
 		maxDrawDownOfBalance = 0;
 		currValueForDrawDown = 0;
 		moneyManagerTradeDirection = MoneyManagerTradeDirection.BOTH;
@@ -376,7 +380,7 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		// create new trade for each entry, for reports only.
 		IEntryStrategyLastState lastState = (IEntryStrategyLastState)entryStrategyStateAndTime.getState();
 		
-		double currRsiValue = -100;
+		double currRsiValue = -100; // TODO - ????
 		if (entryStrategyManager.getNewUpdateData() != null && 
 				entryStrategyManager.getNewUpdateData().length > 1 && 
 				entryStrategyManager.getNewUpdateData()[1] instanceof SimpleUpdateData) {
@@ -395,14 +399,17 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		// account = 1000000
 		// min move 1 cent = 5$
 		// 1% of account = 10000 = [num of cents = (entry - stop)] * [contract amount] * [num of contracts] - TODO change quantity to constant value for optimization.
-		int currTradeQuantity = (int)( ( (broker.getAccountStatus().getBalance()*enteryPercentage/100.0) / 
-									((Math.abs(ext0007.getNewEntryPoint() - ext0007.getCurrStopLoss()) * contractAmount) *
-											broker.getMinimumContractAmountMultiply(assetType) ) ) /*/ 1000*/);
+		double moneyToRisk = (broker.getAccountStatus().getBalance()*enteryPercentage/100.0);
+		double contractRisk = Math.abs(lastState.getBuyOrderPrice() - lastState.getStopLossPrice()) * contractAmount; // TODO - change to broker price.
+		double currTradeQuantity =  moneyToRisk / contractRisk;
+		double minimumContractAmountMultiply = broker.getMinimumContractAmountMultiply(assetType);
+
+		long intCurrTradeQuantityMul = Math.round(currTradeQuantity/minimumContractAmountMultiply);
+		currTradeQuantity = intCurrTradeQuantityMul*minimumContractAmountMultiply;
 		
 		
 		
-		EntryStrategyDataObject entryStrategyDataObject = new EntryStrategyDataObject(entryStrategyStateAndTime.getTimeList(), null, entryStrategyStateAndTime.getState().getStatus(), entryStrategyManager.getDataHeaders());
-		TRD_0001 currTrade = new TRD_0001(entryStrategyDataObject, exitStrategiesList, this , xFactor , assetType, 0.1/*This belongs to exit strategy 1*/, currTradeQuantity, this.exitStrategiesBehavior);
+		TRD_0001 currTrade = new TRD_0001(entryStrategyStateAndTime, exitStrategiesList, this , assetType, currTradeQuantity, this.exitStrategiesBehavior);
 		
 		currTrade.setBroker(broker);
 		boolean openedTrade = currTrade.startTrade();
@@ -438,6 +445,8 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 	
 	public void setTradeFrameTime(String DateStr,Double windowLengthInWeeks)
 	{
+		startDate = DateStr;
+		this.windowLengthInWeeks = windowLengthInWeeks;
 		SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd");
 		try {
 			Date startTradeDate = format.parse(DateStr);
@@ -538,9 +547,22 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 		return sumOfLosses;
 	}
 
-	public static void main(String[] args) {
+	public Double[] getArrParameters() {
+		return arrParameters;
+	}
+	
+	public String getStartDate() {
+		return startDate;
+	}
+
+	public Double getWindowLengthInWeeks() {
+		return windowLengthInWeeks;
+	}
+
+	public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
 		// TODO create money manager.
 		// entry strategy manager.
+		Setting.setPrintMessageInConsole(true);
 		long minimumTime = (long)Integer.MAX_VALUE;
 		long timeMili;
 		long exeTime;
@@ -560,55 +582,71 @@ public class MatlabJavaOptimizationBridge implements IGUIController, Runnable, I
 				(double)45,//minRsiShortValueForEntry
 				(double)70,//maxNumOfCandlesAfterPatternForEntry
 				(double)2.75,//HourInDayToStartApprovingTrades
-				(double)1,//LengthOfTradeApprovalWindow
-				(double)2.0,//moneyManagerTradeDirection
-				(double)5//enteryPercentage
+				(double)2,//LengthOfTradeApprovalWindow
+				(double)2,//moneyManagerTradeDirection
+				(double)1,//enteryPercentage
 		};
+
 		String startTradeDateStr = "2014/02/03";
 		
 		MatlabJavaOptimizationBridge matlabJavaOB = new MatlabJavaOptimizationBridge();
-		matlabJavaOB.setTradeFrameTime(startTradeDateStr, (double)38);
-		for (int i = 1; i <= 10; i++) {
-			timeMili = System.currentTimeMillis();
-			matlabJavaOB.runSingleParamsOptimizationCheck(params);
-			while(!matlabJavaOB.isRunDone())
-			{
-				try {
-					Thread.sleep(10);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+		matlabJavaOB.setTradeFrameTime(startTradeDateStr, (double)35);
+		
+		timeMili = System.currentTimeMillis();
+		matlabJavaOB.runSingleParamsOptimizationCheck(params);
+		while(!matlabJavaOB.isRunDone())
+		{
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			exeTime = (System.currentTimeMillis() - timeMili);
-			System.out.println("Total time: " + exeTime + " miliseconds.");
-			System.out.println("Initial Account Balance = " + matlabJavaOB.getInitialAccountBalance());
-			System.out.println("Initial Account Loss = " + matlabJavaOB.getLossFromInitialAccount());
-			System.out.println("Account Balance = " + matlabJavaOB.getAccountBalance());
-			System.out.println("Success Percentage = " + matlabJavaOB.getSuccessPercentage());
-			System.out.println("Gross Profit = " + matlabJavaOB.getGrossProfit());
-			System.out.println("Gross Loss = " + matlabJavaOB.getGrossLoss());
-			System.out.println("Average Profit Trade = " + matlabJavaOB.getAverageProfitTrade());
-			System.out.println("Average Losing Trade = " + matlabJavaOB.getAverageLossTrade());
-			System.out.println("Profit factor = " + matlabJavaOB.getProfitFactor());
-			System.out.println("Total num of Successes = " + matlabJavaOB.getTotalNumOfSuccesses());
-			System.out.println("Total num of Entries = " + matlabJavaOB.getTotalNumOfEntries());
-			System.out.println("Total max draw down = " + matlabJavaOB.getMaxDrawDown());
+		}
+		exeTime = (System.currentTimeMillis() - timeMili);
+		
+		
+		PrintWriter writer = new PrintWriter("C:\\Algo\\test\\tradeList.csv", "UTF-8");
+		
+		Map<Integer, FileTrade> tradeList = FileDataExtractor.getTradeList();
+		writer.println("Position Id,Status,Start Balance,Start Equity,Start Margin,First Amount,Entry Price,First Stop Loss,Current Price,Open Date,Open Time,Close Date,Close Time");
+		for(FileTrade trade : tradeList.values())
+		{
+			writer.println( trade.getPositionId() + "," + 
+							trade.getStatus() + "," + 
+							trade.getStartBalance() + "," + 
+							trade.getStartEquity() + "," + 
+							trade.getStartMargin() + "," + 
+							trade.getFirstAmount() + "," + 
+							trade.getEntryPrice() + ","	+
+							trade.getFirstStopLoss() + ","	+
+							trade.getCurrentPrice() + "," +
+							Setting.getDateTimeFormat(trade.getStartTime()) + "," + 
+							Setting.getDateTimeFormat(trade.getCloseTime())) ;
+		}
+		writer.close();
+		
+		
+		System.out.println("Total time: " + exeTime + " miliseconds.");
+		System.out.println("Initial Account Balance = " + matlabJavaOB.getInitialAccountBalance());
+		System.out.println("Initial Account Loss = " + matlabJavaOB.getLossFromInitialAccount());
+		System.out.println("Account Balance = " + matlabJavaOB.getAccountBalance());
+		System.out.println("Success Percentage = " + matlabJavaOB.getSuccessPercentage());
+		System.out.println("Gross Profit = " + matlabJavaOB.getGrossProfit());
+		System.out.println("Gross Loss = " + matlabJavaOB.getGrossLoss());
+		System.out.println("Average Profit Trade = " + matlabJavaOB.getAverageProfitTrade());
+		System.out.println("Average Losing Trade = " + matlabJavaOB.getAverageLossTrade());
+		System.out.println("Profit factor = " + matlabJavaOB.getProfitFactor());
+		System.out.println("Total num of Successes = " + matlabJavaOB.getTotalNumOfSuccesses());
+		System.out.println("Total num of Entries = " + matlabJavaOB.getTotalNumOfEntries());
+		System.out.println("Total max draw down = " + matlabJavaOB.getMaxDrawDown());
 
 //			System.out.println("Draw Down Arrays: \n");
 //			int drawDownIndex = 0;
 //			for (double [] minMaxDrawDownArr : matlabJavaOB.getMinMaxAccountBalanceForDrawDown()) {
 //				System.out.println((drawDownIndex++) + ") " + Arrays.toString(minMaxDrawDownArr));
 //			}
-
-			System.out.println("\n");
-			if(exeTime < minimumTime)
-			{
-				minimumTime = exeTime;
-			}
-		}
 		
-		System.out.println("\nMinimum total time: " + minimumTime + " miliseconds.");
 	}
 	
 }

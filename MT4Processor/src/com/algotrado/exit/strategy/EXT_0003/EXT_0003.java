@@ -24,44 +24,12 @@ public class EXT_0003 extends IExitStrategy {
 	public EXT_0003(IEntryStrategyLastState entryLastState, double bottomSpread, 
 			double topSpread, double currBrokerSpread, double currPrice, double currRsiValue,
 			double longRsiValueForExit, double shortRsiValueForExit) {
-		super();
-		this.entryLastState = entryLastState;
-		this.entryStopLoss = entryLastState.getStopLossPrice();
-		this.exitStrategyStatus = ExitStrategyStatus.RUN;
-		this.bottomSpread = bottomSpread;
-		this.topSpread = topSpread;
-		this.entryStrategyEntryPoint = entryLastState.getBuyOrderPrice();
-		this.currBrokerSpread = currBrokerSpread;
+		super(entryLastState, bottomSpread, topSpread, currBrokerSpread, entryLastState.getStopLossPrice(), entryLastState.getBuyOrderPrice());
 		this.longRsiValueForExit = longRsiValueForExit;
 		this.shortRsiValueForExit = shortRsiValueForExit;
 		
-		if (((IEntryStrategyState)this.entryLastState).getStatus() == EntryStrategyStateStatus.TRIGGER_BEARISH) {
-			this.isShortDirection = true;
-		} else if (((IEntryStrategyState)this.entryLastState).getStatus() == EntryStrategyStateStatus.TRIGGER_BULLISH) {
-			this.isLongDirection = true;
-		} else if (((IEntryStrategyState)this.entryLastState).getStatus() == EntryStrategyStateStatus.ERROR) {
-			this.exitStrategyStatus = ExitStrategyStatus.ERROR;
-		}
-		
-		if (isLongDirection) {
-			exitStrategyEntryPoint = entryStrategyEntryPoint + this.topSpread + this.currBrokerSpread;
-			currStopLoss = entryStopLoss - this.bottomSpread;
-		} else if (isShortDirection) {
-			exitStrategyEntryPoint = entryStrategyEntryPoint - this.bottomSpread;
-			currStopLoss = entryStopLoss + this.topSpread + this.currBrokerSpread;
-		}
-		
-		if (this.exitStrategyStatus != ExitStrategyStatus.ERROR) {
-			if (isLongDirection) {
-				if (currRsiValue >= longRsiValueForExit) {
-					this.exitStrategyStatus = ExitStrategyStatus.TRIGGER;
-				}
-			} else if (isShortDirection) {
-				if (currRsiValue <= shortRsiValueForExit) {
-					this.exitStrategyStatus = ExitStrategyStatus.TRIGGER;
-				}
-			}
-		}
+		SimpleUpdateData simpleUpdateData = new SimpleUpdateData(null, null, currRsiValue, 0);
+		setNewData(new NewUpdateData[] {simpleUpdateData});
 	}
 
 	@Override
@@ -72,7 +40,7 @@ public class EXT_0003 extends IExitStrategy {
 				if (simpleUpdateData.getValue() >= longRsiValueForExit) {
 					this.exitStrategyStatus = ExitStrategyStatus.TRIGGER;
 				}
-			} else if (isShortDirection) {
+			} else {
 				if (simpleUpdateData.getValue() <= shortRsiValueForExit) {
 					this.exitStrategyStatus = ExitStrategyStatus.TRIGGER;
 				}

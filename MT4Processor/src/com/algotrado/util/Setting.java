@@ -9,11 +9,11 @@ public class Setting {
 	private static String dateTimeFormat = "dd/MM/yyyy,HH:mm:ss";
 	private static TimeZone fileTimeZone = TimeZone.getTimeZone("UTC");
 	
-	private static double usOilBrokerSpread = 0.05;
 	private static double usOilTopSpread = 0.01;
 	private static double usOilBottomSpread = 0.01;
 	private static boolean needToPrint = true;
 	
+	private static boolean printMessageInConsole = false;
 	
 	public static String getDateTimeFormat(Date date) {
 		SimpleDateFormat dateformatter = new SimpleDateFormat(dateTimeFormat);
@@ -33,10 +33,6 @@ public class Setting {
 		return fileTimeZone;
 	}
 
-	public static double getUsOilBrokerSpread() {
-		return usOilBrokerSpread;
-	}
-
 	public static double getUsOilTopSpread() {
 		return usOilTopSpread;
 	}
@@ -44,6 +40,15 @@ public class Setting {
 	public static double getUsOilBottomSpread() {
 		return usOilBottomSpread;
 	}
+
+	public static boolean isPrintMessageInConsole() {
+		return printMessageInConsole;
+	}
+
+	public static void setPrintMessageInConsole(boolean printMessageInConsole) {
+		Setting.printMessageInConsole = printMessageInConsole;
+	}
+	
 	
 	public static void errShow(String err)
 	{

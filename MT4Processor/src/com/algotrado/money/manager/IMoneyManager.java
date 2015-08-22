@@ -3,9 +3,7 @@ package com.algotrado.money.manager;
 import java.util.Date;
 import java.util.List;
 
-import com.algotrado.entry.strategy.EntryStrategyDataObject;
 import com.algotrado.entry.strategy.EntryStrategyManager.EntryStrategyStateAndTime;
-import com.algotrado.exit.strategy.ExitStrategyDataObject;
 import com.algotrado.trade.PositionStatus;
 
 public interface IMoneyManager {

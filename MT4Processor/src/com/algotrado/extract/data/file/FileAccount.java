@@ -4,12 +4,12 @@ import com.algotrado.broker.Account;
 
 public class FileAccount implements Account {
 
-	double balance;
-	double equity;
-	double margin;
-	double leverage;
-	double marginCallLevel;
-	double stopOutLevel;
+	private double balance;
+	private double equity;
+	private double margin;
+	private double leverage;
+	private double marginCallLevel;
+	private double stopOutLevel;
 	
 
 	public FileAccount(double balance, double leverage, double marginCallLevel, double stopOutLevel) {
