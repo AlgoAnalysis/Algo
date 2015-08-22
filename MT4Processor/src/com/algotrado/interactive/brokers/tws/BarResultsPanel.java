@@ -4,15 +4,17 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.concurrent.Semaphore;
 
 import apidemo.util.NewTabbedPanel.NewTabPanel;
 
 import com.algotrado.util.Setting;
+import com.google.common.collect.Lists;
+import com.ib.controller.ApiController;
 import com.ib.controller.ApiController.IHistoricalDataHandler;
 import com.ib.controller.ApiController.IRealTimeBarHandler;
-import com.ib.controller.ApiController;
 import com.ib.controller.Bar;
 
 public class BarResultsPanel extends NewTabPanel implements
@@ -20,28 +22,35 @@ public class BarResultsPanel extends NewTabPanel implements
 
 
 	private static final int ONE_DAY_MILLIS = 24*60*60*1000;
-	final ArrayList<Bar> m_rows = new ArrayList<Bar>();
+	ArrayList<Bar> m_rows = new ArrayList<Bar>();
+	final ArrayList<Bar> higherIntervalBars = new ArrayList<Bar>();
+	private ArrayList<Long> requestTimesStatistics = new ArrayList<Long>();
+	private Long longestRequestTime;
+	private Long shortestRequestTime;
+	private Long sumRequestTime = (long)0;
 	private ApiController controller;
 	private Semaphore semaphore;
-	private FileWriter destinationFile;
+//	private FileWriter destinationFile;
 	private HistoryIBDataExtract historyDataRecorder;
+	private long interval;
 	
 	
-	BarResultsPanel(ApiController controller, Semaphore semaphore, String filePath, HistoryIBDataExtract historyDataRecorder) {
+	BarResultsPanel(ApiController controller, Semaphore semaphore, /*String filePath,*/ HistoryIBDataExtract historyDataRecorder, long interval) {
 		this.controller = controller;
 		this.semaphore = semaphore;
 		this.historyDataRecorder = historyDataRecorder;
-		try {
+		this.interval = interval;
+		/*try {
 			this.destinationFile = new FileWriter(filePath, false);
 		} catch (IOException e) {
 			Setting.errShow("Exception occoured while trying to open file for writing.");
 			e.printStackTrace();
-		}
+		}*/
 	}
 
-	public FileWriter getDestinationFile() {
+	/*public FileWriter getDestinationFile() {
 		return destinationFile;
-	}
+	}*/
 
 	/** Called when the tab is first visited. */
 	@Override 
@@ -65,11 +74,11 @@ public class BarResultsPanel extends NewTabPanel implements
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
-		if ((initialEndDateParsed.getTime() % ONE_DAY_MILLIS) < (HistoryIBDataExtract.THOUSAND_EIGHT_HUNDRED_SECONDS + 1)) {
+		if ((initialEndDateParsed.getTime() % ONE_DAY_MILLIS) < (interval + 1)) {
 			Setting.errShow("New Day Initial Formatted End Date=" + historyDataRecorder.getInitialEndDateFormatted());
 		}
 			
-		if (initialEndDateParsed.getTime() > (barDate.getTime() + HistoryIBDataExtract.THOUSAND_EIGHT_HUNDRED_SECONDS + 1)) {
+		if (historyDataRecorder.getInitialEndDate().getTime() > (barDate.getTime())) {
 			Setting.errShow("1. Bar 					 Date=" + bar.formattedTime());
 			Setting.errShow("2. Initial 			 End Date=" + historyDataRecorder.getInitialEndDate());
 			Setting.errShow("3. Initial Formatted End Date=" + historyDataRecorder.getInitialEndDateFormatted());
@@ -79,21 +88,69 @@ public class BarResultsPanel extends NewTabPanel implements
 	}
 	
 	@Override public void historicalDataEnd() {
-		String dataForWriting = "";
-		for (Bar bar : this.m_rows) {
-			dataForWriting += bar.toString() + "\n";
+		// Gather request times statistics
+		long currRequestTime = System.currentTimeMillis() - historyDataRecorder.getHistoryRequestStartTime();
+		sumRequestTime += currRequestTime;
+		if (requestTimesStatistics.isEmpty()) {
+			longestRequestTime = currRequestTime;
+			shortestRequestTime = currRequestTime;
+		} else if (longestRequestTime < currRequestTime) {
+			longestRequestTime = currRequestTime;
+		} else if (shortestRequestTime > currRequestTime) {
+			shortestRequestTime = currRequestTime;
 		}
-		try {
-			destinationFile.append(dataForWriting);
-			destinationFile.flush();
-			this.m_rows.clear();
-		} catch (IOException e) {
-			Setting.outShow("Error trying to append data to file." + this.getClass());
-			e.printStackTrace();
+		requestTimesStatistics.add(currRequestTime);
+		if (interval == HistoryIBDataExtract.HALF_HOUR_MILLIS) {
+			ArrayList<Bar> destBars = new ArrayList<Bar>();
+			destBars.addAll(m_rows);
+			TWSFileWriterSingleton.writeHistoryBarsToFile(destBars);
+			/*String dataForWriting = "";
+			for (Bar bar : this.m_rows) {
+				dataForWriting += bar.toString() + "\n";
+			}
+			try {
+				destinationFile.append(dataForWriting);
+				destinationFile.flush();
+			} catch (IOException e) {
+				Setting.outShow("Error trying to append data to file." + this.getClass());
+				e.printStackTrace();
+			}*/
+		} else {// Save data not in half hour interval of seconds in array list.
+			higherIntervalBars.addAll(this.m_rows);
 		}
+		this.m_rows = new ArrayList<Bar>();
+		historyDataRecorder.setRetryDate(false);
 		semaphore.release();
 	}
 
+	public ArrayList<Bar> getHigherIntervalBars() {
+		return higherIntervalBars;
+	}
+
 	@Override public void realtimeBar(Bar bar) {
+	}
+
+	public long getInterval() {
+		return interval;
+	}
+
+	public void setInterval(long interval) {
+		this.interval = interval;
+	}
+
+	public ArrayList<Long> getRequestTimesStatistics() {
+		return requestTimesStatistics;
+	}
+
+	public Long getLongestRequestTime() {
+		return longestRequestTime;
+	}
+
+	public Long getShortestRequestTime() {
+		return shortestRequestTime;
+	}
+
+	public Long getSumRequestTime() {
+		return sumRequestTime;
 	}
 }

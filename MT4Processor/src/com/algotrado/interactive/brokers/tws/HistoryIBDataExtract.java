@@ -1,8 +1,9 @@
 package com.algotrado.interactive.brokers.tws;
 
-import java.io.IOException;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -21,7 +22,11 @@ import com.ib.controller.Types.WhatToShow;
 
 public class HistoryIBDataExtract implements IConnectionHandler, Runnable {
 	
-	public static final int THOUSAND_EIGHT_HUNDRED_SECONDS = 1800000;
+	private static final int NUM_OF_MINUTES_IN_HOUR = 60;
+	private static final int ONE_MINUTE_MILLIS = 60 * 1000;
+	private static final int MAX_HISTORY_REQUESTS_PER_10_MINUTES = 60;
+	public static final long HALF_HOUR_MILLIS = 30*ONE_MINUTE_MILLIS;
+	public static final long THIRTY_ONE_DAYS_MILLIS = (long)31*24*60*ONE_MINUTE_MILLIS;
 	private final ILogger m_inLogger = new LoggerForTws( );
 	private final ILogger m_outLogger = new LoggerForTws( );
 	private ApiController m_controller = new ApiControllerWrapper(this, m_inLogger, m_outLogger, "C:\\Algo\\Asset History Date\\QM\\oil_action_log_" + System.currentTimeMillis() + ".txt", true);
@@ -29,11 +34,14 @@ public class HistoryIBDataExtract implements IConnectionHandler, Runnable {
 	
 	private UpdatedAssetData updatedAssetData;
 	private BarResultsPanel historyBarModel;
+	private long historyRequestStartTime;
 	
 	private Semaphore semaphore = new Semaphore(0);
 	
 	private static HistoryIBDataExtract historyDataRecorder;
 	private boolean isConnected = false;
+	private boolean shouldOnlyDisconnect = false;
+	private boolean retryDate = false;
 	
 	private Date initialEndDate = null;
 	private String initialEndDateFormatted = null;
@@ -78,12 +86,23 @@ public class HistoryIBDataExtract implements IConnectionHandler, Runnable {
 		qmContract.symbol("QM");
 		qmContract.localSymbol("QMU5");
 		qmContract.tradingClass("QM");
-		qmContract.expiry("20150819 12:00:00");
+		String contractExpireDate = "20150921 12:00:00";
+		qmContract.expiry(contractExpireDate);
 		qmContract.multiplier("500");
 		
+		SimpleDateFormat sdf = new SimpleDateFormat( "yyyyMM"); // format for historical query
+		
+		String expiryStr = null;
+		try {
+			expiryStr = sdf.format(Bar.FORMAT.parse(contractExpireDate));
+		} catch (ParseException e1) {
+			Setting.errShow("Error parsing initial date.");
+			e1.printStackTrace();
+			return;
+		}
 		
 		historyDataRecorder = new HistoryIBDataExtract(qmContract);
-		historyDataRecorder.initialEndDateFormatted = "20150725 00:15:00";
+		historyDataRecorder.initialEndDateFormatted = "20140701 00:15:00";
 		try {
 			historyDataRecorder.initialEndDate = Bar.FORMAT.parse(historyDataRecorder.initialEndDateFormatted);
 		} catch (ParseException e1) {
@@ -93,15 +112,25 @@ public class HistoryIBDataExtract implements IConnectionHandler, Runnable {
 		}
 		
 		historyDataRecorder.setUpdatedAssetData(new UpdatedAssetData(qmContract.description()));
-		String filePath = "C:\\Algo\\Asset History Date\\QM\\oil_" + System.currentTimeMillis() + ".txt";
-		historyDataRecorder.historyBarModel = new BarResultsPanel(historyDataRecorder.controller(), historyDataRecorder.getSemaphore(), filePath, historyDataRecorder);
+		String filePath = "C:\\Algo\\Asset History Date\\QM\\oil_QM_500_" + expiryStr + "_" + System.currentTimeMillis() + ".txt";
+		TWSFileWriterSingleton.setFilePath(filePath);
+		historyDataRecorder.historyBarModel = new BarResultsPanel(historyDataRecorder.controller(), historyDataRecorder.getSemaphore(), /*filePath,*/ historyDataRecorder, HALF_HOUR_MILLIS);
 		
 		new Thread(historyDataRecorder).start();
 	}
 
 	private void historyRequestsRunnable(NewContract qmContract) {
+		boolean changeDate = false;
+		long retry = 0;
+		int numOfRequests = 0;
+		long startRequestsTime = System.currentTimeMillis();
+		this.historyBarModel.setInterval(THIRTY_ONE_DAYS_MILLIS);
 		while (initialEndDate.before(new Date())) {
-			long startTime = System.currentTimeMillis();
+			/*if (numOfRequests % 60 == 0) {
+				threadSleep((10 * ONE_MINUTE_MILLIS) - (System.currentTimeMillis() - startRequestsTime) + 1);
+				startRequestsTime = System.currentTimeMillis();
+			}*/
+			
 	//		String genericTickList = "";
 			
 			
@@ -109,46 +138,144 @@ public class HistoryIBDataExtract implements IConnectionHandler, Runnable {
 	//		test.controller().reqTopMktData(contract, genericTickList, snapshot , test.getUpdatedAssetData());
 			threadSleep(1);
 			if (isConnected) {
-			
-				this.controller().reqHistoricalData(qmContract, initialEndDateFormatted, 1800, DurationUnit.SECOND, BarSize._1_secs, WhatToShow.TRADES, false, this.historyBarModel);
-			
+				if (!retryDate) {
+					Calendar calendar = Calendar.getInstance();
+					calendar.setTime(this.initialEndDate);
+					calendar.add(Calendar.MONTH, 1);
+					initialEndDateFormatted = Bar.FORMAT.format(calendar.getTime());
+				}
+				this.historyRequestStartTime = System.currentTimeMillis();
+				this.controller().reqHistoricalData(qmContract, initialEndDateFormatted, 1, DurationUnit.MONTH, BarSize._30_mins, WhatToShow.TRADES, false, this.historyBarModel);
+				numOfRequests++;
 				try {
-					if (this.getSemaphore().tryAcquire(1, TimeUnit.SECONDS)) {
-						
-					} else {
-						
+					if (this.getSemaphore().tryAcquire(5, TimeUnit.SECONDS)) {
+						changeDate = true;
+						retry = 0;
+					}
+					else
+					{
+						changeDate = false;
+						retry++;
+						if(retry == 5)
+						{
+							throw new RuntimeException("Error occoured while trying to withdraw history.");
+						}
 					}
 				} catch (InterruptedException e) {
 					show("Get History From Broker Process was interrupted.");
 					e.printStackTrace();
 				}//Block until request finishes.
 				
-				threadSleep(10001 - (System.currentTimeMillis()-startTime));
+//				threadSleep(10001 - (System.currentTimeMillis()-startTime));
 				
-				this.initialEndDate = new Date(this.initialEndDate.getTime() + THOUSAND_EIGHT_HUNDRED_SECONDS);
-
-				initialEndDateFormatted = Bar.FORMAT.format(initialEndDate);
+				if (changeDate && !retryDate) {
+					Calendar calendar = Calendar.getInstance();
+					calendar.setTime(this.initialEndDate);
+					calendar.add(Calendar.MONTH, 1);
+					this.initialEndDate = calendar.getTime();
+				}
 			}
 			
 			
 		}
+		
+		this.historyBarModel.setInterval(HALF_HOUR_MILLIS);
+		int numOfRequestBulks = this.historyBarModel.getHigherIntervalBars().size() / MAX_HISTORY_REQUESTS_PER_10_MINUTES;
+		int timeToFinishInMinutes = numOfRequestBulks * 10;
+		String totalRemainingTime = (timeToFinishInMinutes / NUM_OF_MINUTES_IN_HOUR) + ":" + (timeToFinishInMinutes % NUM_OF_MINUTES_IN_HOUR);
+		show("Total Remaining Time for downloading history is : " + totalRemainingTime + " Hours:Minutes.");
+		threadSleep(10000);
+		
+		for (Bar halfHourBar : this.historyBarModel.getHigherIntervalBars()) {
+			if (numOfRequests % MAX_HISTORY_REQUESTS_PER_10_MINUTES == 0) {
+				threadSleep((10 * ONE_MINUTE_MILLIS) - (System.currentTimeMillis() - startRequestsTime) + 1);
+				startRequestsTime = System.currentTimeMillis();
+			}
+//			long startTime = System.currentTimeMillis();
+			while (!isConnected) {
+				threadSleep(1);
+			}
+			threadSleep(1);
+			if (isConnected) {
+				if (!retryDate) {
+					Calendar calendar = Calendar.getInstance();
+					calendar.setTime(new Date(halfHourBar.time() * 1000));
+					initialEndDate = calendar.getTime();
+					calendar.add(Calendar.MINUTE, 30);
+					initialEndDateFormatted = Bar.FORMAT.format(calendar.getTime());
+				}
+				this.historyRequestStartTime = System.currentTimeMillis();
+				this.controller().reqHistoricalData(qmContract, initialEndDateFormatted, 1800, DurationUnit.SECOND, BarSize._1_secs, WhatToShow.TRADES, false, this.historyBarModel);
+				numOfRequests++;
+				try {
+					if (this.getSemaphore().tryAcquire(5, TimeUnit.SECONDS)) {
+						changeDate = true;
+						retry = 0;
+					}
+					else
+					{
+						changeDate = false;
+						retry++;
+						if(retry == 5)
+						{
+							throw new RuntimeException("Error occoured while trying to withdraw history.");
+						}
+					}
+				} catch (InterruptedException e) {
+					show("Get History From Broker Process was interrupted.");
+					e.printStackTrace();
+				}//Block until request finishes.
+				
+//				threadSleep(10001 - (System.currentTimeMillis()-startTime));
+			}
+			
+			
+		}
+		
+		shouldOnlyDisconnect = true;
 		this.controller().disconnect();
 		
 		Setting.outShow("Finished get history");
 		
+		TWSFileWriterSingleton.getExecutor().shutdown();
+		
 		try {
+			boolean executorDone = TWSFileWriterSingleton.getExecutor().awaitTermination(1, TimeUnit.MINUTES);
+			if (!executorDone) {
+				Setting.errShow("There are more unfinished tasks.");
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		// Display Request Time statistics:
+		show("Request Time statistics:");
+		show("Longest request time millis:" + historyBarModel.getLongestRequestTime());
+		show("Shortest request time millis:" + historyBarModel.getShortestRequestTime());
+		double averageRequestTime = historyBarModel.getSumRequestTime() / historyBarModel.getRequestTimesStatistics().size();
+		show("Average request time millis:" + averageRequestTime);
+		// Calculate Standard Deviation:
+		double sumDistanceFromMeanSquared = 0;
+		for (Long currRequestTime : historyBarModel.getRequestTimesStatistics()) {
+			double currDistanceFromMeanSquarred = Math.pow(((double)currRequestTime - averageRequestTime), 2);
+			sumDistanceFromMeanSquared += currDistanceFromMeanSquarred;
+		}
+		double standardDev = sumDistanceFromMeanSquared/ historyBarModel.getRequestTimesStatistics().size();
+		show("Standard Deviation request time millis:" + standardDev);
+		
+		TWSFileWriterSingleton.closeFileWriter();
+		/*try {
 			this.historyBarModel.getDestinationFile().close();
 		} catch (IOException e1) {
 			show("Could not close file" + this.historyBarModel.getDestinationFile().toString());
 			e1.printStackTrace();
-		}
+		}*/
 	}
 	
 	@Override
 	public void connected() {
 		show( "connected 123");
 		isConnected = true;
-		releaseSemaphore();
+//		releaseSemaphore();
 	}
 
 	private void releaseSemaphore() {
@@ -161,7 +288,9 @@ public class HistoryIBDataExtract implements IConnectionHandler, Runnable {
 	public void disconnected() {
 		show( "disconnected 123");
 		isConnected = false;
-		connectAPIController();
+		if (!shouldOnlyDisconnect) {
+			connectAPIController();
+		}
 	}
 
 	@Override
@@ -179,11 +308,11 @@ public class HistoryIBDataExtract implements IConnectionHandler, Runnable {
 	@Override 
 	public void message(int id, int errorCode, String errorMsg) {
 		// Handle errors:
-		handleErrors(errorCode);
+		handleErrors(errorCode, errorMsg);
 		show("ID: "+ id + " Error Code: " + errorCode + " Error msg: " + errorMsg);
 	}
 
-	private void handleErrors(int errorCode) {
+	private void handleErrors(int errorCode, String errMsg) {
 		switch(errorCode) {
 		case EClientErrors.CONNECT_FAILED_CONST: //
 			Setting.errShow("Could not connect to TWS, Check that it is working.");
@@ -196,6 +325,11 @@ public class HistoryIBDataExtract implements IConnectionHandler, Runnable {
 			break;
 		case 162://162 Historical Market Data Service error message:HMDS query returned no data: QMU5@NYMEX Trades
 			Setting.errShow("Error 162, date tried to withdraw:" + historyDataRecorder.initialEndDateFormatted);
+			if (errMsg.contains("data request pacing violation")){
+				retryDate = true;
+				threadSleep(10 * ONE_MINUTE_MILLIS);
+			}
+			releaseSemaphore();
 			break;
 		case 2103: //Market data farm connection is broken, Disconnect and connect again.
 			restartHistoryRecorder();
@@ -263,6 +397,14 @@ public String getInitialEndDateFormatted() {
 
 public Date getInitialEndDate() {
 	return initialEndDate;
+}
+
+public void setRetryDate(boolean retryDate) {
+	this.retryDate = retryDate;
+}
+
+public long getHistoryRequestStartTime() {
+	return historyRequestStartTime;
 }
 
 }
