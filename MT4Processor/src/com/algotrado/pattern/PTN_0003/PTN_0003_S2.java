@@ -5,7 +5,9 @@ import java.util.Date;
 import com.algotrado.data.event.NewUpdateData;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 import com.algotrado.pattern.IPatternLastState;
-import com.algotrado.pattern.IPatternState;
+import com.algotrado.pattern.APatternState;
+import com.algotrado.pattern.PatternManager;
+import com.algotrado.pattern.PatternManagerStatus;
 import com.algotrado.pattern.PatternStateStatus;
 import com.algotrado.util.DebugUtil;
 
@@ -16,8 +18,8 @@ public class PTN_0003_S2  extends PTN_0003_Main implements IPatternLastState{
 	private Date triggerTime;
 	private boolean firstCandleBullish;
 	
-	public PTN_0003_S2(Object[] parameters,JapaneseCandleBar firstCandle) {
-		super(parameters);
+	public PTN_0003_S2(Object[] parameters,PatternManager patternManage,JapaneseCandleBar firstCandle) {
+		super(parameters,patternManage);
 		status = PatternStateStatus.RUN;
 		this.firstCandle = firstCandle;
 		firstCandleBullish = firstCandle.isBullishBar();
@@ -30,12 +32,23 @@ public class PTN_0003_S2  extends PTN_0003_Main implements IPatternLastState{
 			JapaneseCandleBar secondCandle = (JapaneseCandleBar)newData[0];
 			if((secondCandle.getHigh() < firstCandle.getBadyMaximum()) && (secondCandle.getLow() > firstCandle.getBadyMinimum()))
 			{
-				status = (firstCandleBullish) ? PatternStateStatus.TRIGGER_BEARISH :PatternStateStatus.TRIGGER_BULLISH;
 				triggerTime = secondCandle.getTime();
+				status = (firstCandleBullish) ? PatternStateStatus.TRIGGER_BEARISH :PatternStateStatus.TRIGGER_BULLISH;
+				if(firstCandleBullish)
+				{
+					status = PatternStateStatus.TRIGGER_BEARISH;
+					patternManager.patternTrigger(PatternManagerStatus.TRIGGER_BEARISH);
+				}
+				else
+				{
+					status = PatternStateStatus.TRIGGER_BULLISH;
+					patternManager.patternTrigger(PatternManagerStatus.TRIGGER_BULLISH);
+				}
 			}
 			else
 			{
 				status = PatternStateStatus.KILL_STATE;
+				patternManager.patternKillState();
 			}
 			
 		}
@@ -43,9 +56,11 @@ public class PTN_0003_S2  extends PTN_0003_Main implements IPatternLastState{
 		status == PatternStateStatus.TRIGGER_BEARISH ||
 		status == PatternStateStatus.TRIGGER_BULLISH) {
 			status = PatternStateStatus.KILL_STATE;
+			patternManager.patternKillState();
 		}
 		else {
 			status = PatternStateStatus.ERROR;
+			patternManager.patternError();
 			if(DebugUtil.debugPatternChecking){
 				throw new RuntimeException	("Pattern in error state");
 			}
@@ -53,7 +68,7 @@ public class PTN_0003_S2  extends PTN_0003_Main implements IPatternLastState{
 	}
 
 	@Override
-	public IPatternState getNextState() {
+	public APatternState getNextState() {
 		return null;
 	}
 	

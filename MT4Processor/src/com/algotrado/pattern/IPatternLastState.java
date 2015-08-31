@@ -1,5 +1,5 @@
 package com.algotrado.pattern;
 
-public interface IPatternLastState {
+public interface IPatternLastState{
 
 }

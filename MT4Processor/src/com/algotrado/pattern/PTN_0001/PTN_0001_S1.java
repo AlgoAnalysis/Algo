@@ -5,8 +5,9 @@ import java.util.Date;
 
 import com.algotrado.data.event.NewUpdateData;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
-import com.algotrado.pattern.IPatternState;
+import com.algotrado.pattern.APatternState;
 import com.algotrado.pattern.IPatternFirstState;
+import com.algotrado.pattern.PatternManager;
 import com.algotrado.pattern.PatternStateStatus;
 
 public class PTN_0001_S1 extends PTN_0001_Main implements IPatternFirstState{
@@ -16,6 +17,11 @@ public class PTN_0001_S1 extends PTN_0001_Main implements IPatternFirstState{
 	private Date startTime;
 	private Date triggerTime;
 	private PatternStateStatus status;
+	
+	public PTN_0001_S1(Object[] parameters,PatternManager patternManager) {
+		super(parameters,patternManager);
+		status = PatternStateStatus.WAIT_TO_START;
+	}
 	
 	public PTN_0001_S1(Object[] parameters) {
 		super(parameters);
@@ -35,17 +41,19 @@ public class PTN_0001_S1 extends PTN_0001_Main implements IPatternFirstState{
 			startTime = newData[0].getTime();
 			triggerTime = newData[0].getTime();
 			status = PatternStateStatus.RUN_TO_NEXT_STATE;
+			patternManager.patternRunToNextState();
 		}
 		else
 		{
 			status = PatternStateStatus.ERROR;
+			patternManager.patternError();
 			throw new RuntimeException	(""); // TODO 
 		}
 	}
 
 	@Override
-	public IPatternState getNextState() {
-		return new PTN_0001_S2(parameters,japanese);
+	public APatternState getNextState() {
+		return new PTN_0001_S2(parameters,patternManager,japanese);
 	}
 
 	@Override
@@ -54,8 +62,8 @@ public class PTN_0001_S1 extends PTN_0001_Main implements IPatternFirstState{
 	}
 
 	@Override
-	public IPatternState getCopyPatternState() {
-		return new PTN_0001_S1(parameters);
+	public APatternState getCopyPatternState() {
+		return new PTN_0001_S1(parameters,patternManager);
 	}
 
 	public Integer getStateNumber() {
@@ -68,6 +76,12 @@ public class PTN_0001_S1 extends PTN_0001_Main implements IPatternFirstState{
 
 	public Date getTriggerTime() {
 		return triggerTime;
+	}
+
+	@Override
+	public void setPatternManager(PatternManager patternManager) {
+		this.patternManager = patternManager;
+		
 	}
 	
 	

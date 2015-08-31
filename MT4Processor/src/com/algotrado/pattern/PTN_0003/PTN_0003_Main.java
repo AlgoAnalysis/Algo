@@ -1,10 +1,11 @@
 package com.algotrado.pattern.PTN_0003;
 
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
-import com.algotrado.pattern.IPatternState;
+import com.algotrado.pattern.APatternState;
+import com.algotrado.pattern.PatternManager;
 import com.algotrado.pattern.PatternParameterList;
 
-public abstract class PTN_0003_Main implements IPatternState {
+public abstract class PTN_0003_Main extends APatternState {
 
 	static protected final String name = "Harami";
 	static protected final String code = "PTN-0003";
@@ -17,6 +18,11 @@ public abstract class PTN_0003_Main implements IPatternState {
 	static protected final PatternParameterList parametersList = new PTN_0003_Parameters(); // TODO - need to check
 	
 	Object[] parameters;
+
+	public PTN_0003_Main(Object[] parameters,PatternManager patternManager) {
+		this.parameters = parameters;
+		this.patternManager = patternManager;
+	}
 	
 	public PTN_0003_Main(Object[] parameters) {
 		this.parameters = parameters;

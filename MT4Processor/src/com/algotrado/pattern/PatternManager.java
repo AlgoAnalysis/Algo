@@ -10,67 +10,34 @@ import com.algotrado.util.Setting;
 
 public class PatternManager {
 
-	private IPatternState firstState;
+	private IPatternFirstState firstState;
 	private List<PStateAndTime> stateArr;
 	private PatternManagerStatus status;
+	private Iterator<PStateAndTime> iterator;
+	private PStateAndTime state;
+	private boolean needCreateNewState;
+	private APatternState prevState;
 	
-	public PatternManager(IPatternState firstState)
+	public PatternManager(IPatternFirstState firstState)
 	{
 		this.firstState = firstState;
+		firstState.setPatternManager(this);
 		stateArr = new ArrayList<PStateAndTime>();
 		stateArr.add(new PStateAndTime(firstState));
+		
 	}
 	
 	public void setNewData(NewUpdateData[] newData)
 	{
-		boolean needCreateNewState = true;
-		boolean recordState;
+		
+		needCreateNewState = true;
 		status = PatternManagerStatus.RUN;
-		IPatternState prevState;
-		for(Iterator<PStateAndTime> iterator = stateArr.iterator(); iterator.hasNext() ;)
+		
+		for(iterator = stateArr.iterator(); iterator.hasNext() ;)
 		{
-			PStateAndTime state = iterator.next();
-			state.getState().setNewData(newData);
-			recordState = false;
+			state = iterator.next();
 			prevState = state.getState();
-			switch(state.getState().getStatus())
-			{
-			case WAIT_TO_START:
-				needCreateNewState = false;
-				break;
-			case KILL_STATE:
-				iterator.remove();
-				break;
-			case RUN_TO_NEXT_STATE:
-				state.setState(state.getState().getNextState());
-				recordState = true;
-				break;
-			case TRIGGER_BEARISH:
-				status = PatternManagerStatus.TRIGGER_BEARISH;
-				recordState = true;
-				break;
-			case TRIGGER_BULLISH:
-				status = PatternManagerStatus.TRIGGER_BULLISH;
-				recordState = true;
-				break;
-			case TRIGGER_NOT_SPECIFIED:
-				status = PatternManagerStatus.TRIGGER_NOT_SPECIFIED;
-				recordState = true;
-				break;
-			case ERROR:
-				status = PatternManagerStatus.ERROR;
-				break;
-			case RUN:
-				break;
-			}
-			if(recordState)
-			{
-				if(state.getTimeList().size() == 0)
-				{
-					state.addTime(((IPatternFirstState) prevState).getStartTime());
-				}
-				state.addTime(prevState.getTriggerTime());
-			}
+			state.getState().setNewData(newData);
 		}
 		if(needCreateNewState)
 		{
@@ -81,6 +48,47 @@ public class PatternManager {
 	public PatternManagerStatus getStatus() {
 		return status;
 	}
+	
+	private void recordState()
+	{
+		if(state.getTimeList().size() == 0)
+		{
+			state.addTime(((IPatternFirstState) prevState).getStartTime());
+		}
+		state.addTime(prevState.getTriggerTime());		
+	}
+	
+	public void patternWaitToStart()
+	{
+		needCreateNewState = false;
+	}
+	
+	public void patternKillState()
+	{
+		iterator.remove();
+	}
+	
+	public void patternRunToNextState()
+	{
+		state.setState(state.getState().getNextState());
+		recordState();
+	}
+	
+	public void patternTrigger(PatternManagerStatus triggerType)
+	{
+		status = triggerType;
+		recordState();	
+	}
+	
+	public void patternError()
+	{
+		status = PatternManagerStatus.ERROR;	
+	}	
+	
+	
+	
+	
+	
 	
 	public List<Date> getTimeListofTriggerState()
 	{
@@ -99,7 +107,7 @@ public class PatternManager {
 	
 	
 	public String getDataHeaders() {
-		Integer numOfStates = firstState.getNumberOfStates();
+		Integer numOfStates = ((APatternState)firstState).getNumberOfStates();
 		String headerString = Setting.getDateTimeHeader("Start Pattern") + ",";
 		for(Integer cnt = 1;cnt <= numOfStates.intValue();cnt++)
 		{
@@ -113,7 +121,7 @@ public class PatternManager {
 	public String toString() {
 		String valString = "";
 		PStateAndTime stateFolnd = null;
-		Integer numOfStates = firstState.getNumberOfStates();
+		Integer numOfStates = ((APatternState)firstState).getNumberOfStates();
 		for(PStateAndTime state : stateArr)
 		{
 			if((state.getState().getStatus() == PatternStateStatus.TRIGGER_BEARISH) ||
@@ -137,16 +145,17 @@ public class PatternManager {
 	}
 	
 	
+	
+	
+	
 	////////////////////// internal class ///////////////////////////////////
 
 	private class PStateAndTime
 	{
-		private IPatternState state;
+		private APatternState state;
 		private List<Date> timeList; 
-		public PStateAndTime(IPatternState state)
+		public PStateAndTime(IPatternFirstState firstState)
 		{
-			
-			IPatternFirstState firstState = (IPatternFirstState)state;
 			this.state = firstState.getCopyPatternState();
 			timeList = new ArrayList<Date>();
 		}
@@ -160,10 +169,10 @@ public class PatternManager {
 		{
 			return timeList;
 		}
-		public IPatternState getState() {
+		public APatternState getState() {
 			return state;
 		}
-		public void setState(IPatternState state) {
+		public void setState(APatternState state) {
 			this.state = state;
 		}
 	}
