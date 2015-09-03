@@ -4,6 +4,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
+import com.ib.controller.NewContract;
+import com.ib.controller.Types.SecType;
+
 public class Setting {
 	private static String assetDirectoryPath = "C:\\Algo\\Asset History Date";
 	private static String dateTimeFormat = "dd/MM/yyyy,HH:mm:ss";
@@ -61,5 +64,20 @@ public class Setting {
 	{
 		if(needToPrint)
 			System.out.println(out);
+	}
+	
+	public static NewContract getOilContractDetails() {
+		NewContract qmContract = new NewContract();
+		qmContract.currency("USD");
+		qmContract.exchange("NYMEX");
+		//	qmContract.primaryExch("ISLAND");
+		qmContract.secType(SecType.FUT);
+		qmContract.symbol("QM");
+		qmContract.localSymbol("QMU5");
+		qmContract.tradingClass("QM");
+		String contractExpireDate = "20150921 12:00:00";
+		qmContract.expiry(contractExpireDate);
+		qmContract.multiplier("500");
+		return qmContract;
 	}
 }

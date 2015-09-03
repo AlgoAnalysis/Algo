@@ -1,8 +1,22 @@
 package com.algotrado.extract.data;
 
+import com.algotrado.util.Setting;
+import com.ib.controller.NewContract;
+
 public enum AssetType {
-	USOIL("USOil",0.001), 
-	GOLD("Gold",0.001);
+	USOIL("USOil",0.001) {
+		@Override
+		public NewContract getAssetContractDetails() {
+			return Setting.getOilContractDetails();
+		}
+	}, 
+	GOLD("Gold",0.001) {
+		@Override
+		public NewContract getAssetContractDetails() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+	};
 	
 	
 	private String valueString;
@@ -43,4 +57,6 @@ public enum AssetType {
 	public String toString() {
 		return valueString;
 	}
+	
+	public abstract NewContract getAssetContractDetails();
 }

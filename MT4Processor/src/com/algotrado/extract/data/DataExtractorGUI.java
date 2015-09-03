@@ -223,7 +223,11 @@ public class DataExtractorGUI implements IGUIController,Runnable {
 	@Override
 	public void run()
 	{
-		RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters,0, dataRecorder);
+		try {
+			RegisterDataExtractor.register(dataSource, assetType, dataEventType, parameters,0, dataRecorder);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	

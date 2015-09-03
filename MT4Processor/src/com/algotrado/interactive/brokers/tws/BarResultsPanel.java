@@ -1,17 +1,13 @@
 package com.algotrado.interactive.brokers.tws;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.concurrent.Semaphore;
 
 import apidemo.util.NewTabbedPanel.NewTabPanel;
 
 import com.algotrado.util.Setting;
-import com.google.common.collect.Lists;
 import com.ib.controller.ApiController;
 import com.ib.controller.ApiController.IHistoricalDataHandler;
 import com.ib.controller.ApiController.IRealTimeBarHandler;
@@ -30,27 +26,21 @@ public class BarResultsPanel extends NewTabPanel implements
 	private Long sumRequestTime = (long)0;
 	private ApiController controller;
 	private Semaphore semaphore;
-//	private FileWriter destinationFile;
 	private HistoryIBDataExtract historyDataRecorder;
 	private long interval;
 	
-	
-	BarResultsPanel(ApiController controller, Semaphore semaphore, /*String filePath,*/ HistoryIBDataExtract historyDataRecorder, long interval) {
+	public BarResultsPanel(ApiController controller) {
 		this.controller = controller;
-		this.semaphore = semaphore;
-		this.historyDataRecorder = historyDataRecorder;
+	}
+	
+	
+	public BarResultsPanel(ApiController controller, Semaphore semaphore, HistoryIBDataExtract historyDataRecorder, long interval) {
+		this(controller);
 		this.interval = interval;
-		/*try {
-			this.destinationFile = new FileWriter(filePath, false);
-		} catch (IOException e) {
-			Setting.errShow("Exception occoured while trying to open file for writing.");
-			e.printStackTrace();
-		}*/
+		this.historyDataRecorder = historyDataRecorder;
+		this.semaphore = semaphore;
 	}
 
-	/*public FileWriter getDestinationFile() {
-		return destinationFile;
-	}*/
 
 	/** Called when the tab is first visited. */
 	@Override 
@@ -127,7 +117,9 @@ public class BarResultsPanel extends NewTabPanel implements
 		return higherIntervalBars;
 	}
 
-	@Override public void realtimeBar(Bar bar) {
+	@Override 
+	public void realtimeBar(Bar bar) {
+		
 	}
 
 	public long getInterval() {

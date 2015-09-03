@@ -8,6 +8,7 @@ import com.algotrado.data.event.DataEventType;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
 import com.algotrado.data.event.basic.japanese.JapaneseTimeFrameType;
 import com.algotrado.extract.data.file.FileDataExtractor;
+import com.algotrado.interactive.brokers.tws.IBBrokerSubjectDataExtrator;
 import com.algotrado.trade.PositionDirectionType;
 import com.algotrado.trade.PositionStatus;
 import com.algotrado.util.Setting;
@@ -78,6 +79,80 @@ public enum DataSource implements IBroker{
 		public Account getAccountStatus() {
 			return FileDataExtractor.getAccountStatus();
 		}
+	},
+	IB_TWS_BROKER("IB TWS Broker") {
+
+		@Override
+		public IDataExtractorSubject getSubjectDataExtractor(AssetType assetType, DataEventType dataEventType, List<Double> parameters) {
+			return IBBrokerSubjectDataExtrator.getSubjectDataExtractor(assetType, dataEventType, parameters);
+		}
+
+		@Override
+		public List<JapaneseCandleBar> getHistory(AssetType assetTypes, JapaneseTimeFrameType timeFrame) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public int openPosition(AssetType asset, double amount, PositionDirectionType direction, double stopLoss,
+				double takeProfit) {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		public boolean closePosition(int positionId, double amountToClose) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean closePosition(int positionId) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public PositionStatus getPositionStatus(int positionId) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public boolean modifyPosition(int positionId, double newStopLoss,
+				double newTakeProfit) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public double getLiveSpread(AssetType asset) {
+			return IBBrokerSubjectDataExtrator.getIBBrokerSubjectDataExtractor(asset).getLiveSpread();
+		}
+
+		@Override
+		public double getCurrentAskPrice(AssetType asset) {
+			return IBBrokerSubjectDataExtrator.getIBBrokerSubjectDataExtractor(asset).getCurrentAskPrice();
+		}
+
+		@Override
+		public double getContractAmount(AssetType asset) {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		public double getMinimumContractAmountMultiply(AssetType asset) {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		public Account getAccountStatus() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+		
 	};
 
 	private String valueString;

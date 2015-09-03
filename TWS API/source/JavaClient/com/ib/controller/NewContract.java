@@ -217,4 +217,21 @@ public class NewContract implements Cloneable {
 			return null;
 		}
 	}
+	
+	public boolean equals(Object o){
+		if (o == null || !(o instanceof NewContract)) {
+			return false;
+		}
+		NewContract other = (NewContract)o;
+		if (!this.symbol().equals(other.symbol())) {
+			return false;
+		}
+		if (this.expiry() != null && other.expiry() != null && !this.expiry().equals(other.expiry())) {
+			return false;
+		} else if (this.expiry() != null && other.expiry() == null || this.expiry() == null && other.expiry() != null) {
+			return false;
+		}
+		
+		return true;
+	}
 }
