@@ -28,7 +28,7 @@ public interface IBroker {
 	 * @param timeFrame
 	 * @return
 	 */
-	public List<JapaneseCandleBar> getHistory(AssetType assetTypes,JapaneseTimeFrameType timeFrame);
+	public List<JapaneseCandleBar> getHistory(AssetType assetTypes,JapaneseTimeFrameType timeFrame,IBrokerResponse brokerResponse);
 
 	/**
 	 *  file broker => openPosition(asset, amount, direction, stopLoss) => opens market price position returns positionId
@@ -38,26 +38,26 @@ public interface IBroker {
 	 * @param stopLoss
 	 * @return
 	 */
-	public int openPosition(AssetType asset, double amount, PositionDirectionType direction, double stopLoss,double takeProfit);
+	public int openPosition(AssetType asset, double amount, PositionDirectionType direction, double stopLoss,double takeProfit,IBrokerResponse brokerResponse);
 	/**
 	 *  file broker => closePosition(positionId, amountToClose)
 	 * @return if succeeded
 	 */
-	public boolean closePosition(int positionId, double amountToClose);
+	public boolean closePosition(int positionId, double amountToClose,IBrokerResponse brokerResponse);
 	/**
 	 *  file broker => closePosition(positionId) => closes all the position
 	 * @return if succeeded
 	 */
-	public boolean closePosition(int positionId);
+	public boolean closePosition(int positionId,IBrokerResponse brokerResponse);
 	/**
 	 *  file broker => getPositionStatus(positionId) => identify cases in which broker has closed order position in SL.
 	 */
-	public PositionStatus getPositionStatus(int positionId);
+	public PositionStatus getPositionStatus(int positionId,IBrokerResponse brokerResponse);
 	/**
 	 *  file broker => modifyPosition(positionId, newStopLoss)
 	 *  @return if succeeded
 	 */
-	public boolean modifyPosition(int positionId, double newStopLoss,double newTakeProfit);
+	public boolean modifyPosition(int positionId, double newStopLoss,double newTakeProfit,IBrokerResponse brokerResponse);
 	
 	/**
 	 * @param asset
