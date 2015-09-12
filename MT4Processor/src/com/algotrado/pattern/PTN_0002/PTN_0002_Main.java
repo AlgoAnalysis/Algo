@@ -17,7 +17,7 @@ public abstract class PTN_0002_Main extends APatternState {
 	static protected final Object[] newDataClass = {JapaneseCandleBar.class};
 	static protected final PatternParameterList parametersList = new PTN_0002_Parameters(); // TODO - need to check
 	
-	Object[] parameters;
+	protected Object[] parameters;
 	
 	public PTN_0002_Main(Object[] parameters,PatternManager patternManager ) {
 		this.parameters = parameters;

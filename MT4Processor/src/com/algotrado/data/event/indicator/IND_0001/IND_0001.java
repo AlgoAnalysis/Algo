@@ -43,7 +43,6 @@ public class IND_0001 extends IDataExtractorSubject implements
 	}
 	
 	private final DataEventType dataEventType = DataEventType.RSI;
-	private IDataExtractorSubject dataExtractorSubject;
 	private JapaneseCandleBarPropertyType japaneseCandleBarPropertyType;
 	private double gainLossValues[];
 	private int movingIndex;
@@ -59,7 +58,7 @@ public class IND_0001 extends IDataExtractorSubject implements
 	public IND_0001(DataSource dataSource, AssetType assetType,
 			DataEventType dataEventType, List<Double> parameters) {
 		super(dataSource, assetType, dataEventType, parameters);
-
+		dataExtractorSubjectArr = new IDataExtractorSubject[1];
 		gainLossValues = new double[length];
 		movingIndex = 0;
 		for(int index =0;index < length;index++)
@@ -77,7 +76,7 @@ public class IND_0001 extends IDataExtractorSubject implements
 	@Override
 	public void notifyObserver(DataEventType dataEventType,
 			List<Double> parameters) {
-		JapaneseCandleBar japaneseCandleBar = (JapaneseCandleBar) dataExtractorSubject.getNewData();
+		JapaneseCandleBar japaneseCandleBar = (JapaneseCandleBar) dataExtractorSubjectArr[0].getNewData();
 		double inputValue = japaneseCandleBarPropertyType.getJapaneseCandleBarValue(japaneseCandleBar);
 		if(gainLossValues[movingIndex] >= 0)
 		{
@@ -113,7 +112,7 @@ public class IND_0001 extends IDataExtractorSubject implements
 
 	@Override
 	public void setSubject(IDataExtractorSubject dataExtractorSubject) {
-		this.dataExtractorSubject = dataExtractorSubject;
+		this.dataExtractorSubjectArr[0] = dataExtractorSubject;
 
 	}
 
@@ -146,7 +145,7 @@ public class IND_0001 extends IDataExtractorSubject implements
 
 	@Override
 	public SubjectState getSubjectState() {
-		return dataExtractorSubject.getSubjectState();
+		return dataExtractorSubjectArr[0].getSubjectState();
 	}
 
 	@Override
@@ -162,14 +161,14 @@ public class IND_0001 extends IDataExtractorSubject implements
 		historyLength = parameters.get(3).intValue();
 	}
 	
-	@Override
-	public void unregisterObserver(IDataExtractorObserver observer) {
-		this.observers.remove(observer);
-		observer.removeSubject(this);
-		if (this.observers.isEmpty()) {
-			dataExtractorSubject.unregisterObserver(this);
-			RegisterDataExtractor.removeDataExtractorSubject(dataSource, assetType, dataEventType, parameters);
-		}
-	}
+//	@Override
+//	public void unregisterObserver(IDataExtractorObserver observer) {
+//		this.observers.remove(observer);
+//		observer.removeSubject(this);
+//		if (this.observers.isEmpty()) {
+//			dataExtractorSubjectArr[0].unregisterObserver(this);
+//			RegisterDataExtractor.removeDataExtractorSubject(dataSource, assetType, dataEventType, parameters);
+//		}
+//	}
 
 }

@@ -3,92 +3,54 @@ package com.algotrado.entry.strategy.ENT_0001;
 import java.util.Date;
 
 import com.algotrado.data.event.NewUpdateData;
-import com.algotrado.data.event.SimpleUpdateData;
-import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
+import com.algotrado.entry.strategy.AEntryStrategyObserver;
 import com.algotrado.entry.strategy.EntryStrategyStateStatus;
 import com.algotrado.entry.strategy.IEntryStrategyFirstState;
 import com.algotrado.entry.strategy.IEntryStrategyState;
-import com.algotrado.pattern.PatternDataObject;
-import com.algotrado.pattern.PatternManagerStatus;
+import com.algotrado.pattern.APatternState;
+import com.algotrado.pattern.IPatternLastState;
+import com.algotrado.pattern.PatternStateStatus;
 
 public class ENT_0001_S1 extends ENT_0001_MAIN implements IEntryStrategyFirstState {
-
+	public static final int ENT_0001_S2_newData_order_lastPatternState = 0;
+	
 	protected final Integer stateNumber = Integer.valueOf(1);
 	private EntryStrategyStateStatus status;
-	private PatternManagerStatus patternManagerStatus = null;
-	private double prevHigh = 0;
-	private double prevLow = 0;
-	private double maxPatternHigh = 0;
-	private double minPatternLow = 0;
-	private PatternDataObject patternDataObject;
-	private int patternCandlesCounter = 1;
-	private SimpleUpdateData prevRSI;
-	private double maxRsiLongValue;
-	private double minRsiShortValue;
-	private int maxNumOfCandlesAfterPattern;
+	private APatternState patternLastState;
 	
-	public ENT_0001_S1(Object[] parameters) {
-		this(parameters, (Double)parameters[2], (Double)parameters[3], ((Double)parameters[4]).intValue());
-	}
-	
-	public ENT_0001_S1(Object[] parameters, double maxRsiLongValue, double minRsiShortValue, int maxNumOfCandlesAfterPattern) {
-		super(parameters);
+	public ENT_0001_S1(Object[] parameters,AEntryStrategyObserver entryStrategyObserver) {
+		super(parameters,entryStrategyObserver);
 		status = EntryStrategyStateStatus.WAIT_TO_START;
-		this.maxRsiLongValue = maxRsiLongValue;
-		this.minRsiShortValue = minRsiShortValue;
-		this.maxNumOfCandlesAfterPattern = maxNumOfCandlesAfterPattern;
 	}
 
 	@Override
 	public void setNewData(NewUpdateData[] newData) {
-		if(status == EntryStrategyStateStatus.WAIT_TO_START || status == EntryStrategyStateStatus.RUN)
+		if(status == EntryStrategyStateStatus.WAIT_TO_START)
 		{
-			status = EntryStrategyStateStatus.RUN;
-			if (prevHigh > 0 && newData.length > 2) {
-				if (newData[2] instanceof PatternDataObject) {
-					patternDataObject = (PatternDataObject)newData[2];
-
-					patternManagerStatus = null;
-					if((patternDataObject.getPatternManagerStatus() == PatternManagerStatus.TRIGGER_BEARISH) || 
-							(patternDataObject.getPatternManagerStatus() == PatternManagerStatus.TRIGGER_BULLISH) ||
-							(patternDataObject.getPatternManagerStatus() == PatternManagerStatus.TRIGGER_NOT_SPECIFIED))
-					{
-						patternManagerStatus = patternDataObject.getPatternManagerStatus();
-						status = EntryStrategyStateStatus.RUN_TO_NEXT_STATE;
-						maxPatternHigh = (((JapaneseCandleBar)newData[0]).getHigh() > prevHigh) ? ((JapaneseCandleBar)newData[0]).getHigh() : prevHigh;
-						minPatternLow = (((JapaneseCandleBar)newData[0]).getLow() < prevLow) ? ((JapaneseCandleBar)newData[0]).getLow() : prevLow;
-						prevRSI = ((SimpleUpdateData)newData[1]);
-						if (maxPatternHigh == minPatternLow) { // pattern size is 0. this is not a real pattern.
-							status = EntryStrategyStateStatus.RUN;
-						}
-					} else if (patternDataObject.getPatternManagerStatus() == PatternManagerStatus.ERROR) {
-						status = EntryStrategyStateStatus.ERROR;
-						throw new RuntimeException	("Error Occoured in Pattern Manager."); // TODO 
-					} else {
-						status = EntryStrategyStateStatus.RUN;
-					}
-
-				} else {
-					throw new RuntimeException("newData Should get patternDataObjects to check ENT_0001_S1. Got only : " + newData[2]);
+			patternLastState = (APatternState)newData[ENT_0001_S2_newData_order_lastPatternState]; 
+			if((patternLastState.getStatus() == PatternStateStatus.TRIGGER_BEARISH) || 
+					(patternLastState.getStatus() == PatternStateStatus.TRIGGER_BULLISH) ||
+					(patternLastState.getStatus() == PatternStateStatus.TRIGGER_NOT_SPECIFIED))
+			{
+				status = EntryStrategyStateStatus.RUN_TO_NEXT_STATE;
+				if (((IPatternLastState)patternLastState).getPatternHigh() == 
+						((IPatternLastState)patternLastState).getPatternLow()) { 
+					throw new RuntimeException	("pattern size is 0. this is not a real pattern."); 
 				}
-			}
-			prevHigh = ((JapaneseCandleBar)newData[0]).getHigh();
-			prevLow = ((JapaneseCandleBar)newData[0]).getLow();
-			patternCandlesCounter++;
-			if (patternCandlesCounter > 2 && status != EntryStrategyStateStatus.RUN_TO_NEXT_STATE) {
-				status = EntryStrategyStateStatus.KILL_STATE;
+				entryStrategyObserver.entryRunToNextState();
+			} else {
+				throw new RuntimeException	("pattern not trigger!!!"); 
 			}
 		}
 		else
 		{
-			status = EntryStrategyStateStatus.ERROR;
-			throw new RuntimeException	("Error Occoured in ENT_0001_S1."); // TODO 
+			throw new RuntimeException	("Error Occoured in ENT_0001_S1."); 
 		}
 	}
 
 	@Override
 	public IEntryStrategyState getCopyPatternState() {
-		return new ENT_0001_S1(parameters, this.maxRsiLongValue, this.minRsiShortValue, this.maxNumOfCandlesAfterPattern);
+		return new ENT_0001_S1(parameters,entryStrategyObserver);
 	}
 
 	@Override
@@ -98,17 +60,17 @@ public class ENT_0001_S1 extends ENT_0001_MAIN implements IEntryStrategyFirstSta
 
 	@Override
 	public IEntryStrategyState getNextState() {
-		return new ENT_0001_S2(parameters, patternManagerStatus, maxPatternHigh, minPatternLow, prevRSI, this.maxRsiLongValue, this.minRsiShortValue, this.maxNumOfCandlesAfterPattern);
+		return new ENT_0001_S2(parameters, patternLastState,entryStrategyObserver);
 	}
 
 	@Override
 	public Date getStartTime() {
-		return patternDataObject.getPatternDates().get(0);
+		return ((IPatternLastState)patternLastState).getStartPatternTime();
 	}
 
 	@Override
 	public Date getTriggerTime() {
-		return patternDataObject.getPatternDates().get(patternDataObject.getPatternDates().size() - 1);
+		return patternLastState.getTriggerTime();
 	}
 
 	@Override
@@ -116,7 +78,7 @@ public class ENT_0001_S1 extends ENT_0001_MAIN implements IEntryStrategyFirstSta
 		return stateNumber;
 	}
 
-	@Override
+	@Override // TODO - check way i cant delete this function
 	public Integer getNumberOfStates() {
 		return 2;
 	}

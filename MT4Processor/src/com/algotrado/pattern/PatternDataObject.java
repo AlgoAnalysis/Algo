@@ -5,6 +5,8 @@ import java.util.List;
 
 import com.algotrado.data.event.NewUpdateData;
 
+
+// TODO - remove this class
 public class PatternDataObject implements NewUpdateData {
 
 	private PatternManager patternManager;

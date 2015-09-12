@@ -38,16 +38,21 @@ public class PTN_0001_S1 extends PTN_0001_Main implements IPatternFirstState{
 		if(status == PatternStateStatus.WAIT_TO_START)
 		{
 			japanese = (JapaneseCandleBar) newData[0];
-			startTime = newData[0].getTime();
-			triggerTime = newData[0].getTime();
-			status = PatternStateStatus.RUN_TO_NEXT_STATE;
-			patternManager.patternRunToNextState();
+			if(japanese.getBodySize() > 0)
+			{
+				startTime = newData[0].getTime();
+				triggerTime = newData[0].getTime();
+				status = PatternStateStatus.RUN_TO_NEXT_STATE;
+				patternManager.patternRunToNextState();
+			}
+			else
+			{
+				patternManager.patternWaitToStart();
+			}
 		}
 		else
 		{
-			status = PatternStateStatus.ERROR;
-			patternManager.patternError();
-			throw new RuntimeException	(""); // TODO 
+			throw new RuntimeException	("Pattern worng status (probably not go to next sate)"); 
 		}
 	}
 

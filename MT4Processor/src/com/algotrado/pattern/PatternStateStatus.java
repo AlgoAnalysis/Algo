@@ -8,5 +8,4 @@ public enum PatternStateStatus {
 	TRIGGER_BEARISH,
 	TRIGGER_NOT_SPECIFIED,
 	KILL_STATE,
-	ERROR,
 }

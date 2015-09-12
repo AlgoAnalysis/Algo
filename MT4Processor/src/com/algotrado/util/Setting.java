@@ -14,6 +14,8 @@ public class Setting {
 	
 	private static boolean printMessageInConsole = false;
 	
+	private static int brokerAnswerTimeoutMiliSec = 3000;
+	
 	public static String getDateTimeFormat(Date date) {
 		SimpleDateFormat dateformatter = new SimpleDateFormat(dateTimeFormat);
 		dateformatter.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -46,6 +48,10 @@ public class Setting {
 
 	public static void setPrintMessageInConsole(boolean printMessageInConsole) {
 		Setting.printMessageInConsole = printMessageInConsole;
+	}
+
+	public static int getBrokerAnswerTimeoutMiliSec() {
+		return brokerAnswerTimeoutMiliSec;
 	}
 	
 	

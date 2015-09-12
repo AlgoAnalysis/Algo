@@ -26,6 +26,7 @@ public abstract class IDataExtractorSubject implements Comparable<IDataExtractor
 	protected DataEventType dataEventType;
 	protected List<Double> parameters;
 	protected double pipsValue;
+	protected IDataExtractorSubject[] dataExtractorSubjectArr;
 	/** 
 	* @param assetType
 	 * @param dataEventType
@@ -81,6 +82,13 @@ public abstract class IDataExtractorSubject implements Comparable<IDataExtractor
 		this.observers.remove(observer);
 		observer.removeSubject(this);
 		if (this.observers.isEmpty()) {
+			if(dataExtractorSubjectArr != null)
+			{
+				for(int cnt = 0;cnt < dataExtractorSubjectArr.length ;cnt++)
+				{
+					dataExtractorSubjectArr[cnt].unregisterObserver((IDataExtractorObserver)this);
+				}
+			}
 			RegisterDataExtractor.removeDataExtractorSubject(dataSource, assetType, dataEventType, parameters);
 		}
 	}

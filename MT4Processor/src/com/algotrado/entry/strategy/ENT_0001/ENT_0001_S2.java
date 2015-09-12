@@ -4,20 +4,23 @@ import java.util.Date;
 
 import com.algotrado.data.event.NewUpdateData;
 import com.algotrado.data.event.SimpleUpdateData;
-import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
+import com.algotrado.entry.strategy.AEntryStrategyObserver;
 import com.algotrado.entry.strategy.EntryStrategyStateStatus;
 import com.algotrado.entry.strategy.EntryStrategyTriggerType;
 import com.algotrado.entry.strategy.IEntryStrategyLastState;
 import com.algotrado.entry.strategy.IEntryStrategyState;
-import com.algotrado.pattern.PatternManagerStatus;
+import com.algotrado.pattern.APatternState;
+import com.algotrado.pattern.IPatternLastState;
+import com.algotrado.pattern.PatternStateStatus;
+import com.algotrado.trade.PositionDirectionType;
 
 
 public class ENT_0001_S2 extends ENT_0001_MAIN implements IEntryStrategyLastState {
-	private double maxRsiLongValue;
-	private double minRsiShortValue;
-	private int maxNumOfCandlesAfterPattern;
+	public static final int ENT_0001_S2_newData_order_Quote_or_JapaneseCandle = 0;
+	public static final int ENT_0001_S2_newData_order_Rsi = 1;
+	
 	protected final Integer stateNumber = Integer.valueOf(2);
-	private PatternManagerStatus patternDirection = null;
+	private PatternStateStatus patternDirection = null;
 	private double patternHighLimit;
 	private double patternLowLimit;
 	private double triggerCandlePrice;
@@ -25,21 +28,23 @@ public class ENT_0001_S2 extends ENT_0001_MAIN implements IEntryStrategyLastStat
 	private int countCandlesIndex;
 	private Date triggerDate;
 	private EntryStrategyTriggerType entryStrategyTriggerType;
-	private SimpleUpdateData prevRSI;
+	private long rsiLastTime; 
+	protected double maxRsiLongValue;
+	protected double minRsiShortValue;
+	protected int maxNumOfCandlesAfterPattern;
 
-	public ENT_0001_S2(Object[] parameters, PatternManagerStatus patternDirection, double patternHighLimit, double patternLowLimit,
-			SimpleUpdateData prevRSI, double maxRsiLongValue, double minRsiShortValue, int maxNumOfCandlesAfterPattern) {
-		super(parameters);
-		this.patternDirection = patternDirection;
-		this.patternHighLimit = patternHighLimit;
-		this.patternLowLimit = patternLowLimit;
+	public ENT_0001_S2(Object[] parameters,APatternState patternLastState, AEntryStrategyObserver entryStrategyObserver) {
+		super(parameters,entryStrategyObserver);
+		this.patternDirection = patternLastState.getStatus();
+		this.patternHighLimit = ((IPatternLastState)patternLastState).getPatternHigh();
+		this.patternLowLimit = ((IPatternLastState)patternLastState).getPatternLow();
 		this.status = EntryStrategyStateStatus.RUN;
 		this.countCandlesIndex = 1;
-		this.entryStrategyTriggerType = EntryStrategyTriggerType.getEntryStrategyTriggerType(((Double)parameters[1]).intValue());
-		this.prevRSI = prevRSI;
-		this.maxRsiLongValue = maxRsiLongValue;
-		this.minRsiShortValue = minRsiShortValue;
-		this.maxNumOfCandlesAfterPattern = maxNumOfCandlesAfterPattern;
+		this.entryStrategyTriggerType = EntryStrategyTriggerType.getEntryStrategyTriggerType(((Double)parameters[ENT_0001_parammetrs_order_StrategyTriggerType]).intValue());
+		this.rsiLastTime = patternLastState.getTriggerTime().getTime();
+		this.maxRsiLongValue = ((Double)parameters[ENT_0001_parammetrs_order_maxRsiLongValue]);
+		this.minRsiShortValue = ((Double)parameters[ENT_0001_parammetrs_order_minRsiShortValue]);
+		this.maxNumOfCandlesAfterPattern = ((Double)parameters[ENT_0001_parammetrs_order_maxNumOfCandlesAfterPattern]).intValue();
 	}
 
 	/**
@@ -50,32 +55,39 @@ public class ENT_0001_S2 extends ENT_0001_MAIN implements IEntryStrategyLastStat
 		if (this.status == EntryStrategyStateStatus.RUN) {
 			if (countCandlesIndex > maxNumOfCandlesAfterPattern) {// We have already checked 5 candles. kill state.
 				this.status = EntryStrategyStateStatus.KILL_STATE;
+				entryStrategyObserver.entryKillState();
 			} else {
-				JapaneseCandleBar japaneseCandleBar = (JapaneseCandleBar)newData[0];
-				double candleBarBreakOutPriceLong = this.entryStrategyTriggerType.getTriggerPrice(japaneseCandleBar, true);
-				double candleBarBreakOutPriceShort = this.entryStrategyTriggerType.getTriggerPrice(japaneseCandleBar, false);
-				SimpleUpdateData simpleUpdateData = (this.entryStrategyTriggerType == EntryStrategyTriggerType.BUYING_BREAK_PRICE) ? prevRSI : ((SimpleUpdateData)newData[1]);
-				if ((candleBarBreakOutPriceLong > patternHighLimit) && 
-						(patternDirection == PatternManagerStatus.TRIGGER_BULLISH || patternDirection == PatternManagerStatus.TRIGGER_NOT_SPECIFIED) && 
-						(simpleUpdateData.getValue() < maxRsiLongValue)) {
-					triggerDate = japaneseCandleBar.getTime();
+				double currentPrice = this.entryStrategyTriggerType.getTriggerPrice(newData[ENT_0001_S2_newData_order_Quote_or_JapaneseCandle]);
+				double currentRsiValue = ((SimpleUpdateData)newData[ENT_0001_S2_newData_order_Rsi]).getValue();
+				PositionDirectionType directionType = null;
+				if ((currentPrice > patternHighLimit) && 
+						(patternDirection == PatternStateStatus.TRIGGER_BULLISH || patternDirection == PatternStateStatus.TRIGGER_NOT_SPECIFIED) && 
+						(currentRsiValue < maxRsiLongValue)) {
 					status = EntryStrategyStateStatus.TRIGGER_BULLISH;
-					triggerCandlePrice = candleBarBreakOutPriceLong;
-				} else if ((candleBarBreakOutPriceShort < patternLowLimit) &&
-						(patternDirection == PatternManagerStatus.TRIGGER_BEARISH || patternDirection == PatternManagerStatus.TRIGGER_NOT_SPECIFIED) &&
-						(simpleUpdateData.getValue() > minRsiShortValue)) {
-					triggerDate = japaneseCandleBar.getTime();
+					directionType = PositionDirectionType.LONG;
+				} else if ((currentPrice < patternLowLimit) &&
+						(patternDirection == PatternStateStatus.TRIGGER_BEARISH || patternDirection == PatternStateStatus.TRIGGER_NOT_SPECIFIED) &&
+						(currentRsiValue > minRsiShortValue)) {
 					status = EntryStrategyStateStatus.TRIGGER_BEARISH;
-					triggerCandlePrice = candleBarBreakOutPriceShort;
+					directionType = PositionDirectionType.SHORT;
 				}
-				countCandlesIndex++;
-				prevRSI = ((SimpleUpdateData)newData[1]);
+				if(status == EntryStrategyStateStatus.TRIGGER_BEARISH || status == EntryStrategyStateStatus.TRIGGER_BULLISH)
+				{
+					triggerDate = newData[ENT_0001_S2_newData_order_Quote_or_JapaneseCandle].getTime();
+					triggerCandlePrice = currentPrice;
+					entryStrategyObserver.entryTrigerr(this, directionType, patternHighLimit);
+				}
+				else if(rsiLastTime != newData[ENT_0001_S2_newData_order_Rsi].getTime().getTime())
+				{
+					countCandlesIndex++;
+					rsiLastTime = newData[ENT_0001_S2_newData_order_Rsi].getTime().getTime();
+				}
 			}
 		} else if (this.status == EntryStrategyStateStatus.TRIGGER_BEARISH || 
 				this.status == EntryStrategyStateStatus.TRIGGER_BULLISH) {
 			this.status = EntryStrategyStateStatus.KILL_STATE;
+			entryStrategyObserver.entryKillState();
 		} else {
-			this.status = EntryStrategyStateStatus.ERROR;
 			throw new RuntimeException("An error occoured trying to run ENT_0001_S2");
 		}
 	}
@@ -106,7 +118,7 @@ public class ENT_0001_S2 extends ENT_0001_MAIN implements IEntryStrategyLastStat
 	}
 
 	@Override
-	public double getBuyOrderPrice() {
+	public double getBuyOrderPrice() { // TODO - need to check way this function implement like this.
 		double patternPrice = (this.status == EntryStrategyStateStatus.TRIGGER_BULLISH) ? patternHighLimit : patternLowLimit;
 		return (this.entryStrategyTriggerType == EntryStrategyTriggerType.BUYING_CLOSE_PRICE) ? triggerCandlePrice : patternPrice;
 	}
@@ -114,6 +126,16 @@ public class ENT_0001_S2 extends ENT_0001_MAIN implements IEntryStrategyLastStat
 	@Override
 	public double getStopLossPrice() {
 		return (this.status == EntryStrategyStateStatus.TRIGGER_BEARISH) ? patternHighLimit : patternLowLimit;
+	}
+
+	@Override
+	public double getTakeProfitPrice() {
+		return 0;
+	}
+
+	@Override
+	public PositionDirectionType getPositionDirectionType() {
+		return (this.status == EntryStrategyStateStatus.TRIGGER_BEARISH) ? PositionDirectionType.SHORT : PositionDirectionType.LONG;
 	}
 
 }

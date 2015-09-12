@@ -7,5 +7,4 @@ public enum EntryStrategyStateStatus {
 	TRIGGER_BULLISH,
 	TRIGGER_BEARISH,
 	KILL_STATE,
-	ERROR;
 }

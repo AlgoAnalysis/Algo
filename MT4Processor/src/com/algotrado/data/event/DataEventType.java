@@ -203,6 +203,31 @@ public enum DataEventType {
 				DataEventType dataEventType, List<Double> parameters) {
 			return new IND_0003(dataSource, assetType, dataEventType, parameters);
 		}
+	},
+	TEST("Test")
+	{
+
+		@Override
+		public String[] getParametersStrings() {
+			return new String[0]; //  no parameters
+		}
+
+		@Override
+		public boolean checkIfTheParametersValid(List<Double> parameters,
+				boolean generteException) {
+			if(parameters != null)
+				if(parameters.size() != 0)
+					return false;
+			return true;
+		}
+
+		@Override
+		public IDataExtractorSubject getSubjectDataExtractor(
+				DataSource dataSource, AssetType assetType,
+				DataEventType dataEventType, List<Double> parameters) {
+			return null; // we not register to test
+		}
+		
 	}
 	;
 	

@@ -46,7 +46,6 @@ IDataExtractorObserver{
 	
 	
 	private final DataEventType dataEventType = DataEventType.ZIGZAG;
-	private IDataExtractorSubject dataExtractorSubject;
 	private int maxHstoryLength;
 	private double point;
 	private int depth;
@@ -77,6 +76,7 @@ IDataExtractorObserver{
 	public IND_0003(DataSource dataSource, AssetType assetType,
 			DataEventType dataEventType, List<Double> parameters) {
 		super(dataSource, assetType, dataEventType, parameters);
+		dataExtractorSubjectArr = new IDataExtractorSubject[1];
 		backstepAuxiliary = backstep+1;
 		point = assetType.getPoint();
 		maxHstoryLength = 4;
@@ -102,7 +102,7 @@ IDataExtractorObserver{
 	@Override
 	public void notifyObserver(DataEventType dataEventType,
 			List<Double> parameters) {
-		JapaneseCandleBar japaneseCandleBar = (JapaneseCandleBar) dataExtractorSubject.getNewData();
+		JapaneseCandleBar japaneseCandleBar = (JapaneseCandleBar) dataExtractorSubjectArr[0].getNewData();
 		if(bufferFull)
 		{
 			// update the buffer and the lowestBufferValue,highstBufferValue if necessary 
@@ -264,7 +264,7 @@ IDataExtractorObserver{
 
 	@Override
 	public void setSubject(IDataExtractorSubject dataExtractorSubject) {
-		this.dataExtractorSubject = dataExtractorSubject;	
+		this.dataExtractorSubjectArr[0] = dataExtractorSubject;	
 	}
 
 	@Override
@@ -310,7 +310,7 @@ IDataExtractorObserver{
 
 	@Override
 	public SubjectState getSubjectState() {
-		return dataExtractorSubject.getSubjectState();
+		return dataExtractorSubjectArr[0].getSubjectState();
 	}
 
 	public SimpleUpdateData[] getDataHistory()

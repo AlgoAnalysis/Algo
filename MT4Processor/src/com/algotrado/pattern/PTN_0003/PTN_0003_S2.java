@@ -4,12 +4,11 @@ import java.util.Date;
 
 import com.algotrado.data.event.NewUpdateData;
 import com.algotrado.data.event.basic.japanese.JapaneseCandleBar;
-import com.algotrado.pattern.IPatternLastState;
 import com.algotrado.pattern.APatternState;
+import com.algotrado.pattern.IPatternLastState;
 import com.algotrado.pattern.PatternManager;
 import com.algotrado.pattern.PatternManagerStatus;
 import com.algotrado.pattern.PatternStateStatus;
-import com.algotrado.util.DebugUtil;
 
 public class PTN_0003_S2  extends PTN_0003_Main implements IPatternLastState{
 	protected final Integer stateNumber = Integer.valueOf(2);
@@ -59,11 +58,7 @@ public class PTN_0003_S2  extends PTN_0003_Main implements IPatternLastState{
 			patternManager.patternKillState();
 		}
 		else {
-			status = PatternStateStatus.ERROR;
-			patternManager.patternError();
-			if(DebugUtil.debugPatternChecking){
-				throw new RuntimeException	("Pattern in error state");
-			}
+			throw new RuntimeException	("Pattern in error state");
 		}	
 	}
 
@@ -82,6 +77,37 @@ public class PTN_0003_S2  extends PTN_0003_Main implements IPatternLastState{
 
 	public Date getTriggerTime() {
 		return triggerTime;
+	}
+
+	@Override
+	public double getPatternHigh() {
+		return firstCandle.getHigh();
+	}
+
+	@Override
+	public double getPatternLow() {
+		return firstCandle.getLow();
+	}
+
+	@Override
+	public Date getTime() {
+		return firstCandle.getTime();
+	}
+
+	@Override
+	public String getAssetName() {
+		return firstCandle.getAssetName();
+	}
+
+	@Override
+	public String getDataHeaders() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	public Date getStartPatternTime() {
+		return firstCandle.getTime();
 	}
 
 }

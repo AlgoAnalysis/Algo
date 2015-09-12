@@ -417,6 +417,12 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 	@Override
 	public void run() {
 		subjectState = SubjectState.RUNNING;
+		try {
+			Thread.sleep(1);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		int recordDataSize = recordDataList.size();
 		for(recordDataIndex = 0;recordDataIndex <recordDataSize - 1;recordDataIndex++)
 		{
@@ -484,12 +490,6 @@ public class FileDataExtractor extends IDataExtractorSubject implements MinimalT
 	@Override
 	public SubjectState getSubjectState() {
 		return subjectState;
-	}
-
-	@Override // TODO - need to check if we need this override
-	public void unregisterObserver(IDataExtractorObserver observer) {
-		this.observers.remove(observer);
-		observer.removeSubject(this);
 	}
 
 	@Override

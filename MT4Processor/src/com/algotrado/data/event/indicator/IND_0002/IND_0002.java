@@ -42,7 +42,6 @@ public class IND_0002 extends IDataExtractorSubject implements
 	}
 	
 	private final DataEventType dataEventType = DataEventType.RSI;
-	private IDataExtractorSubject dataExtractorSubject;
 	private JapaneseCandleBarPropertyType japaneseCandleBarPropertyType;
 	private int movingIndex;
 	private int length;
@@ -59,6 +58,7 @@ public class IND_0002 extends IDataExtractorSubject implements
 	public IND_0002(DataSource dataSource, AssetType assetType,
 			DataEventType dataEventType, List<Double> parameters) {
 		super(dataSource, assetType, dataEventType, parameters);
+		dataExtractorSubjectArr = new IDataExtractorSubject[1];
 		movingIndex = 0;
 		avrGain = 0;
 		avrLoss = 0;
@@ -73,7 +73,7 @@ public class IND_0002 extends IDataExtractorSubject implements
 	@Override
 	public void notifyObserver(DataEventType dataEventType,
 			List<Double> parameters) {
-		JapaneseCandleBar japaneseCandleBar = (JapaneseCandleBar) dataExtractorSubject.getNewData();
+		JapaneseCandleBar japaneseCandleBar = (JapaneseCandleBar) dataExtractorSubjectArr[0].getNewData();
 		double inputValue = japaneseCandleBarPropertyType.getJapaneseCandleBarValue(japaneseCandleBar);
 		double rsiValue;
 		double gain = (inputValue > preValue) ? (inputValue - preValue) : 0;
@@ -105,7 +105,7 @@ public class IND_0002 extends IDataExtractorSubject implements
 
 	@Override
 	public void setSubject(IDataExtractorSubject dataExtractorSubject) {
-		this.dataExtractorSubject = dataExtractorSubject;
+		this.dataExtractorSubjectArr[0] = dataExtractorSubject;
 
 	}
 
@@ -150,7 +150,7 @@ public class IND_0002 extends IDataExtractorSubject implements
 
 	@Override
 	public SubjectState getSubjectState() {
-		return dataExtractorSubject.getSubjectState();
+		return dataExtractorSubjectArr[0].getSubjectState();
 	}
 
 }
