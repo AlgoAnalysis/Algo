@@ -15,5 +15,6 @@
 	<classpathentry kind="lib" path="forms-1.3.0.jar" sourcepath="forms-1.3.0-src.zip"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/apidemo"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/javaclient"/>
+	<classpathentry kind="lib" path="lib/log4j.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
