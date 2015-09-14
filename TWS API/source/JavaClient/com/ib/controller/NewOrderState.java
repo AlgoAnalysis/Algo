@@ -47,4 +47,17 @@ public class NewOrderState {
 		m_commissionCurrency = orderState.m_commissionCurrency;
 		m_warningText = orderState.m_warningText;
 	}
+	
+	@Override
+	public String toString () {
+		return "\ncommission = " + commission() + 
+				"\nmaxCommission = " + maxCommission() +				
+				"\nminCommission = " + minCommission() +				
+				"\nstatus = " + status() 		+		
+				"\ncommissionCurrency = " + commissionCurrency() 	+		
+				"\nequityWithLoan = " + equityWithLoan() 	+			
+				"\ninitMargin = " + initMargin() 		+			
+				"\nmaintMargin = " + maintMargin() 		+		
+				"\nwarningText = " + warningText();
+	}
 }

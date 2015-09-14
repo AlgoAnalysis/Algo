@@ -676,9 +676,11 @@ public class ApiController implements EWrapper {
 		void handle(int errorCode, String errorMsg);
 	}
 
-	public void placeOrModifyOrder(NewContract contract, final NewOrder order, final IOrderHandler handler) {
+	public int placeOrModifyOrder(NewContract contract, final NewOrder order, final IOrderHandler handler) {
 		// when placing new order, assign new order id
+		int orderId = order.orderId(); 
 		if (order.orderId() == 0) {
+			orderId = m_orderId;
 			order.orderId( m_orderId++);
 			if (handler != null) {
 				m_orderHandlers.put( order.orderId(), handler);
@@ -687,6 +689,7 @@ public class ApiController implements EWrapper {
 
 		m_client.placeOrder( contract, order);
 		sendEOM();
+		return orderId;
 	}
 
 	public void cancelOrder(int orderId) {
